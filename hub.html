@@ -21,25 +21,25 @@
             color: #555566; font-size: 0.95rem; cursor: pointer; text-align: right; position: relative;
         }
         .profile-menu:hover { color: #888899; }
+                /* =============== START BLOCK 2 =============== */
         .dropdown-content {
             display: none; background: #161622; border: 1px solid #333344; padding: 10px; border-radius: 10px;
             position: absolute; right: 0; top: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); width: 120px;
         }
         .dropdown-content a { color: #ff0055; text-decoration: none; display: block; margin: 5px 0; font-size: 0.85rem; }
-                .hub-container {
+        .hub-container {
             background: #161622; padding: 25px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
             display: inline-block; width: 90%; max-width: 450px; margin-top: 100px; text-align: center;
         }
         .welcome-back { font-size: 1.1rem; color: #bbb; margin-bottom: 20px; }
         .coin-display { font-size: 1.3rem; color: #00ffcc; font-weight: bold; margin-bottom: 25px; }
         .game-grid { display: flex; flex-direction: column; gap: 15px; }
+                /* =============== START BLOCK 3 =============== */
         .hub-card {
             background: linear-gradient(135deg, #1e1e2f, #12121f); border: 2px solid #333344; border-radius: 15px;
             padding: 20px; cursor: pointer; transition: 0.2s; text-align: left;
         }
         .hub-card:hover { border-color: #ff0055; transform: translateY(-2px); }
-        .hub-card.locked { opacity: 0.4; cursor: not-allowed; border-color: #222; }
-        .hub-card.locked:hover { transform: none; }
     </style>
 </head>
 <body>
@@ -52,6 +52,7 @@
             </div>
         </div>
     </div>
+        <!-- =============== START BLOCK 4 =============== -->
     <div class="hub-container">
         <h2 style="color:#ff0055; margin-top:0; font-size:1.8rem; text-shadow: 0 0 10px rgba(255,0,85,0.3);">SPIELE-ZENTRALE</h2>
         <div class="welcome-back">Willkommen zurück, <span id="user-display" style="color:#ffcc00; font-weight:bold;">...</span>!</div>
@@ -65,12 +66,13 @@
                 <h3 style="margin:0 0 5px 0; color:#ffcc00;">🃏 Höher oder Tiefer</h3>
                 <p style="margin:0; font-size:0.85rem; color:#aaa;">Errate die nächste Karte. Multipliziere deinen Einsatz mit jedem richtigen Tipp!</p>
             </div>
-                        <div class="hub-card locked">
-                <h3 style="margin:0 0 5px 0; color:#555;">🚢 Schiffe versenken</h3>
-                <p style="margin:0; font-size:0.85rem; color:#555;">Gesperrt. Erscheint im nächsten System-Update.</p>
+            <div class="hub-card" onclick="location.href='battleship.html'">
+                <h3 style="margin:0 0 5px 0; color:#ff0055;">🚢 Schiffe versenken</h3>
+                <p style="margin:0; font-size:0.85rem; color:#aaa;">Erkunde das Meer und berge Schätze. Weiche den Seeminen aus für maximale Multiplikatoren!</p>
             </div>
         </div>
     </div>
+        <!-- =============== START BLOCK 5 =============== -->
     <script>
         window.onload = function() {
             const currentU = localStorage.getItem('sc_username');
