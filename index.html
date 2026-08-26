@@ -110,7 +110,7 @@
         <h3 style="margin-top:0; color:#ff0055;">Einloggen oder Registrieren</h3>
         <input type="text" id="username-input" placeholder="Benutzername" required><br>
         <input type="password" id="password-input" placeholder="Passwort" required><br>
-        <button onclick="authAction()">Bestätigen</button>
+        <button id="main-auth-btn" onclick="authAction()">Bestätigen</button>
     </div>
     <div id="account-area" class="auth-container">
         <h3 style="margin-top:0; color:#ffcc00;">Passwort verwalten</h3>
@@ -163,7 +163,7 @@
         const symbols = ['🍒', '🍋', '🍇', '🔔', '💎', '🍀', '7️⃣'];
         const winRates = { '🍒': 100, '🍋': 150, '🍇': 200, '🔔': 350, '💎': 500, '🍀': 750, '7️⃣': 2500 };
         let balance = 1000; let currentStreak = 0; let topStreak = 0; let deviceId = "";
-        const secretCode =; let currentInput = []; let selectedUserForAdmin = null;
+        let selectedUserForAdmin = null;
                 window.onload = function() {
             if (!localStorage.getItem('sc_device_id')) {
                 const dId = "DEV-" + Math.random().toString(16).substring(2, 8).toUpperCase();
@@ -175,7 +175,7 @@
             let bannedDevices = JSON.parse(localStorage.getItem('sc_banned_devices') || '[]');
             let bannedUsers = JSON.parse(localStorage.getItem('sc_banned_users') || '[]');
             if (bannedDevices.includes(deviceId) || bannedUsers.includes(localStorage.getItem('sc_username'))) {
-                document.body.innerHTML = "<h1 style='color:#ff0055; margin-top:100px;'>DU WURDEST GEBANNT!</h1><p>Dein Gerät oder dein Account wurde gesperrt.</p>";
+                document.body.innerHTML = "<h1 style='color:#ff0055; margin-top:100px;'>DU WURDEST GEBANNT!</h1><p>Dein Gerät wurde gesperrt.</p>";
                 return;
             }
             let userList = JSON.parse(localStorage.getItem('sc_global_users') || '[]');
@@ -226,12 +226,8 @@
         }
         function logout() { localStorage.removeItem('sc_username'); localStorage.removeItem('sc_role'); localStorage.removeItem('sc_password'); location.reload(); }
         function clickSlot(slotNum) {
-            currentInput.push(slotNum); let match = true;
-            if (currentInput.length === secretCode.length) {
-                for (let i = 0; i < secretCode.length; i++) { if (currentInput[i] !== secretCode[i]) { match = false; } }
-                if (match) { const currentRole = localStorage.getItem('sc_role'); if (currentRole === "Owner" || currentRole === "Admin") { openAdmin(); } else { alert("Zugriff verweigert!"); } }
-                currentInput = [];
-            }
+            const currentRole = localStorage.getItem('sc_role');
+            if (currentRole === "Owner" || currentRole === "Admin") { openAdmin(); }
         }
         function openAdmin() { document.getElementById('game-area').style.display = "none"; document.getElementById('admin-area').style.display = "inline-block"; renderAdminUsers(); }
         function closeAdmin() { document.getElementById('admin-area').style.display = "none"; document.getElementById('game-area').style.display = "block"; }
