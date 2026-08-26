@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Höher oder Tiefer - Shadow Casino</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0d0d11; color: #ffffff; text-align: center; padding: 20px; margin: 0;
+        }
+        .main-header {
+            display: flex; justify-content: space-between; align-items: center; padding: 15px 20px;
+            position: absolute; top: 0; left: 0; right: 0; z-index: 100; background: rgba(13, 13, 17, 0.9);
+        }
+        .nav-logo {
+            color: #ff0055; text-shadow: 0 0 10px #ff0055; font-size: 1.6rem; font-weight: bold;
+            cursor: pointer; text-decoration: none; margin: 0;
+        }
+        .profile-menu { color: #555566; font-size: 0.95rem; cursor: pointer; }
+        .game-container {
+            background: #161622; padding: 25px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            display: inline-block; width: 90%; max-width: 400px; margin-top: 100px; text-align: center;
+        }
+        .card-display {
+            background: #05050a; width: 120px; height: 170px; line-height: 170px; font-size: 4rem;
+            border-radius: 15px; border: 3px solid #ff0055; box-shadow: 0 0 20px rgba(255, 0, 85, 0.2);
+            margin: 20px auto; font-weight: bold; transition: transform 0.2s;
+        }
+              .btn-group { display: flex; gap: 15px; justify-content: center; margin-top: 20px; }
+        button {
+            background: linear-gradient(135deg, #ff0055, #bc003f); color: white; border: none; padding: 12px 25px;
+            font-size: 1.1rem; font-weight: bold; border-radius: 50px; cursor: pointer; box-shadow: 0 5px 15px rgba(255, 0, 85, 0.4);
+        }
+        button:disabled { background: #444; box-shadow: none; cursor: not-allowed; }
+        .cashout-btn { background: linear-gradient(135deg, #00ffcc, #00b38f); color: #0d0d11; box-shadow: none; }
+        input {
+            width: 60%; padding: 10px; margin: 10px 0; border-radius: 10px; border: 1px solid #333344;
+            background: #05050a; color: white; text-align: center; font-size: 1rem;
+        }
+        .status-text { font-size: 1.1rem; color: #ffcc00; font-weight: bold; margin-top: 15px; height: 25px; }
+        .win-multiplier { color: #00ffcc; font-weight: bold; font-size: 1.2rem; }
+    </style>
+</head>
+<body>
+    <div class="main-header">
+        <div class="nav-logo" onclick="location.href='hub.html'">SHADOW CASINO</div>
+        <div class="profile-menu"><span id="menu-username">...</span></div>
+    </div>
+    <div class="game-container">
+        <h2 style="color:#ff0055; margin-top:0;">🃏 Höher oder Tiefer</h2>
+        <p style="color:#888; font-size:0.9rem; margin-bottom:5px;">Errate, ob die nächste Karte höher oder tiefer ist!</p>
+        <div style="font-size: 0.95rem; color: #aaa; margin-bottom: 15px;">Kontostand: <span id="coins-display" style="color:#00ffcc; font-weight:bold;">0</span> $</div>
+        
+        <div id="setup-area">
+            <input type="number" id="bet-input" placeholder="Einsatz in $" value="50"><br>
+            <button onclick="startGame()">Spiel starten</button>
+        </div>
+                <div id="play-area" style="display: none;">
+            <div style="font-size:0.9rem; color:#aaa;">Aktueller Gewinn: <span id="potential-win" style="color:#00ffcc; font-weight:bold;">0</span> $ (<span class="win-multiplier" id="mult-display">1.0x</span>)</div>
+            <div style="font-size:0.85rem; color:#888; margin-top:5px;">Richtige Tipps in Folge: <span id="streak-display" style="color:#ffcc00; font-weight:bold;">0</span> 🔥</div>
+            <div class="card-display" id="card-box">?</div>
+            <div class="btn-group">
+                <button onclick="guess('higher')">⬆️ Höher</button>
+                <button onclick="guess('lower')">⬇️ Tiefer</button>
+            </div>
+            <div class="btn-group" style="margin-top: 15px;">
+                <button class="cashout-btn" onclick="cashout()">💵 Sichern & Auszahlen</button>
+            </div>
+        </div>
+        <div class="status-text" id="status-box">Trage deinen Einsatz ein!</div>
+    </div>
+    <script>
+        const cards =;
+        const cardNames = { 11: 'J', 12: 'Q', 13: 'K', 14: 'A' };
+        let currentCard = 0; let bet = 0; let currentMultiplier = 1.0; let streak = 0; let currentU = ""; let audioCtx = null;
+
+        function playSound(type) {
+            try {
+                if (!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+                let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain(); osc.connect(gain); gain.connect(audioCtx.destination);
+                if (type === 'win') { osc.type = 'square'; osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.1); gain.gain.setValueAtTime(0.1, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25); osc.start(); osc.stop(audioCtx.currentTime + 0.25); } 
+                else if (type === 'lose') { osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, audioCtx.currentTime); osc.frequency.linearRampToValueAtTime(70, audioCtx.currentTime + 0.3); gain.gain.setValueAtTime(0.15, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3); osc.start(); osc.stop(audioCtx.currentTime + 0.3); }
+                else if (type === 'cash') { osc.type = 'sine'; osc.frequency.setValueAtTime(880, audioCtx.currentTime); osc.frequency.setValueAtTime(1318.51, audioCtx.currentTime + 0.08); gain.gain.setValueAtTime(0.1, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3); osc.start(); osc.stop(audioCtx.currentTime + 0.3); }
+            } catch(e) {}
+        }
+
+        window.onload = function() {
+            currentU = localStorage.getItem('sc_username');
+            if (!currentU) { location.href = 'index.html'; return; }
+            document.getElementById('menu-username').innerText = currentU;
+            updateBalanceDisplay();
+        };
+
+        function updateBalanceDisplay() {
+            let coins = localStorage.getItem('sc_balance_' + currentU) || 1000;
+            document.getElementById('coins-display').innerText = coins;
+        }
+
+        function startGame() {
+            bet = parseInt(document.getElementById('bet-input').value);
+            let coins = parseInt(localStorage.getItem('sc_balance_' + currentU) || 1000);
+            if (isNaN(bet) || bet <= 0 || bet > coins) { alert("Ungültiger Einsatz!"); return; }
+            
+            coins -= bet; localStorage.setItem('sc_balance_' + currentU, coins); updateBalanceDisplay();
+            
+            streak = 0; currentMultiplier = 1.0; currentCard = cards[Math.floor(Math.random() * cards.length)];
+            
+            document.getElementById('setup-area').style.display = "none";
+            document.getElementById('play-area').style.display = "block";
+            displayCard(currentCard);
+            document.getElementById('status-box').innerText = "Wird die nächste Karte höher oder tiefer?";
+            updateGameStats();
+        }
+
+        function displayCard(val) {
+            let name = cardNames[val] || val;
+            document.getElementById('card-box').innerText = name;
+        }
+
+        function updateGameStats() {
+            document.getElementById('streak-display').innerText = streak;
+            document.getElementById('mult-display').innerText = currentMultiplier.toFixed(2) + "x";
+            document.getElementById('potential-win').innerText = Math.floor(bet * currentMultiplier);
+        }
+
+        function guess(direction) {
+            let nextCard = cards[Math.floor(Math.random() * cards.length)];
+            let box = document.getElementById('card-box');
+            box.style.transform = "scale(0.8)";
+            
+            setTimeout(() => {
+                displayCard(nextCard);
+                box.style.transform = "scale(1)";
+                let win = false;
+                
+                if (nextCard === currentCard) { win = true; } // Gleichstand zählt als Joker/Gewinn
+                else if (direction === 'higher' && nextCard > currentCard) { win = true; }
+                else if (direction === 'lower' && nextCard < currentCard) { win = true; }
+                
+                if (win) {
+                    playSound('win'); streak++;
+                    // Multiplikator steigt mit jedem richtigen Tipp leicht an
+                    currentMultiplier += 0.25 + (streak * 0.05);
+                    document.getElementById('status-box').style.color = "#00ffcc";
+                    document.getElementById('status-box').innerText = "Richtig! Der Multiplikator steigt.";
+                    currentCard = nextCard;
+                    updateGameStats();
+                } else {
+                    playSound('lose');
+                    document.getElementById('status-box').style.color = "#ff0055";
+                    document.getElementById('status-box').innerText = `Falsch! Die Karte war ${cardNames[nextCard] || nextCard}. Einsatz verloren.`;
+                    setTimeout(resetGame, 2000);
+                }
+            }, 200);
+        }
+
+        function cashout() {
+            let coins = parseInt(localStorage.getItem('sc_balance_' + currentU) || 1000);
+            let totalWin = Math.floor(bet * currentMultiplier);
+            coins += totalWin; localStorage.setItem('sc_balance_' + currentU, coins);
+            playSound('cash');
+            alert(`Erfolgreich ${totalWin}$ gesichert!`);
+            resetGame();
+        }
+
+        function resetGame() {
+            updateBalanceDisplay();
+            document.getElementById('setup-area').style.display = "block";
+            document.getElementById('play-area').style.display = "none";
+            document.getElementById('status-box').style.color = "#ffcc00";
+            document.getElementById('status-box').innerText = "Trage deinen Einsatz ein!";
+            // Übermittelt den Streak-Rekord ans Hauptsystem für das Admin-Panel
+            let top = parseInt(localStorage.getItem('sc_top_streak_' + currentU) || 0);
+            if (streak > top) { localStorage.setItem('sc_top_streak_' + currentU, streak); }
+        }
+    </script>
+</body>
+</html>
