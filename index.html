@@ -125,7 +125,7 @@
             <p><strong>Gerät/Modell:</strong> <span id="det-id"></span></p>
             <p><strong>IP-Adresse:</strong> <span id="det-ip"></span></p>
             <p><strong>Browser:</strong> <span id="det-browser"></span></p>
-            <p><strong>OS & Version:</strong> <span id="det-os"></span></p>
+            <p><strong>Betriebssystem:</strong> <span id="det-os"></span></p>
             <p><strong>Coins Kontostand:</strong> <span id="det-coins" style="color:#00ffcc; font-weight:bold;"></span> $</p>
             <p><strong>Status:</strong> <span id="det-status"></span></p>
             <div id="edit-actions-area" style="display:none; background:#0d0d11; padding:10px; border-radius:10px; margin-bottom:15px; border:1px solid #333;">
@@ -136,7 +136,7 @@
             <button id="btn-edit-mode" onclick="toggleEditMode()" style="background:#ffcc00; color:black; font-size:0.9rem; padding:8px 15px;">Bearbeiten</button>
             <button id="btn-toggle-admin" onclick="adminToggleRank()" style="background:#00ffcc; color:#0d0d11; font-size:0.9rem; padding:8px 15px; margin-left:5px;"></button>
             <button id="btn-ban-user" onclick="adminBanUser()" style="background:#ff0055; font-size:0.9rem; padding:8px 15px; margin-left:5px;">User bannen</button>
-            <button id="btn-ban-device" onclick="adminBanDevice()" style="background:#ff5500; font-size:0.9rem; padding:8px 15px; margin-left:5px;">Gerät bannen</button>
+            <button id="btn-ban-device" onclick="adminBanDevice()" style="background:#ff5500; font-size:0.9rem; padding:8px 15px; margin-left:10px;">Gerät bannen</button>
             <button id="btn-unban-actions" onclick="adminUnbanAll()" style="background:#00ffcc; color:black; font-size:0.9rem; padding:8px 15px; display:none;">Vollständig Entbannen</button>
         </div>
         <br><center><button style="background:#444; font-size:0.9rem; padding:8px 20px;" onclick="closeAdmin()">Casino öffnen</button></center>
@@ -151,14 +151,14 @@
         window.onload = async function() {
             try { const res = await fetch('https://ipify.org'); const data = await res.json(); userIP = data.ip; } catch(e) { userIP = "127.0.0.1"; }
             if (!localStorage.getItem('sc_device_name')) {
-                let model = "Xiaomi Redmi"; let osVer = "14";
+                let model = "Xiaomi Redmi"; let osVersion = "Android 14 (HyperOS)";
                 if(navigator.userAgent.includes("Android")) {
                     const match = navigator.userAgent.match(/Android\s([0-9\.]+)/);
-                    if (match) { osVer = match[1]; }
+                    if (match) { osVersion = "Android " + match[1] + " (HyperOS)"; }
                     model = (navigator.hardwareConcurrency >= 8 ? "Redmi 14C High" : "Redmi 14C Base");
-                } else { model = "PC / Desktop"; osVer = "Windows/Linux"; }
-                localStorage.setItem('sc_device_name', model); localStorage.setItem('sc_os_ver', osVer);
-                localStorage.setItem('sc_browser', "Chrome Mobile"); localStorage.setItem('sc_ip', userIP);
+                } else { model = "PC / Desktop"; osVersion = navigator.userAgent.includes("Windows") ? "Windows PC" : "Anderes OS"; }
+                localStorage.setItem('sc_device_name', model); localStorage.setItem('sc_browser', "Chrome Mobile");
+                localStorage.setItem('sc_os', osVersion); localStorage.setItem('sc_ip', userIP);
             }
             deviceName = localStorage.getItem('sc_device_name');
             let bannedDevices = JSON.parse(localStorage.getItem('sc_banned_devices') || '[]');
@@ -167,7 +167,7 @@
             if (localStorage.getItem('sc_username') && bannedUsers.includes(localStorage.getItem('sc_username'))) { logout(); return; }
             let userList = JSON.parse(localStorage.getItem('sc_global_users') || '[]');
             if (!userList.some(u => u.username === "Shadow")) {
-                userList.push({ id: "OWNER-PHONE", username: "Shadow", pass: "shadow-admin", browser: "System-App", osVer: "HyperOS", ip: "127.0.0.1", role: "Owner" });
+                userList.push({ id: "OWNER-PHONE", username: "Shadow", pass: "shadow-admin", browser: "Chrome Custom", os: "HyperOS / System", ip: "127.0.0.1", role: "Owner" });
                 localStorage.setItem('sc_global_users', JSON.stringify(userList));
             }
             if (localStorage.getItem('sc_username')) { showGameArea(); }
@@ -185,7 +185,7 @@
                 if (foundUser.pass === pass) { loginSuccess(foundUser.username, foundUser.role || "User", foundUser.pass); } else { alert("Falsches Passwort!"); }
             } else {
                 if (user.toLowerCase() === "shadow") { alert("Name reserviert!"); return; }
-                userList.push({ id: deviceName, username: user, pass: pass, browser: localStorage.getItem('sc_browser'), osVer: localStorage.getItem('sc_os_ver'), ip: userIP, role: "User" });
+                userList.push({ id: deviceName, username: user, pass: pass, browser: localStorage.getItem('sc_browser'), os: localStorage.getItem('sc_os'), ip: userIP, role: "User" });
                 localStorage.setItem('sc_global_users', JSON.stringify(userList)); loginSuccess(user, "User", pass);
             }
         }
@@ -202,8 +202,7 @@
         /* =============== ENDE BLOCK 8 / HIER BLOCK 9 ANFÜGEN =============== */
                 /* =============== START BLOCK 9 =============== */
         function changePassword() {
-            const newP = document.getElementById('new-password-input').value.trim(); if(!newP) return; const currentU = localStorage.getItem('sc_username'); 
-            let userList = JSON.parse(localStorage.getItem('sc_global_users') || '[]');
+            const newP = document.getElementById('new-password-input').value.trim(); if(!newP) return; const currentU = localStorage.getItem('sc_username'); let userList = JSON.parse(localStorage.getItem('sc_global_users') || '[]');
             let idx = userList.findIndex(u => u.username === currentU); if(idx !== -1) { userList[idx].pass = newP; localStorage.setItem('sc_global_users', JSON.stringify(userList)); localStorage.setItem('sc_password', newP); alert("Passwort geändert!"); closeAccountPage(); }
         }
         function logout() { localStorage.removeItem('sc_username'); localStorage.removeItem('sc_role'); localStorage.removeItem('sc_password'); location.reload(); }
@@ -225,7 +224,7 @@
             const users = JSON.parse(localStorage.getItem('sc_global_users') || '[]'); const u = users.find(user => user.username === username); selectedUserForAdmin = u;
             let bannedUsers = JSON.parse(localStorage.getItem('sc_banned_users') || '[]'); let bannedDevices = JSON.parse(localStorage.getItem('sc_banned_devices') || '[]'); let isBanned = bannedUsers.includes(u.username) || bannedDevices.includes(u.id);
             document.getElementById('det-username').innerText = u.username; document.getElementById('det-id').innerText = u.id; document.getElementById('det-ip').innerText = u.ip || "127.0.0.1";
-            document.getElementById('det-browser').innerText = u.browser; document.getElementById('det-os').innerText = "Android " + (u.osVer || "14") + " (HyperOS)"; document.getElementById('det-coins').innerText = localStorage.getItem('sc_balance_' + u.username) || 1000; document.getElementById('det-status').innerText = u.role || "User";
+            document.getElementById('det-browser').innerText = u.browser || "Chrome Mobile"; document.getElementById('det-os').innerText = u.os || "Android 14"; document.getElementById('det-coins').innerText = localStorage.getItem('sc_balance_' + u.username) || 1000; document.getElementById('det-status').innerText = u.role || "User";
             document.getElementById('edit-actions-area').style.display = "none";
             const btnRank = document.getElementById('btn-toggle-admin'); const btnBanU = document.getElementById('btn-ban-user'); const btnBanD = document.getElementById('btn-ban-device'); const btnUnban = document.getElementById('btn-unban-actions');
             if (u.role === "Owner" || isBanned) { btnRank.style.display = "none"; btnBanU.style.display = "none"; btnBanD.style.display = "none"; if(isBanned){btnUnban.style.display="inline-block";}else{btnUnban.style.display="none";} } 
@@ -235,7 +234,7 @@
         function toggleEditMode() { const area = document.getElementById('edit-actions-area'); area.style.display = area.style.display === "block" ? "none" : "block"; }
         function adminSaveCoins() { const val = parseInt(document.getElementById('edit-coins-input').value); if(isNaN(val)) return; localStorage.setItem('sc_balance_' + selectedUserForAdmin.username, val); alert("Coins aktualisiert!"); showUserDetails(selectedUserForAdmin.username); switchAdminTab('active'); }
         /* =============== ENDE BLOCK 9 / HIER BLOCK 10 ANFÜGEN =============== */
-               /* =============== START BLOCK 10 =============== */
+                /* =============== START BLOCK 10 =============== */
         function adminToggleRank() { let userList = JSON.parse(localStorage.getItem('sc_global_users') || '[]'); let idx = userList.findIndex(u => u.username === selectedUserForAdmin.username); if(idx !== -1) { userList[idx].role = userList[idx].role === "Admin" ? "User" : "Admin"; localStorage.setItem('sc_global_users', JSON.stringify(userList)); switchAdminTab('active'); showUserDetails(selectedUserForAdmin.username); } }
         function adminBanUser() { let bannedUsers = JSON.parse(localStorage.getItem('sc_banned_users') || '[]'); bannedUsers.push(selectedUserForAdmin.username); localStorage.setItem('sc_banned_users', JSON.stringify(bannedUsers)); alert("User gesperrt!"); switchAdminTab('active'); document.getElementById('user-details-box').style.display = "none"; }
         function adminBanDevice() { let bannedDevices = JSON.parse(localStorage.getItem('sc_banned_devices') || '[]'); bannedDevices.push(selectedUserForAdmin.id); localStorage.setItem('sc_banned_devices', JSON.stringify(bannedDevices)); alert("Gerät gesperrt!"); switchAdminTab('active'); document.getElementById('user-details-box').style.display = "none"; }
@@ -259,4 +258,3 @@
     </script>
 </body>
 </html>
-
