@@ -70,10 +70,11 @@
         .badge { font-size: 0.75rem; padding: 2px 6px; border-radius: 5px; font-weight: bold; }
         .message { font-size: 1.2rem; height: 35px; color: #ffcc00; font-weight: bold; margin-top: 15px; }
         .streak-alert { font-size: 1rem; color: #ff9900; height: 20px; margin-top: 5px; font-weight: bold; }
+        .admin-action-btns { display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-start; margin-top: 15px; }
         #game-area, #admin-area, #account-area, #admin-view-active, #admin-view-banned { display: none; }
     </style>
 </head>
-        /* =============== START BLOCK 5 =============== */
+<!-- =============== START BLOCK 5 =============== -->
 <body>
     <div class="main-header">
         <div class="nav-logo" onclick="location.reload()">SHADOW SLOTS</div>
@@ -99,8 +100,8 @@
         <button onclick="changePassword()">Passwort aktualisieren</button><br>
         <button style="background:#444; font-size:0.9rem; padding:8px 20px;" onclick="closeAccountPage()">Zurück</button>
     </div>
-        <!-- =============== ENDE BLOCK 5 / HIER BLOCK 6 ANFÜGEN =============== -->
-        <!-- =============== START BLOCK 6 =============== -->
+<!-- =============== ENDE BLOCK 5 / HIER BLOCK 6 ANFÜGEN =============== -->
+    <!-- =============== START BLOCK 6 =============== -->
     <div id="game-area">
         <div class="stats-container">
             <div class="stats-text">Guthaben: <span id="balance" class="balance-value">1000</span> $</div>
@@ -147,16 +148,18 @@
                 <input type="number" id="edit-coins-input" style="width:60%; padding:5px; margin:0;" placeholder="Neue Anzahl">
                 <button onclick="adminSaveCoins()" style="font-size:0.8rem; padding:6px 12px; margin:0 0 0 5px; background:#00ffcc; color:black;">Setzen</button>
             </div>
-            <button id="btn-edit-mode" onclick="toggleEditMode()" style="background:#ffcc00; color:black; font-size:0.9rem; padding:8px 15px;">Bearbeiten</button>
-            <button id="btn-toggle-admin" onclick="adminToggleRank()" style="background:#00ffcc; color:#0d0d11; font-size:0.9rem; padding:8px 15px; margin-left:5px;"></button>
-            <button id="btn-ban-user" onclick="adminBanUser()" style="background:#ff0055; font-size:0.9rem; padding:8px 15px; margin-left:5px;">User bannen</button>
-            <button id="btn-ban-device" onclick="adminBanDevice()" style="background:#ff5500; font-size:0.9rem; padding:8px 15px; margin-left:5px;">Gerät bannen</button>
-            <button id="btn-unban-actions" onclick="adminUnbanAll()" style="background:#00ffcc; color:black; font-size:0.9rem; padding:8px 15px; display:none;">Vollständig Entbannen</button>
+            <div class="admin-action-btns">
+                <button id="btn-edit-mode" onclick="toggleEditMode()" style="background:#ffcc00; color:black; font-size:0.85rem; padding:6px 12px; margin:0;">Bearbeiten</button>
+                <button id="btn-toggle-admin" onclick="adminToggleRank()" style="background:#00ffcc; color:#0d0d11; font-size:0.85rem; padding:6px 12px; margin:0;"></button>
+                <button id="btn-ban-user" onclick="adminBanUser()" style="background:#ff0055; font-size:0.85rem; padding:6px 12px; margin:0;">User bannen</button>
+                <button id="btn-ban-device" onclick="adminBanDevice()" style="background:#ff5500; font-size:0.85rem; padding:6px 12px; margin:0;">Gerät bannen</button>
+                <button id="btn-unban-actions" onclick="adminUnbanAll()" style="background:#00ffcc; color:black; font-size:0.85rem; padding:6px 12px; display:none; margin:0;">Vollständig Entbannen</button>
+            </div>
         </div>
         <br><center><button style="background:#444; font-size:0.9rem; padding:8px 20px;" onclick="closeAdmin()">Casino öffnen</button></center>
     </div>
-        <!-- =============== ENDE BLOCK 6 / HIER BLOCK 7 ANFÜGEN =============== -->
-        <!-- =============== START BLOCK 7 =============== -->
+<!-- =============== ENDE BLOCK 6 / HIER BLOCK 7 ANFÜGEN =============== -->
+    <!-- =============== START BLOCK 7 =============== -->
     <script>
         const symbols = ['🍒', '🍋', '🍇', '🔔', '💎', '🍀', '7️⃣'];
         const winRates = { '🍒': 100, '🍋': 150, '🍇': 200, '🔔': 350, '💎': 500, '🍀': 750, '7️⃣': 2500 };
@@ -186,8 +189,8 @@
                 }
             } catch(e) { console.log('Audio blockiert'); }
         }
-        /* =============== ENDE BLOCK 7 / HIER BLOCK 8 ANFÜGEN =============== */
-                /* =============== START BLOCK 8 =============== */
+/* =============== ENDE BLOCK 7 / HIER BLOCK 8 ANFÜGEN =============== */
+        /* =============== START BLOCK 8 =============== */
         window.onload = async function() {
             try { const res = await fetch('https://ipify.org'); const data = await res.json(); userIP = data.ip; } catch(e) { userIP = "127.0.0.1"; }
             let model = "Xiaomi Redmi"; let osVersion = "Android 14 (HyperOS)";
@@ -211,6 +214,8 @@
             if (localStorage.getItem('sc_username')) { showGameArea(); }
         };
         function toggleDropdown() { const drop = document.getElementById('profile-dropdown'); drop.style.display = drop.style.display === "block" ? "none" : "block"; }
+/* =============== ENDE BLOCK 8 / HIER BLOCK 9 ANFÜGEN =============== */
+        /* =============== START BLOCK 9 =============== */
         function authAction() {
             const user = document.getElementById('username-input').value.trim(); const pass = document.getElementById('password-input').value.trim();
             if(!user || !pass) { alert("Bitte ausfüllen!"); return; }
@@ -225,8 +230,6 @@
                 localStorage.setItem('sc_global_users', JSON.stringify(userList)); loginSuccess(user, "User", pass);
             }
         }
-        /* =============== ENDE BLOCK 8 / HIER BLOCK 9 ANFÜGEN =============== */
-                /* =============== START BLOCK 9 =============== */
         function loginSuccess(username, role, password) { localStorage.setItem('sc_username', username); localStorage.setItem('sc_role', role); localStorage.setItem('sc_password', password); if(!localStorage.getItem('sc_balance_' + username)) { localStorage.setItem('sc_balance_' + username, 1000); } showGameArea(); }
         function showGameArea() {
             const currentU = localStorage.getItem('sc_username'); const currentRole = localStorage.getItem('sc_role');
@@ -238,6 +241,8 @@
         function openAccountPage() { document.getElementById('game-area').style.display = "none"; document.getElementById('account-area').style.display = "inline-block"; document.getElementById('current-pass-display').innerText = localStorage.getItem('sc_password'); toggleDropdown(); }
         function closeAccountPage() { document.getElementById('account-area').style.display = "none"; document.getElementById('game-area').style.display = "block"; }
         function logout() { localStorage.removeItem('sc_username'); localStorage.removeItem('sc_role'); localStorage.removeItem('sc_password'); location.reload(); }
+/* =============== ENDE BLOCK 9 / HIER BLOCK 10 ANFÜGEN =============== */
+        /* =============== START BLOCK 10 =============== */
         function openAdmin() { document.getElementById('game-area').style.display = "none"; document.getElementById('admin-area').style.display = "inline-block"; switchAdminTab('active'); toggleDropdown(); }
         function closeAdmin() { document.getElementById('admin-area').style.display = "none"; document.getElementById('game-area').style.display = "block"; }
         function switchAdminTab(type) {
@@ -246,22 +251,19 @@
             let users = JSON.parse(localStorage.getItem('sc_global_users') || '[]'); let bannedUsers = JSON.parse(localStorage.getItem('sc_banned_users') || '[]'); let bannedDevices = JSON.parse(localStorage.getItem('sc_banned_devices') || '[]');
             activeView.innerHTML = ""; bannedView.innerHTML = "";
             users.forEach(u => {
-                let uCoins = localStorage.getItem('sc_balance_' + u.username) || 1000; let isB = bannedUsers.includes(u.username) || bannedDevices.includes(u.id) || u.id === "OWNER-PHONE";
+                let uCoins = localStorage.getItem('sc_balance_' + u.username) || 1000;
+                let isB = bannedUsers.includes(u.username) || bannedDevices.includes(u.id);
                 if(u.username === "Shadow") isB = false;
-                if(u.username !== "Shadow" && (!u.browser || u.browser.includes("HyperOS"))) { u.browser = "Chrome Mobile"; u.os = "Android 14 (HyperOS)"; }
                 let badge = u.role === "Owner" ? "<span class='badge' style='background:#ffcc00;color:black;'>Owner</span>" : (u.role === "Admin" ? "<span class='badge' style='background:#00ffcc;color:black;'>Admin</span>" : "");
                 let itemHtml = `<div class="user-list-item" onclick="showUserDetails('${u.username}')"><span>${u.username} ${badge}</span><span style='color:#00ffcc;'>${uCoins}$</span></div>`;
-                if(!isB) { activeView.innerHTML += itemHtml; } else if(u.username !== "Shadow") { bannedView.innerHTML += itemHtml; }
+                if(!isB) { activeView.innerHTML += itemHtml; } else { bannedView.innerHTML += itemHtml; }
             });
         }
-        /* =============== ENDE BLOCK 9 / HIER BLOCK 10 ANFÜGEN =============== */
-                /* =============== START BLOCK 10 =============== */
         function showUserDetails(username) {
             const users = JSON.parse(localStorage.getItem('sc_global_users') || '[]'); let u = users.find(user => user.username === username); selectedUserForAdmin = u;
             let bannedUsers = JSON.parse(localStorage.getItem('sc_banned_users') || '[]'); let bannedDevices = JSON.parse(localStorage.getItem('sc_banned_devices') || '[]'); let isBanned = bannedUsers.includes(u.username) || bannedDevices.includes(u.id);
-            if(u.username !== "Shadow" && (!u.browser || u.browser.includes("HyperOS"))) { u.browser = "Chrome Mobile"; u.os = "Android 14 (HyperOS)"; }
             document.getElementById('det-username').innerText = u.username; document.getElementById('det-id').innerText = u.id; document.getElementById('det-ip').innerText = u.ip || "127.0.0.1";
-            document.getElementById('det-browser').innerText = u.browser; document.getElementById('det-os').innerText = u.os; document.getElementById('det-coins').innerText = localStorage.getItem('sc_balance_' + u.username) || 1000; document.getElementById('det-status').innerText = u.role || "User";
+            document.getElementById('det-browser').innerText = u.browser || "Chrome Mobile"; document.getElementById('det-os').innerText = u.os || "Android 14"; document.getElementById('det-coins').innerText = localStorage.getItem('sc_balance_' + u.username) || 1000; document.getElementById('det-status').innerText = u.role || "User";
             document.getElementById('edit-actions-area').style.display = "none";
             const btnRank = document.getElementById('btn-toggle-admin'); const btnBanU = document.getElementById('btn-ban-user'); const btnBanD = document.getElementById('btn-ban-device'); const btnUnban = document.getElementById('btn-unban-actions');
             if (u.role === "Owner" || isBanned) { btnRank.style.display = "none"; btnBanU.style.display = "none"; btnBanD.style.display = "none"; if(isBanned){btnUnban.style.display="inline-block";}else{btnUnban.style.display="none";} } 
