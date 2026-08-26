@@ -62,7 +62,7 @@
 <body>
     <div class="main-header">
         <div class="nav-logo" onclick="location.href='hub.html'">SHADOW CASINO</div>
-        <div class="profile-section" class="profile-menu">
+        <div class="profile-menu">
             <span onclick="toggleDropdown()" id="menu-username">Benutzer</span>
             <div id="profile-dropdown" class="dropdown-content">
                 <a href="admin.html" id="admin-panel-link" style="display:none; font-weight:bold; color:#00ffcc;">⚙️ Admin Panel</a>
@@ -136,10 +136,41 @@
         function changePassword() { const newP = document.getElementById('new-password-input').value.trim(); if(!newP) return; let userList = JSON.parse(localStorage.getItem('sc_global_users') || '[]'); let idx = userList.findIndex(u => u.username === currentU); if(idx !== -1) { userList[idx].pass = newP; localStorage.setItem('sc_global_users', JSON.stringify(userList)); localStorage.setItem('sc_password', newP); alert("Passwort geändert!"); closeAccountPage(); } }
         /* =============== ENDE BLOCK 8 / HIER BLOCK 9 ANFÜGEN =============== */
                 /* =============== START BLOCK 9 =============== */
-        function startGame() { bet = parseInt(document.getElementById('bet-input').value); let coins = parseInt(localStorage.getItem('sc_balance_' + currentU) || 1000); if (isNaN(bet) || bet <= 0 || bet > coins) { alert("Ungültiger Einsatz!"); return; } coins -= bet; localStorage.setItem('sc_balance_' + currentU, coins); updateBalanceDisplay(); streak = 0; currentMultiplier = 1.0; currentCard = cards[Math.floor(Math.random() * cards.length)]; document.getElementById('setup-area').style.display = "none"; document.getElementById('play-area').style.display = "block"; displayCard(currentCard); document.getElementById('status-box').innerText = "Wird die nächste Karte höher oder tiefer?"; updateGameStats(); }
+        function startGame() {
+            bet = parseInt(document.getElementById('bet-input').value);
+            let coins = parseInt(localStorage.getItem('sc_balance_' + currentU) || 1000);
+            if (isNaN(bet) || bet <= 0 || bet > coins) { alert("Ungültiger Einsatz!"); return; }
+            coins -= bet; localStorage.setItem('sc_balance_' + currentU, coins); updateBalanceDisplay();
+            streak = 0; currentMultiplier = 1.0;
+            currentCard = cards[Math.floor(Math.random() * cards.length)];
+            document.getElementById('setup-area').style.display = "none";
+            document.getElementById('play-area').style.display = "block";
+            displayCard(currentCard);
+            document.getElementById('status-box').innerText = "Wird die nächste Karte höher oder tiefer?";
+            updateGameStats();
+        }
         function displayCard(val) { let name = cardNames[val] || val; document.getElementById('card-box').innerText = name; }
         function updateGameStats() { document.getElementById('streak-display').innerText = streak; document.getElementById('mult-display').innerText = currentMultiplier.toFixed(2) + "x"; document.getElementById('potential-win').innerText = Math.floor(bet * currentMultiplier); }
-        function guess(direction) { let nextCard = cards[Math.floor(Math.random() * cards.length)]; let box = document.getElementById('card-box'); box.style.transform = "scale(0.8)"; setTimeout(() => { displayCard(nextCard); box.style.transform = "scale(1)"; let win = false; if (nextCard === currentCard) { win = true; } else if (direction === 'higher' && nextCard > currentCard) { win = true; } else if (direction === 'lower' && nextCard < currentCard) { win = true; } if (win) { playSound('win'); streak++; currentMultiplier += 0.25 + (streak * 0.05); document.getElementById('status-box').style.color = "#00ffcc"; document.getElementById('status-box').innerText = "Richtig! Der Multiplikator steigt."; currentCard = nextCard; updateGameStats(); } else { playSound('lose'); document.getElementById('status-box').style.color = "#ff0055"; document.getElementById('status-box').innerText = `Falsch! Die Karte war ${cardNames[nextCard] || nextCard}.`; setTimeout(resetGame, 2000); } }, 200); }
+        function guess(direction) {
+            let nextCard = cards[Math.floor(Math.random() * cards.length)];
+            let box = document.getElementById('card-box'); box.style.transform = "scale(0.8)";
+            setTimeout(() => {
+                displayCard(nextCard); box.style.transform = "scale(1)"; let win = false;
+                if (nextCard === currentCard) { win = true; }
+                else if (direction === 'higher' && nextCard > currentCard) { win = true; }
+                else if (direction === 'lower' && nextCard < currentCard) { win = true; }
+                if (win) {
+                    playSound('win'); streak++; currentMultiplier += 0.25 + (streak * 0.05);
+                    document.getElementById('status-box').style.color = "#00ffcc";
+                    document.getElementById('status-box').innerText = "Richtig! Der Multiplikator steigt.";
+                    currentCard = nextCard; updateGameStats();
+                } else {
+                    playSound('lose'); document.getElementById('status-box').style.color = "#ff0055";
+                    document.getElementById('status-box').innerText = `Falsch! Die Karte war ${cardNames[nextCard] || nextCard}.`;
+                    setTimeout(resetGame, 2000);
+                }
+            }, 200);
+        }
         /* =============== ENDE BLOCK 9 / HIER BLOCK 10 ANFÜGEN =============== */
                 /* =============== START BLOCK 10 =============== */
         function cashout() { let coins = parseInt(localStorage.getItem('sc_balance_' + currentU) || 1000); let totalWin = Math.floor(bet * currentMultiplier); coins += totalWin; localStorage.setItem('sc_balance_' + currentU, coins); playSound('cash'); alert(`Erfolgreich ${totalWin}$ gesichert!`); resetGame(); }
