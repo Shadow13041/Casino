@@ -30,12 +30,13 @@
             background: #161622; padding: 25px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
             display: inline-block; width: 90%; max-width: 400px; margin-top: 100px; text-align: center;
         }
+        /* =============== ENDE BLOCK 1 / HIER BLOCK 2 ANFÜGEN =============== */
+                /* =============== START BLOCK 2 =============== */
         .card-display {
             background: #05050a; width: 120px; height: 170px; line-height: 170px; font-size: 4rem;
             border-radius: 15px; border: 3px solid #ff0055; box-shadow: 0 0 20px rgba(255, 0, 85, 0.2);
             margin: 20px auto; font-weight: bold; transition: transform 0.2s;
         }
-                /* =============== START BLOCK 2 =============== */
         .btn-group { display: flex; gap: 15px; justify-content: center; margin-top: 20px; }
         button {
             background: linear-gradient(135deg, #ff0055, #bc003f); color: white; border: none; padding: 12px 25px;
@@ -58,8 +59,8 @@
         <div class="profile-menu">
             <span onclick="toggleDropdown()" id="menu-username">Benutzer</span>
             <div id="profile-dropdown" class="dropdown-content">
-                <a href="#" id="admin-panel-link" style="display:none; font-weight:bold; color:#00ffcc;" onclick="location.href='index.html'">⚙️ Admin Panel</a>
-                <a href="#" onclick="location.href='hub.html'">🏠 Zentrale</a>
+                <a href="admin.html" id="admin-panel-link" style="display:none; font-weight:bold; color:#00ffcc;">⚙️ Admin Panel</a>
+                <a href="hub.html">🏠 Zentrale</a>
                 <a href="#" onclick="openAccountPage()">Passwort ändern</a>
                 <a href="#" onclick="logout()">Abmelden</a>
             </div>
@@ -72,6 +73,8 @@
         <button onclick="changePassword()">Passwort aktualisieren</button><br>
         <button style="background:#444; font-size:0.9rem; padding:8px 20px;" onclick="closeAccountPage()">Zurück</button>
     </div>
+        /* =============== ENDE BLOCK 2 / HIER BLOCK 3 ANFÜGEN =============== */
+        <!-- =============== START BLOCK 3 =============== -->
     <div class="game-container" id="main-game-box">
         <h2 style="color:#ff0055; margin-top:0;">🃏 Höher oder Tiefer</h2>
         <p style="color:#888; font-size:0.9rem; margin-bottom:5px;">Errate, ob die nächste Karte höher oder tiefer ist!</p>
@@ -80,7 +83,6 @@
             <input type="number" id="bet-input" placeholder="Einsatz in $" value="50"><br>
             <button onclick="startGame()">Spiel starten</button>
         </div>
-                /* =============== START BLOCK 3 =============== */
         <div id="play-area" style="display: none;">
             <div style="font-size:0.9rem; color:#aaa;">Aktueller Gewinn: <span id="potential-win" style="color:#00ffcc; font-weight:bold;">0</span> $ (<span class="win-multiplier" id="mult-display">1.0x</span>)</div>
             <div style="font-size:0.85rem; color:#888; margin-top:5px;">Richtige Tipps in Folge: <span id="streak-display" style="color:#ffcc00; font-weight:bold;">0</span> 🔥</div>
@@ -96,7 +98,7 @@
         <div class="status-text" id="status-box">Trage deinen Einsatz ein!</div>
     </div>
     <script>
-        const cards = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
+        const cards =;
         const cardNames = { 11: 'J', 12: 'Q', 13: 'K', 14: 'A' };
         let currentCard = 0; let bet = 0; let currentMultiplier = 1.0; let streak = 0; let currentU = ""; let audioCtx = null;
 
@@ -109,76 +111,25 @@
                 else if (type === 'cash') { osc.type = 'sine'; osc.frequency.setValueAtTime(880, audioCtx.currentTime); osc.frequency.setValueAtTime(1318.51, audioCtx.currentTime + 0.08); gain.gain.setValueAtTime(0.1, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3); osc.start(); osc.stop(audioCtx.currentTime + 0.3); }
             } catch(e) {}
         }
-
         window.onload = function() {
-            currentU = localStorage.getItem('sc_username');
-            if (!currentU) { location.href = 'index.html'; return; }
+            currentU = localStorage.getItem('sc_username'); if (!currentU) { location.href = 'index.html'; return; }
             document.getElementById('menu-username').innerText = currentU;
-            
             const currentRole = localStorage.getItem('sc_role');
             if (currentRole === "Owner" || currentRole === "Admin") { document.getElementById('admin-panel-link').style.display = "block"; }
             updateBalanceDisplay();
         };
-
-        function updateBalanceDisplay() {
-            let coins = localStorage.getItem('sc_balance_' + currentU) || 1000;
-            document.getElementById('coins-display').innerText = coins;
-        }
-
+        function updateBalanceDisplay() { let coins = localStorage.getItem('sc_balance_' + currentU) || 1000; document.getElementById('coins-display').innerText = coins; }
         function toggleDropdown() { const drop = document.getElementById('profile-dropdown'); drop.style.display = drop.style.display === "block" ? "none" : "block"; }
         function openAccountPage() { document.getElementById('main-game-box').style.display = "none"; document.getElementById('account-area').style.display = "inline-block"; document.getElementById('current-pass-display').innerText = localStorage.getItem('sc_password'); toggleDropdown(); }
         function closeAccountPage() { document.getElementById('account-area').style.display = "none"; document.getElementById('main-game-box').style.display = "inline-block"; }
         function logout() { localStorage.removeItem('sc_username'); localStorage.removeItem('sc_role'); localStorage.removeItem('sc_password'); location.href = 'index.html'; }
-        function changePassword() {
-            const newP = document.getElementById('new-password-input').value.trim(); if(!newP) return;
-            let userList = JSON.parse(localStorage.getItem('sc_global_users') || '[]');
-            let idx = userList.findIndex(u => u.username === currentU);
-            if(idx !== -1) { userList[idx].pass = newP; localStorage.setItem('sc_global_users', JSON.stringify(userList)); localStorage.setItem('sc_password', newP); alert("Passwort geändert!"); closeAccountPage(); }
-        }
-
-        function startGame() {
-            bet = parseInt(document.getElementById('bet-input').value);
-            let coins = parseInt(localStorage.getItem('sc_balance_' + currentU) || 1000);
-            if (isNaN(bet) || bet <= 0 || bet > coins) { alert("Ungültiger Einsatz!"); return; }
-            coins -= bet; localStorage.setItem('sc_balance_' + currentU, coins); updateBalanceDisplay();
-            streak = 0; currentMultiplier = 1.0; currentCard = cards[Math.floor(Math.random() * cards.length)];
-            document.getElementById('setup-area').style.display = "none"; document.getElementById('play-area').style.display = "block";
-            displayCard(currentCard); document.getElementById('status-box').innerText = "Wird die nächste Karte höher oder tiefer?"; updateGameStats();
-        }
-
+        function changePassword() { const newP = document.getElementById('new-password-input').value.trim(); if(!newP) return; let userList = JSON.parse(localStorage.getItem('sc_global_users') || '[]'); let idx = userList.findIndex(u => u.username === currentU); if(idx !== -1) { userList[idx].pass = newP; localStorage.setItem('sc_global_users', JSON.stringify(userList)); localStorage.setItem('sc_password', newP); alert("Passwort geändert!"); closeAccountPage(); } }
+        function startGame() { bet = parseInt(document.getElementById('bet-input').value); let coins = parseInt(localStorage.getItem('sc_balance_' + currentU) || 1000); if (isNaN(bet) || bet <= 0 || bet > coins) { alert("Ungültiger Einsatz!"); return; } coins -= bet; localStorage.setItem('sc_balance_' + currentU, coins); updateBalanceDisplay(); streak = 0; currentMultiplier = 1.0; currentCard = cards[Math.floor(Math.random() * cards.length)]; document.getElementById('setup-area').style.display = "none"; document.getElementById('play-area').style.display = "block"; displayCard(currentCard); document.getElementById('status-box').innerText = "Wird die nächste Karte höher oder tiefer?"; updateGameStats(); }
         function displayCard(val) { let name = cardNames[val] || val; document.getElementById('card-box').innerText = name; }
         function updateGameStats() { document.getElementById('streak-display').innerText = streak; document.getElementById('mult-display').innerText = currentMultiplier.toFixed(2) + "x"; document.getElementById('potential-win').innerText = Math.floor(bet * currentMultiplier); }
-
-        function guess(direction) {
-            let nextCard = cards[Math.floor(Math.random() * cards.length)];
-            let box = document.getElementById('card-box'); box.style.transform = "scale(0.8)";
-            setTimeout(() => {
-                displayCard(nextCard); box.style.transform = "scale(1)"; let win = false;
-                if (nextCard === currentCard) { win = true; }
-                else if (direction === 'higher' && nextCard > currentCard) { win = true; }
-                else if (direction === 'lower' && nextCard < currentCard) { win = true; }
-                if (win) {
-                    playSound('win'); streak++; currentMultiplier += 0.25 + (streak * 0.05);
-                    document.getElementById('status-box').style.color = "#00ffcc"; document.getElementById('status-box').innerText = "Richtig! Der Multiplikator steigt.";
-                    currentCard = nextCard; updateGameStats();
-                } else {
-                    playSound('lose'); document.getElementById('status-box').style.color = "#ff0055"; document.getElementById('status-box').innerText = `Falsch! Die Karte war ${cardNames[nextCard] || nextCard}.`;
-                    setTimeout(resetGame, 2000);
-                }
-            }, 200);
-        }
-
-        function cashout() {
-            let coins = parseInt(localStorage.getItem('sc_balance_' + currentU) || 1000);
-            let totalWin = Math.floor(bet * currentMultiplier); coins += totalWin; localStorage.setItem('sc_balance_' + currentU, coins);
-            playSound('cash'); alert(`Erfolgreich ${totalWin}$ gesichert!`); resetGame();
-        }
-
-        function resetGame() {
-            updateBalanceDisplay(); document.getElementById('setup-area').style.display = "block"; document.getElementById('play-area').style.display = "none";
-            document.getElementById('status-box').style.color = "#ffcc00"; document.getElementById('status-box').innerText = "Trage deinen Einsatz ein!";
-            let top = parseInt(localStorage.getItem('sc_top_streak_' + currentU) || 0); if (streak > top) { localStorage.setItem('sc_top_streak_' + currentU, streak); }
-        }
+        function guess(direction) { let nextCard = cards[Math.floor(Math.random() * cards.length)]; let box = document.getElementById('card-box'); box.style.transform = "scale(0.8)"; setTimeout(() => { displayCard(nextCard); box.style.transform = "scale(1)"; let win = false; if (nextCard === currentCard) { win = true; } else if (direction === 'higher' && nextCard > currentCard) { win = true; } else if (direction === 'lower' && nextCard < currentCard) { win = true; } if (win) { playSound('win'); streak++; currentMultiplier += 0.25 + (streak * 0.05); document.getElementById('status-box').style.color = "#00ffcc"; document.getElementById('status-box').innerText = "Richtig! Der Multiplikator steigt."; currentCard = nextCard; updateGameStats(); } else { playSound('lose'); document.getElementById('status-box').style.color = "#ff0055"; document.getElementById('status-box').innerText = `Falsch! Die Karte war ${cardNames[nextCard] || nextCard}.`; setTimeout(resetGame, 2000); } }, 200); }
+        function cashout() { let coins = parseInt(localStorage.getItem('sc_balance_' + currentU) || 1000); let totalWin = Math.floor(bet * currentMultiplier); coins += totalWin; localStorage.setItem('sc_balance_' + currentU, coins); playSound('cash'); alert(`Erfolgreich ${totalWin}$ gesichert!`); resetGame(); }
+        function resetGame() { updateBalanceDisplay(); document.getElementById('setup-area').style.display = "block"; document.getElementById('play-area').style.display = "none"; document.getElementById('status-box').style.color = "#ffcc00"; document.getElementById('status-box').innerText = "Trage deinen Einsatz ein!"; let top = parseInt(localStorage.getItem('sc_top_streak_' + currentU) || 0); if (streak > top) { localStorage.setItem('sc_top_streak_' + currentU, streak); } }
     </script>
 </body>
 </html>
