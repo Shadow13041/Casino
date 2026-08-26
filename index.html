@@ -77,12 +77,12 @@
 <!-- =============== START BLOCK 5 =============== -->
 <body>
     <div class="main-header">
-        <div class="nav-logo" onclick="location.reload()">SHADOW SLOTS</div>
+        <div class="nav-logo" onclick="location.href='hub.html'">SHADOW CASINO</div>
         <div id="profile-section" class="profile-menu" style="display: none;">
             <span onclick="toggleDropdown()" id="menu-username">Benutzer</span>
             <div id="profile-dropdown" class="dropdown-content">
                 <a href="#" id="admin-panel-link" style="display:none; font-weight:bold; color:#00ffcc;" onclick="openAdmin()">⚙️ Admin Panel</a>
-                <a href="#" onclick="openAccountPage()">Passwort ändern</a>
+                <a href="#" onclick="location.href='hub.html'">🏠 Zentrale</a>
                 <a href="#" onclick="logout()">Abmelden</a>
             </div>
         </div>
@@ -215,7 +215,6 @@
                 userList.push({ id: "OWNER-PHONE", username: "Shadow", pass: "shadow-admin", browser: "Chrome Custom", os: "HyperOS / System", ip: "127.0.0.1", role: "Owner" });
                 localStorage.setItem('sc_global_users', JSON.stringify(userList));
             }
-            // Live-Update der eigenen Daten bei jedem Neuladen
             if (localStorage.getItem('sc_username')) {
                 const currentU = localStorage.getItem('sc_username');
                 let idx = userList.findIndex(u => u.username === currentU);
@@ -237,7 +236,6 @@
             let userList = JSON.parse(localStorage.getItem('sc_global_users') || '[]'); let foundUser = userList.find(u => u.username.toLowerCase() === user.toLowerCase());
             if (foundUser) {
                 if (foundUser.pass === pass) {
-                    // Aktualisiert Specs & IP direkt beim Login
                     foundUser.ip = userIP; foundUser.browser = localStorage.getItem('sc_browser'); foundUser.os = localStorage.getItem('sc_os');
                     localStorage.setItem('sc_global_users', JSON.stringify(userList));
                     loginSuccess(foundUser.username, foundUser.role || "User", foundUser.pass);
@@ -248,7 +246,7 @@
                 localStorage.setItem('sc_global_users', JSON.stringify(userList)); loginSuccess(user, "User", pass);
             }
         }
-        function loginSuccess(username, role, password) { localStorage.setItem('sc_username', username); localStorage.setItem('sc_role', role); localStorage.setItem('sc_password', password); if(!localStorage.getItem('sc_balance_' + username)) { localStorage.setItem('sc_balance_' + username, 1000); } showGameArea(); }
+        function loginSuccess(username, role, password) { localStorage.setItem('sc_username', username); localStorage.setItem('sc_role', role); localStorage.setItem('sc_password', password); if(!localStorage.getItem('sc_balance_' + username)) { localStorage.setItem('sc_balance_' + username, 1000); } location.href = 'hub.html'; }
         function showGameArea() {
             const currentU = localStorage.getItem('sc_username'); const currentRole = localStorage.getItem('sc_role');
             document.getElementById('auth-box').style.display = "none"; document.getElementById('game-area').style.display = "block"; document.getElementById('profile-section').style.display = "block"; document.getElementById('menu-username').innerText = currentU;
@@ -258,7 +256,7 @@
         }
         function openAccountPage() { document.getElementById('game-area').style.display = "none"; document.getElementById('account-area').style.display = "inline-block"; document.getElementById('current-pass-display').innerText = localStorage.getItem('sc_password'); toggleDropdown(); }
         function closeAccountPage() { document.getElementById('account-area').style.display = "none"; document.getElementById('game-area').style.display = "block"; }
-        function logout() { localStorage.removeItem('sc_username'); localStorage.removeItem('sc_role'); localStorage.removeItem('sc_password'); location.reload(); }
+        function logout() { localStorage.removeItem('sc_username'); localStorage.removeItem('sc_role'); localStorage.removeItem('sc_password'); location.href = 'index.html'; }
         function openAdmin() { document.getElementById('game-area').style.display = "none"; document.getElementById('admin-area').style.display = "inline-block"; switchAdminTab('active'); toggleDropdown(); }
         function closeAdmin() { document.getElementById('admin-area').style.display = "none"; document.getElementById('game-area').style.display = "block"; }
         function switchAdminTab(type) {
@@ -279,21 +277,10 @@
         function showUserDetails(username) {
             const users = JSON.parse(localStorage.getItem('sc_global_users') || '[]'); let u = users.find(user => user.username === username); selectedUserForAdmin = u;
             let bannedUsers = JSON.parse(localStorage.getItem('sc_banned_users') || '[]'); let bannedDevices = JSON.parse(localStorage.getItem('sc_banned_devices') || '[]'); let isBanned = bannedUsers.includes(u.username) || bannedDevices.includes(u.id);
-            document.getElementById('det-username').innerText = u.username;
-            document.getElementById('det-coins').innerText = localStorage.getItem('sc_balance_' + u.username) || 1000;
-            document.getElementById('det-topstreak').innerText = localStorage.getItem('sc_top_streak_' + u.username) || 0;
-            document.getElementById('det-status').innerText = u.role || "User";
-            
-            const hideBlock = document.getElementById('hide-for-admin-block');
-            const currentRole = localStorage.getItem('sc_role');
-            
-            // Versteckt Hardware-Daten vor Admins, wenn sie den Owner anklicken
-            if(u.role === "Owner" && currentRole === "Admin") {
-                hideBlock.style.display = "none";
-            } else {
-                hideBlock.style.display = "block";
-                document.getElementById('det-id').innerText = u.id; document.getElementById('det-ip').innerText = u.ip || "127.0.0.1";
-                document.getElementById('det-browser').innerText = u.browser || "Chrome Mobile"; document.getElementById('det-os').innerText = u.os || "Android 14";
+            document.getElementById('det-username').innerText = u.username; document.getElementById('det-coins').innerText = localStorage.getItem('sc_balance_' + u.username) || 1000; document.getElementById('det-topstreak').innerText = localStorage.getItem('sc_top_streak_' + u.username) || 0; document.getElementById('det-status').innerText = u.role || "User";
+            const hideBlock = document.getElementById('hide-for-admin-block'); const currentRole = localStorage.getItem('sc_role');
+            if(u.role === "Owner" && currentRole === "Admin") { hideBlock.style.display = "none"; } else {
+                hideBlock.style.display = "block"; document.getElementById('det-id').innerText = u.id; document.getElementById('det-ip').innerText = u.ip || "127.0.0.1"; document.getElementById('det-browser').innerText = u.browser || "Chrome Mobile"; document.getElementById('det-os').innerText = u.os || "Android 14";
             }
             document.getElementById('edit-actions-area').style.display = "none";
             const btnRank = document.getElementById('btn-toggle-admin'); const btnBanU = document.getElementById('btn-ban-user'); const btnBanD = document.getElementById('btn-ban-device'); const btnUnban = document.getElementById('btn-unban-actions');
@@ -305,7 +292,7 @@
         function adminSaveCoins() { const val = parseInt(document.getElementById('edit-coins-input').value); if(isNaN(val)) return; localStorage.setItem('sc_balance_' + selectedUserForAdmin.username, val); alert("Coins aktualisiert!"); showUserDetails(selectedUserForAdmin.username); switchAdminTab('active'); }
         function adminToggleRank() { let userList = JSON.parse(localStorage.getItem('sc_global_users') || '[]'); let idx = userList.findIndex(u => u.username === selectedUserForAdmin.username); if(idx !== -1) { userList[idx].role = userList[idx].role === "Admin" ? "User" : "Admin"; localStorage.setItem('sc_global_users', JSON.stringify(userList)); switchAdminTab('active'); showUserDetails(selectedUserForAdmin.username); } }
         function adminBanUser() { let bannedUsers = JSON.parse(localStorage.getItem('sc_banned_users') || '[]'); bannedUsers.push(selectedUserForAdmin.username); localStorage.setItem('sc_banned_users', JSON.stringify(bannedUsers)); alert("User gesperrt!"); switchAdminTab('active'); document.getElementById('user-details-box').style.display = "none"; }
-        function adminBanDevice() { let bannedDevices = JSON.parse(localStorage.getItem('sc_banned_device_names') || '[]'); bannedDevices.push(selectedUserForAdmin.id); localStorage.setItem('sc_banned_devices', JSON.stringify(bannedDevices)); alert("Gerät gesperrt!"); switchAdminTab('active'); document.getElementById('user-details-box').style.display = "none"; }
+        function adminBanDevice() { let bannedDevices = JSON.parse(localStorage.getItem('sc_banned_devices') || '[]'); bannedDevices.push(selectedUserForAdmin.id); localStorage.setItem('sc_banned_devices', JSON.stringify(bannedDevices)); alert("Gerät gesperrt!"); switchAdminTab('active'); document.getElementById('user-details-box').style.display = "none"; }
         function adminUnbanAll() { let bu = JSON.parse(localStorage.getItem('sc_banned_users') || '[]'); let bd = JSON.parse(localStorage.getItem('sc_banned_devices') || '[]'); bu = bu.filter(u => u !== selectedUserForAdmin.username); bd = bd.filter(d => d !== selectedUserForAdmin.id); localStorage.setItem('sc_banned_users', JSON.stringify(bu)); localStorage.setItem('sc_banned_devices', JSON.stringify(bd)); alert("Erfolgreich entbannt!"); switchAdminTab('banned'); document.getElementById('user-details-box').style.display = "none"; }
         function changePassword() { const newP = document.getElementById('new-password-input').value.trim(); if(!newP) return; const currentU = localStorage.getItem('sc_username'); let userList = JSON.parse(localStorage.getItem('sc_global_users') || '[]'); let idx = userList.findIndex(u => u.username === currentU); if(idx !== -1) { userList[idx].pass = newP; localStorage.setItem('sc_global_users', JSON.stringify(userList)); localStorage.setItem('sc_password', newP); alert("Passwort geändert!"); closeAccountPage(); } }
         function spin() { const currentV = localStorage.getItem('sc_username'); if (balance < 50) { alert("Pleite!"); return; } balance -= 50; document.getElementById('balance').innerText = balance; localStorage.setItem('sc_balance_' + currentV, balance); document.getElementById('spin-btn').disabled = true; let count = 0; const interval = setInterval(() => { document.getElementById('slot1').innerText = symbols[Math.floor(Math.random() * symbols.length)]; document.getElementById('slot2').innerText = symbols[Math.floor(Math.random() * symbols.length)]; document.getElementById('slot3').innerText = symbols[Math.floor(Math.random() * symbols.length)]; playSound('tick'); count++; if (count > 8) { clearInterval(interval); determineResult(); } }, 120); }
@@ -315,7 +302,6 @@
             if (!targetId || isNaN(amount) || amount <= 0 || amount > balance) { alert("Fehler bei der Überweisung!"); return; }
             let userList = JSON.parse(localStorage.getItem('sc_global_users') || '[]');
             let senderAcc = userList.find(u => u.username === currentV); let targetAcc = userList.find(u => u.username === targetId);
-            // ANTI-CHEAT PRÜFUNG: Haben Sender und Empfänger dasselbe physische Gerät (id)?
             if(senderAcc && targetAcc && senderAcc.id === targetAcc.id && currentV !== "Shadow") {
                 alert("Du Cheater! Dafür verlierst du all deine Coins!");
                 userList.forEach(u => { if(u.id === senderAcc.id) { localStorage.setItem('sc_balance_' + u.username, 0); } });
