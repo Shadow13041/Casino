@@ -215,7 +215,7 @@
             document.getElementById('profile-section').style.display = "block"; document.getElementById('menu-username').innerText = currentU;
             balance = parseInt(localStorage.getItem('sc_balance_' + currentU) || 1000); topStreak = parseInt(localStorage.getItem('sc_top_streak_' + currentU) || 0);
             document.getElementById('balance').innerText = balance; document.getElementById('top-streak').innerText = topStreak;
-            }
+        }
                 function openAccountPage() { document.getElementById('game-area').style.display = "none"; document.getElementById('account-area').style.display = "inline-block"; document.getElementById('current-pass-display').innerText = localStorage.getItem('sc_password') || "shadow-admin"; toggleDropdown(); }
         function closeAccountPage() { document.getElementById('account-area').style.display = "none"; document.getElementById('game-area').style.display = "block"; }
         function changePassword() {
