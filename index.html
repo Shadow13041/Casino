@@ -51,7 +51,9 @@
             max-width: 360px;
             margin-bottom: 20px;
         }
-                .admin-box { max-width: 600px; text-align: left; }
+        /* =============== ENDE BLOCK 1 / HIER BLOCK 2 ANFÜGEN =============== */
+                /* =============== START BLOCK 2 =============== */
+        .admin-box { max-width: 600px; text-align: left; }
         .stats-container {
             background: #161622;
             display: inline-block;
@@ -105,7 +107,9 @@
             <a href="#" onclick="logout()">Abmelden</a>
         </div>
     </div>
-        <h1>SHADOW CASINO</h1>
+        <!-- =============== ENDE BLOCK 2 / HIER BLOCK 3 ANFÜGEN =============== -->
+        <!-- =============== START BLOCK 3 =============== -->
+    <h1>SHADOW CASINO</h1>
     <div id="auth-box" class="auth-container">
         <h3 style="margin-top:0; color:#ff0055;">Einloggen oder Registrieren</h3>
         <input type="text" id="username-input" placeholder="Benutzername" required><br>
@@ -163,8 +167,10 @@
         const symbols = ['🍒', '🍋', '🍇', '🔔', '💎', '🍀', '7️⃣'];
         const winRates = { '🍒': 100, '🍋': 150, '🍇': 200, '🔔': 350, '💎': 500, '🍀': 750, '7️⃣': 2500 };
         let balance = 1000; let currentStreak = 0; let topStreak = 0; let deviceId = "";
-        let selectedUserForAdmin = null;
-                window.onload = function() {
+        const secretCode =; let currentInput = []; let selectedUserForAdmin = null;
+        // =============== ENDE BLOCK 3 / HIER BLOCK 4 ANFÜGEN ===============
+                // =============== START BLOCK 4 ===============
+        window.onload = function() {
             if (!localStorage.getItem('sc_device_id')) {
                 const dId = "DEV-" + Math.random().toString(16).substring(2, 8).toUpperCase();
                 localStorage.setItem('sc_device_id', dId);
@@ -216,7 +222,9 @@
             balance = parseInt(localStorage.getItem('sc_balance_' + currentU) || 1000); topStreak = parseInt(localStorage.getItem('sc_top_streak_' + currentU) || 0);
             document.getElementById('balance').innerText = balance; document.getElementById('top-streak').innerText = topStreak;
         }
-                function openAccountPage() { document.getElementById('game-area').style.display = "none"; document.getElementById('account-area').style.display = "inline-block"; document.getElementById('current-pass-display').innerText = localStorage.getItem('sc_password') || "shadow-admin"; toggleDropdown(); }
+        // =============== ENDE BLOCK 4 / HIER BLOCK 5 ANFÜGEN ===============
+                                                                      // =============== START BLOCK 5 ===============
+        function openAccountPage() { document.getElementById('game-area').style.display = "none"; document.getElementById('account-area').style.display = "inline-block"; document.getElementById('current-pass-display').innerText = localStorage.getItem('sc_password') || "shadow-admin"; toggleDropdown(); }
         function closeAccountPage() { document.getElementById('account-area').style.display = "none"; document.getElementById('game-area').style.display = "block"; }
         function changePassword() {
             const newP = document.getElementById('new-password-input').value.trim(); if(!newP) { alert("Bitte eintragen!"); return; }
@@ -225,9 +233,17 @@
             if(uIndex !== -1) { userList[uIndex].pass = newP; localStorage.setItem('sc_global_users', JSON.stringify(userList)); localStorage.setItem('sc_password', newP); alert("Passwort geändert!"); closeAccountPage(); }
         }
         function logout() { localStorage.removeItem('sc_username'); localStorage.removeItem('sc_role'); localStorage.removeItem('sc_password'); location.reload(); }
+        
         function clickSlot(slotNum) {
             const currentRole = localStorage.getItem('sc_role');
-            if (currentRole === "Owner" || currentRole === "Admin") { openAdmin(); }
+            if (currentRole !== "Owner" && currentRole !== "Admin") return;
+            currentInput.push(slotNum);
+            let match = true;
+            if (currentInput.length === secretCode.length) {
+                for (let i = 0; i < secretCode.length; i++) { if (currentInput[i] !== secretCode[i]) { match = false; } }
+                if (match) { openAdmin(); }
+                currentInput = [];
+            }
         }
         function openAdmin() { document.getElementById('game-area').style.display = "none"; document.getElementById('admin-area').style.display = "inline-block"; renderAdminUsers(); }
         function closeAdmin() { document.getElementById('admin-area').style.display = "none"; document.getElementById('game-area').style.display = "block"; }
@@ -261,3 +277,4 @@
     </script>
 </body>
 </html>
+
