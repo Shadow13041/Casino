@@ -28,11 +28,10 @@
             position: absolute; right: 0; top: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); width: 120px;
         }
         .dropdown-content a { color: #ff0055; text-decoration: none; display: block; margin: 5px 0; font-size: 0.85rem; }
-        .auth-container, .transfer-container, .admin-box {
+        .auth-container, .transfer-container {
             background: #161622; padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
             display: inline-block; width: 90%; max-width: 360px; margin-bottom: 20px; margin-top: 80px;
         }
-        .admin-box { max-width: 600px; text-align: left; }
         .stats-container {
             background: #161622; display: inline-block; padding: 15px 25px; border-radius: 20px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.5); margin-bottom: 25px; margin-top: 80px;
@@ -62,16 +61,9 @@
             background: #05050a; color: white; text-align: center;
         }
         button:disabled { background: #444; box-shadow: none; cursor: not-allowed; }
-        .tabs { display: flex; gap: 10px; margin-bottom: 15px; border-bottom: 1px solid #333; padding-bottom: 10px; }
-        .tab-btn { background: #222; font-size: 0.9rem; padding: 8px 15px; border-radius: 5px; box-shadow: none; width: 48%; }
-        .tab-btn.active { background: #ff0055; }
-        .user-list-item { background: #0d0d11; padding: 10px; margin: 5px 0; border-radius: 10px; cursor: pointer; border: 1px solid #222; display: flex; justify-content: space-between; align-items: center; }
-        .user-list-item:hover { border-color: #ff0055; }
-        .badge { font-size: 0.75rem; padding: 2px 6px; border-radius: 5px; font-weight: bold; }
         .message { font-size: 1.2rem; height: 35px; color: #ffcc00; font-weight: bold; margin-top: 15px; }
         .streak-alert { font-size: 1rem; color: #ff9900; height: 20px; margin-top: 5px; font-weight: bold; }
-        .admin-action-btns { display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-start; margin-top: 15px; }
-        #game-area, #admin-area, #account-area, #admin-view-active, #admin-view-banned { display: none; }
+        #game-area, #account-area { display: none; }
     </style>
 </head>
 <!-- =============== START BLOCK 5 =============== -->
@@ -81,8 +73,9 @@
         <div id="profile-section" class="profile-menu" style="display: none;">
             <span onclick="toggleDropdown()" id="menu-username">Benutzer</span>
             <div id="profile-dropdown" class="dropdown-content">
-                <a href="#" id="admin-panel-link" style="display:none; font-weight:bold; color:#00ffcc;" onclick="openAdmin()">⚙️ Admin Panel</a>
-                <a href="#" onclick="location.href='hub.html'">🏠 Zentrale</a>
+                <a href="admin.html" id="admin-panel-link" style="display:none; font-weight:bold; color:#00ffcc;">⚙️ Admin Panel</a>
+                <a href="hub.html">🏠 Zentrale</a>
+                <a href="#" onclick="openAccountPage()">Passwort ändern</a>
                 <a href="#" onclick="logout()">Abmelden</a>
             </div>
         </div>
@@ -93,6 +86,8 @@
         <input type="password" id="password-input" placeholder="Passwort" required><br>
         <button id="main-auth-btn" onclick="authAction()">Bestätigen</button>
     </div>
+<!-- =============== ENDE BLOCK 5 / HIER BLOCK 6 ANFÜGEN =============== -->
+    <!-- =============== START BLOCK 6 =============== -->
     <div id="account-area" class="auth-container">
         <h3 style="margin-top:0; color:#ffcc00;">Passwort verwalten</h3>
         <p style="font-size:0.9rem; color:#888;">Dein Passwort lautet: <span id="current-pass-display" style="color:white; font-family:monospace;"></span></p>
@@ -100,8 +95,6 @@
         <button onclick="changePassword()">Passwort aktualisieren</button><br>
         <button style="background:#444; font-size:0.9rem; padding:8px 20px;" onclick="closeAccountPage()">Zurück</button>
     </div>
-<!-- =============== ENDE BLOCK 5 / HIER BLOCK 6 ANFÜGEN =============== -->
-    <!-- =============== START BLOCK 6 =============== -->
     <div id="game-area">
         <div class="stats-container">
             <div class="stats-text">Guthaben: <span id="balance" class="balance-value">1000</span> $</div>
@@ -126,40 +119,6 @@
             <input type="number" id="transfer-amount-input" placeholder="Anzahl an Coins"><br>
             <button style="background:linear-gradient(135deg, #00ffcc, #00b38f); color:#0d0d11; box-shadow:none; font-size:1rem; padding:10px 20px;" onclick="transferCoins()">Coins senden</button>
         </div>
-    </div>
-    <div id="admin-area" class="admin-box">
-        <h2 style="color:#ff0055; margin-top:0; text-align:center;">Shadow Control Panel</h2>
-        <div class="tabs">
-            <button class="tab-btn active" id="tab-act" onclick="switchAdminTab('active')">Aktive User</button>
-            <button class="tab-btn" id="tab-ban" onclick="switchAdminTab('banned')">Sperrliste</button>
-        </div>
-        <div id="admin-view-active"></div>
-        <div id="admin-view-banned"></div>
-        <div id="user-details-box" style="display:none; background:#1e1e2f; padding:15px; border-radius:15px; margin-top:15px; border:1px solid #ff0055;">
-            <h3 id="det-username" style="color:#ffcc00; margin-top:0;"></h3>
-            <div id="hide-for-admin-block">
-                <p><strong>Gerät/Modell:</strong> <span id="det-id"></span></p>
-                <p><strong>IP-Adresse:</strong> <span id="det-ip"></span></p>
-                <p><strong>Browser:</strong> <span id="det-browser"></span></p>
-                <p><strong>Betriebssystem:</strong> <span id="det-os"></span></p>
-            </div>
-            <p><strong>Coins Kontostand:</strong> <span id="det-coins" style="color:#00ffcc; font-weight:bold;"></span> $</p>
-            <p><strong>Streak Rekord:</strong> <span id="det-topstreak" style="color:#ffcc00; font-weight:bold;">0</span> 👑</p>
-            <p><strong>Status:</strong> <span id="det-status"></span></p>
-            <div id="edit-actions-area" style="display:none; background:#0d0d11; padding:10px; border-radius:10px; margin-bottom:15px; border:1px solid #333;">
-                <p style="margin:0 0 5px 0; font-size:0.85rem; color:#888;">Coins direkt bearbeiten:</p>
-                <input type="number" id="edit-coins-input" style="width:60%; padding:5px; margin:0;" placeholder="Neue Anzahl">
-                <button onclick="adminSaveCoins()" style="font-size:0.8rem; padding:6px 12px; margin:0 0 0 5px; background:#00ffcc; color:black;">Setzen</button>
-            </div>
-            <div class="admin-action-btns">
-                <button id="btn-edit-mode" onclick="toggleEditMode()" style="background:#ffcc00; color:black; font-size:0.85rem; padding:6px 12px; margin:0;">Bearbeiten</button>
-                <button id="btn-toggle-admin" onclick="adminToggleRank()" style="background:#00ffcc; color:#0d0d11; font-size:0.85rem; padding:6px 12px; margin:0;"></button>
-                <button id="btn-ban-user" onclick="adminBanUser()" style="background:#ff0055; font-size:0.85rem; padding:6px 12px; margin:0;">User bannen</button>
-                <button id="btn-ban-device" onclick="adminBanDevice()" style="background:#ff5500; font-size:0.85rem; padding:6px 12px; margin:0;">Gerät bannen</button>
-                <button id="btn-unban-actions" onclick="adminUnbanAll()" style="background:#00ffcc; color:black; font-size:0.85rem; padding:6px 12px; display:none; margin:0;">Vollständig Entbannen</button>
-            </div>
-        </div>
-        <br><center><button style="background:#444; font-size:0.9rem; padding:8px 20px;" onclick="closeAdmin()">Casino öffnen</button></center>
     </div>
 <!-- =============== ENDE BLOCK 6 / HIER BLOCK 7 ANFÜGEN =============== -->
     <!-- =============== START BLOCK 7 =============== -->
@@ -257,44 +216,8 @@
         function openAccountPage() { document.getElementById('game-area').style.display = "none"; document.getElementById('account-area').style.display = "inline-block"; document.getElementById('current-pass-display').innerText = localStorage.getItem('sc_password'); toggleDropdown(); }
         function closeAccountPage() { document.getElementById('account-area').style.display = "none"; document.getElementById('game-area').style.display = "block"; }
         function logout() { localStorage.removeItem('sc_username'); localStorage.removeItem('sc_role'); localStorage.removeItem('sc_password'); location.href = 'index.html'; }
-        function openAdmin() { document.getElementById('game-area').style.display = "none"; document.getElementById('admin-area').style.display = "inline-block"; switchAdminTab('active'); toggleDropdown(); }
-        function closeAdmin() { document.getElementById('admin-area').style.display = "none"; document.getElementById('game-area').style.display = "block"; }
-        function switchAdminTab(type) {
-            document.getElementById('tab-act').classList.toggle('active', type === 'active'); document.getElementById('tab-ban').classList.toggle('active', type === 'banned');
-            const activeView = document.getElementById('admin-view-active'); const bannedView = document.getElementById('admin-view-banned'); activeView.style.display = type === 'active' ? 'block' : 'none'; bannedView.style.display = type === 'banned' ? 'block' : 'none';
-            let users = JSON.parse(localStorage.getItem('sc_global_users') || '[]'); let bannedUsers = JSON.parse(localStorage.getItem('sc_banned_users') || '[]'); let bannedDevices = JSON.parse(localStorage.getItem('sc_banned_devices') || '[]');
-            activeView.innerHTML = ""; bannedView.innerHTML = "";
-            users.forEach(u => {
-                let uCoins = localStorage.getItem('sc_balance_' + u.username) || 1000; let isB = bannedUsers.includes(u.username) || bannedDevices.includes(u.id) || u.id === "OWNER-PHONE";
-                if(u.username === "Shadow") isB = false;
-                let badge = u.role === "Owner" ? "<span class='badge' style='background:#ffcc00;color:black;'>Owner</span>" : (u.role === "Admin" ? "<span class='badge' style='background:#00ffcc;color:black;'>Admin</span>" : "");
-                let itemHtml = `<div class="user-list-item" onclick="showUserDetails('${u.username}')"><span>${u.username} ${badge}</span><span style='color:#00ffcc;'>${uCoins}$</span></div>`;
-                if(!isB) { activeView.innerHTML += itemHtml; } else if(u.username !== "Shadow") { bannedView.innerHTML += itemHtml; }
-            });
-        }
 /* =============== ENDE BLOCK 9 / HIER BLOCK 10 ANFÜGEN =============== */
         /* =============== START BLOCK 10 =============== */
-        function showUserDetails(username) {
-            const users = JSON.parse(localStorage.getItem('sc_global_users') || '[]'); let u = users.find(user => user.username === username); selectedUserForAdmin = u;
-            let bannedUsers = JSON.parse(localStorage.getItem('sc_banned_users') || '[]'); let bannedDevices = JSON.parse(localStorage.getItem('sc_banned_devices') || '[]'); let isBanned = bannedUsers.includes(u.username) || bannedDevices.includes(u.id);
-            document.getElementById('det-username').innerText = u.username; document.getElementById('det-coins').innerText = localStorage.getItem('sc_balance_' + u.username) || 1000; document.getElementById('det-topstreak').innerText = localStorage.getItem('sc_top_streak_' + u.username) || 0; document.getElementById('det-status').innerText = u.role || "User";
-            const hideBlock = document.getElementById('hide-for-admin-block'); const currentRole = localStorage.getItem('sc_role');
-            if(u.role === "Owner" && currentRole === "Admin") { hideBlock.style.display = "none"; } else {
-                hideBlock.style.display = "block"; document.getElementById('det-id').innerText = u.id; document.getElementById('det-ip').innerText = u.ip || "127.0.0.1"; document.getElementById('det-browser').innerText = u.browser || "Chrome Mobile"; document.getElementById('det-os').innerText = u.os || "Android 14";
-            }
-            document.getElementById('edit-actions-area').style.display = "none";
-            const btnRank = document.getElementById('btn-toggle-admin'); const btnBanU = document.getElementById('btn-ban-user'); const btnBanD = document.getElementById('btn-ban-device'); const btnUnban = document.getElementById('btn-unban-actions');
-            if (u.role === "Owner" || isBanned) { btnRank.style.display = "none"; btnBanU.style.display = "none"; btnBanD.style.display = "none"; if(isBanned){btnUnban.style.display="inline-block";}else{btnUnban.style.display="none";} } 
-            else { btnRank.style.display = "inline-block"; btnBanU.style.display = "inline-block"; btnBanD.style.display = "inline-block"; btnUnban.style.display = "none"; btnRank.innerText = u.role === "Admin" ? "Rang entziehen" : "Admin machen"; }
-            document.getElementById('user-details-box').style.display = "block";
-        }
-        function toggleEditMode() { const area = document.getElementById('edit-actions-area'); area.style.display = area.style.display === "block" ? "none" : "block"; }
-        function adminSaveCoins() { const val = parseInt(document.getElementById('edit-coins-input').value); if(isNaN(val)) return; localStorage.setItem('sc_balance_' + selectedUserForAdmin.username, val); alert("Coins aktualisiert!"); showUserDetails(selectedUserForAdmin.username); switchAdminTab('active'); }
-        function adminToggleRank() { let userList = JSON.parse(localStorage.getItem('sc_global_users') || '[]'); let idx = userList.findIndex(u => u.username === selectedUserForAdmin.username); if(idx !== -1) { userList[idx].role = userList[idx].role === "Admin" ? "User" : "Admin"; localStorage.setItem('sc_global_users', JSON.stringify(userList)); switchAdminTab('active'); showUserDetails(selectedUserForAdmin.username); } }
-        function adminBanUser() { let bannedUsers = JSON.parse(localStorage.getItem('sc_banned_users') || '[]'); bannedUsers.push(selectedUserForAdmin.username); localStorage.setItem('sc_banned_users', JSON.stringify(bannedUsers)); alert("User gesperrt!"); switchAdminTab('active'); document.getElementById('user-details-box').style.display = "none"; }
-        function adminBanDevice() { let bannedDevices = JSON.parse(localStorage.getItem('sc_banned_devices') || '[]'); bannedDevices.push(selectedUserForAdmin.id); localStorage.setItem('sc_banned_devices', JSON.stringify(bannedDevices)); alert("Gerät gesperrt!"); switchAdminTab('active'); document.getElementById('user-details-box').style.display = "none"; }
-        function adminUnbanAll() { let bu = JSON.parse(localStorage.getItem('sc_banned_users') || '[]'); let bd = JSON.parse(localStorage.getItem('sc_banned_devices') || '[]'); bu = bu.filter(u => u !== selectedUserForAdmin.username); bd = bd.filter(d => d !== selectedUserForAdmin.id); localStorage.setItem('sc_banned_users', JSON.stringify(bu)); localStorage.setItem('sc_banned_devices', JSON.stringify(bd)); alert("Erfolgreich entbannt!"); switchAdminTab('banned'); document.getElementById('user-details-box').style.display = "none"; }
-        function changePassword() { const newP = document.getElementById('new-password-input').value.trim(); if(!newP) return; const currentU = localStorage.getItem('sc_username'); let userList = JSON.parse(localStorage.getItem('sc_global_users') || '[]'); let idx = userList.findIndex(u => u.username === currentU); if(idx !== -1) { userList[idx].pass = newP; localStorage.setItem('sc_global_users', JSON.stringify(userList)); localStorage.setItem('sc_password', newP); alert("Passwort geändert!"); closeAccountPage(); } }
         function spin() { const currentV = localStorage.getItem('sc_username'); if (balance < 50) { alert("Pleite!"); return; } balance -= 50; document.getElementById('balance').innerText = balance; localStorage.setItem('sc_balance_' + currentV, balance); document.getElementById('spin-btn').disabled = true; let count = 0; const interval = setInterval(() => { document.getElementById('slot1').innerText = symbols[Math.floor(Math.random() * symbols.length)]; document.getElementById('slot2').innerText = symbols[Math.floor(Math.random() * symbols.length)]; document.getElementById('slot3').innerText = symbols[Math.floor(Math.random() * symbols.length)]; playSound('tick'); count++; if (count > 8) { clearInterval(interval); determineResult(); } }, 120); }
         function determineResult() { const currentV = localStorage.getItem('sc_username'); let s1, s2, s3; let luck = Math.random(); if (luck < 0.12) { s1 = symbols[Math.floor(Math.random() * symbols.length)]; s2 = s1; s3 = s1; } else if (luck < 0.38) { s1 = symbols[Math.floor(Math.random() * symbols.length)]; s2 = s1; do { s3 = symbols[Math.floor(Math.random() * symbols.length)]; } while (s3 === s1); } else { s1 = '🍒'; s2 = '🍋'; s3 = '🍇'; } document.getElementById('slot1').innerText = s1; document.getElementById('slot2').innerText = s2; document.getElementById('slot3').innerText = s3; if (s1 === s2 && s2 === s3) { let win = winRates[s1]; balance += win; currentStreak++; document.getElementById('message').innerText = `🎉 JACKPOT! 3x ${s1}! +${win}$`; playSound('win'); } else if (s1 === s2 || s2 === s3 || s1 === s3) { balance += 75; currentStreak++; document.getElementById('message').innerText = "💵 Gewinn! +75$"; playSound('win'); } else { document.getElementById('message').innerText = "❌ Kein Gewinn."; currentStreak = 0; playSound('lose'); } if (currentStreak >= 3) { let bonus = 50 + ((currentStreak - 3) * 25); balance += bonus; document.getElementById('streak-alert').innerText = `🔥 STREAK-BONUS! +${bonus}$!`; } if (currentStreak > topStreak) { topStreak = currentStreak; localStorage.setItem('sc_top_streak_' + currentV, topStreak); } document.getElementById('streak').innerText = currentStreak; document.getElementById('balance').innerText = balance; localStorage.setItem('sc_balance_' + currentV, balance); document.getElementById('spin-btn').disabled = false; }
         function transferCoins() {
@@ -309,6 +232,7 @@
             }
             balance -= amount; document.getElementById('balance').innerText = balance; localStorage.setItem('sc_balance_' + currentV, balance); alert(`Erfolgreich ${amount} Coins an ${targetId} gesendet!`);
         }
+        function changePassword() { const newP = document.getElementById('new-password-input').value.trim(); if(!newP) return; const currentU = localStorage.getItem('sc_username'); let userList = JSON.parse(localStorage.getItem('sc_global_users') || '[]'); let idx = userList.findIndex(u => u.username === currentU); if(idx !== -1) { userList[idx].pass = newP; localStorage.setItem('sc_global_users', JSON.stringify(userList)); localStorage.setItem('sc_password', newP); alert("Passwort geändert!"); closeAccountPage(); } }
     </script>
 </body>
 </html>
