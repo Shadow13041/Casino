@@ -30,7 +30,7 @@
             text-align: right;
             z-index: 100;
         }
-                .profile-menu:hover { color: #888899; }
+        .profile-menu:hover { color: #888899; }
         .dropdown-content {
             display: none;
             background: #161622;
@@ -51,7 +51,7 @@
             max-width: 360px;
             margin-bottom: 20px;
         }
-        .admin-box { max-width: 600px; text-align: left; }
+                .admin-box { max-width: 600px; text-align: left; }
         .stats-container {
             background: #161622;
             display: inline-block;
@@ -60,7 +60,7 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.5);
             margin-bottom: 25px;
         }
-                .stats-text { font-size: 1.1rem; margin: 5px 0; color: #bbb; }
+        .stats-text { font-size: 1.1rem; margin: 5px 0; color: #bbb; }
         .balance-value { color: #00ffcc; font-weight: bold; font-size: 1.4rem; }
         .slot-machine {
             background: linear-gradient(145deg, #1e1e2f, #12121f);
@@ -97,8 +97,7 @@
         #game-area, #admin-area, #account-area { display: none; }
     </style>
 </head>
-    <body>
-
+<body>
     <div id="profile-section" class="profile-menu" style="display: none;">
         <span onclick="toggleDropdown()" id="menu-username">Benutzer</span>
         <div id="profile-dropdown" class="dropdown-content">
@@ -106,24 +105,21 @@
             <a href="#" onclick="logout()">Abmelden</a>
         </div>
     </div>
-
-    <h1>SHADOW CASINO</h1>
-
+        <h1>SHADOW CASINO</h1>
     <div id="auth-box" class="auth-container">
         <h3 style="margin-top:0; color:#ff0055;">Einloggen oder Registrieren</h3>
         <input type="text" id="username-input" placeholder="Benutzername" required><br>
         <input type="password" id="password-input" placeholder="Passwort" required><br>
         <button onclick="authAction()">Bestätigen</button>
     </div>
-
     <div id="account-area" class="auth-container">
         <h3 style="margin-top:0; color:#ffcc00;">Passwort verwalten</h3>
-        <p style="font-size:0.9rem; color:#888;">Dein aktuelles Passwort lautet: <span id="current-pass-display" style="color:white; font-family:monospace;"></span></p>
+        <p style="font-size:0.9rem; color:#888;">Dein Passwort lautet: <span id="current-pass-display" style="color:white; font-family:monospace;"></span></p>
         <input type="password" id="new-password-input" placeholder="Neues Passwort"><br>
         <button onclick="changePassword()">Passwort aktualisieren</button><br>
         <button style="background:#444; font-size:0.9rem; padding:8px 20px;" onclick="closeAccountPage()">Zurück</button>
     </div>
-            <div id="game-area">
+    <div id="game-area">
         <div class="stats-container">
             <div class="stats-text">Guthaben: <span id="balance" class="balance-value">1000</span> $</div>
             <div class="stats-text">Aktueller Streak: <span id="streak" style="color:#ff9900;font-weight:bold;">0</span> 🔥</div>
@@ -148,7 +144,6 @@
             <button style="background:linear-gradient(135deg, #00ffcc, #00b38f); color:#0d0d11; box-shadow:none; font-size:1rem; padding:10px 20px;" onclick="transferCoins()">Coins senden</button>
         </div>
     </div>
-
     <div id="admin-area" class="admin-box">
         <h2 style="color:#ff0055; margin-top:0; text-align:center;">Shadow Control Panel</h2>
         <div id="admin-user-list"></div>
@@ -164,15 +159,12 @@
         </div>
         <br><center><button style="background:#444; font-size:0.9rem; padding:8px 20px;" onclick="closeAdmin()">Casino öffnen</button></center>
     </div>
-            <script>
+    <script>
         const symbols = ['🍒', '🍋', '🍇', '🔔', '💎', '🍀', '7️⃣'];
         const winRates = { '🍒': 100, '🍋': 150, '🍇': 200, '🔔': 350, '💎': 500, '🍀': 750, '7️⃣': 2500 };
         let balance = 1000; let currentStreak = 0; let topStreak = 0; let deviceId = "";
-        
-        const secretCode =;
-        let currentInput = []; let selectedUserForAdmin = null;
-
-        window.onload = function() {
+        const secretCode =; let currentInput = []; let selectedUserForAdmin = null;
+                window.onload = function() {
             if (!localStorage.getItem('sc_device_id')) {
                 const dId = "DEV-" + Math.random().toString(16).substring(2, 8).toUpperCase();
                 localStorage.setItem('sc_device_id', dId);
@@ -180,38 +172,28 @@
                 localStorage.setItem('sc_os', "Android (HyperOS)");
             }
             deviceId = localStorage.getItem('sc_device_id');
-
             let bannedDevices = JSON.parse(localStorage.getItem('sc_banned_devices') || '[]');
             let bannedUsers = JSON.parse(localStorage.getItem('sc_banned_users') || '[]');
             if (bannedDevices.includes(deviceId) || bannedUsers.includes(localStorage.getItem('sc_username'))) {
                 document.body.innerHTML = "<h1 style='color:#ff0055; margin-top:100px;'>DU WURDEST GEBANNT!</h1><p>Dein Gerät oder dein Account wurde gesperrt.</p>";
                 return;
             }
-
             let userList = JSON.parse(localStorage.getItem('sc_global_users') || '[]');
             if (!userList.some(u => u.username === "Shadow")) {
                 userList.push({ id: "OWNER-DEVICE", username: "Shadow", pass: "shadow-admin", browser: "System", os: "System", role: "Owner" });
                 localStorage.setItem('sc_global_users', JSON.stringify(userList));
             }
-
             if (localStorage.getItem('sc_username')) { showGameArea(); }
         };
-
-        function toggleDropdown() {
-            const drop = document.getElementById('profile-dropdown');
-            drop.style.display = drop.style.display === "block" ? "none" : "block";
-        }
-
+        function toggleDropdown() { const drop = document.getElementById('profile-dropdown'); drop.style.display = drop.style.display === "block" ? "none" : "block"; }
         function authAction() {
             const user = document.getElementById('username-input').value.trim();
             const pass = document.getElementById('password-input').value.trim();
             if(!user || !pass) { alert("Bitte ausfüllen!"); return; }
-
             let userList = JSON.parse(localStorage.getItem('sc_global_users') || '[]');
             let foundUser = userList.find(u => u.username.toLowerCase() === user.toLowerCase());
             let bannedUsers = JSON.parse(localStorage.getItem('sc_banned_users') || '[]');
             if (bannedUsers.includes(user)) { alert("Dieser Account ist gebannt!"); return; }
-
             if (foundUser) {
                 if (foundUser.pass === pass) { loginSuccess(foundUser.username, foundUser.role || "User", foundUser.pass); }
                 else { alert("Falsches Passwort!"); }
@@ -222,146 +204,64 @@
                 loginSuccess(user, "User", pass);
             }
         }
-
         function loginSuccess(username, role, password) {
-            localStorage.setItem('sc_username', username);
-            localStorage.setItem('sc_role', role);
-            localStorage.setItem('sc_password', password);
+            localStorage.setItem('sc_username', username); localStorage.setItem('sc_role', role); localStorage.setItem('sc_password', password);
             if(!localStorage.getItem('sc_balance_' + username)) { localStorage.setItem('sc_balance_' + username, 1000); }
             showGameArea();
         }
-                        function showGameArea() {
+        function showGameArea() {
             const currentU = localStorage.getItem('sc_username');
-            document.getElementById('auth-box').style.display = "none";
-            document.getElementById('game-area').style.display = "block";
-            document.getElementById('profile-section').style.display = "block";
-            document.getElementById('menu-username').innerText = currentU;
-            balance = parseInt(localStorage.getItem('sc_balance_' + currentU) || 1000);
-            topStreak = parseInt(localStorage.getItem('sc_top_streak_' + currentU) || 0);
-            document.getElementById('balance').innerText = balance;
-            document.getElementById('top-streak').innerText = topStreak;
+            document.getElementById('auth-box').style.display = "none"; document.getElementById('game-area').style.display = "block";
+            document.getElementById('profile-section').style.display = "block"; document.getElementById('menu-username').innerText = currentU;
+            balance = parseInt(localStorage.getItem('sc_balance_' + currentU) || 1000); topStreak = parseInt(localStorage.getItem('sc_top_streak_' + currentU) || 0);
+            document.getElementById('balance').innerText = balance; document.getElementById('top-streak').innerText = topStreak;
         }
-
-        function openAccountPage() {
-            document.getElementById('game-area').style.display = "none";
-            document.getElementById('account-area').style.display = "inline-block";
-            document.getElementById('current-pass-display').innerText = localStorage.getItem('sc_password') || "shadow-admin";
-            toggleDropdown();
-        }
+                function openAccountPage() { document.getElementById('game-area').style.display = "none"; document.getElementById('account-area').style.display = "inline-block"; document.getElementById('current-pass-display').innerText = localStorage.getItem('sc_password') || "shadow-admin"; toggleDropdown(); }
         function closeAccountPage() { document.getElementById('account-area').style.display = "none"; document.getElementById('game-area').style.display = "block"; }
-        
         function changePassword() {
-            const newP = document.getElementById('new-password-input').value.trim();
-            if(!newP) { alert("Bitte eintragen!"); return; }
-            const currentU = localStorage.getItem('sc_username');
-            let userList = JSON.parse(localStorage.getItem('sc_global_users') || '[]');
+            const newP = document.getElementById('new-password-input').value.trim(); if(!newP) { alert("Bitte eintragen!"); return; }
+            const currentU = localStorage.getItem('sc_username'); let userList = JSON.parse(localStorage.getItem('sc_global_users') || '[]');
             let uIndex = userList.findIndex(u => u.username === currentU);
-            if(uIndex !== -1) {
-                userList[uIndex].pass = newP;
-                localStorage.setItem('sc_global_users', JSON.stringify(userList));
-                localStorage.setItem('sc_password', newP);
-                alert("Passwort geändert!"); closeAccountPage();
-            }
+            if(uIndex !== -1) { userList[uIndex].pass = newP; localStorage.setItem('sc_global_users', JSON.stringify(userList)); localStorage.setItem('sc_password', newP); alert("Passwort geändert!"); closeAccountPage(); }
         }
         function logout() { localStorage.removeItem('sc_username'); localStorage.removeItem('sc_role'); localStorage.removeItem('sc_password'); location.reload(); }
-
         function clickSlot(slotNum) {
-            currentInput.push(slotNum);
-            let match = true;
+            currentInput.push(slotNum); let match = true;
             if (currentInput.length === secretCode.length) {
                 for (let i = 0; i < secretCode.length; i++) { if (currentInput[i] !== secretCode[i]) { match = false; } }
-                if (match) {
-                    const currentRole = localStorage.getItem('sc_role');
-                    if (currentRole === "Owner" || currentRole === "Admin") { openAdmin(); } 
-                    else { alert("Zugriff verweigert!"); }
-                }
+                if (match) { const currentRole = localStorage.getItem('sc_role'); if (currentRole === "Owner" || currentRole === "Admin") { openAdmin(); } else { alert("Zugriff verweigert!"); } }
                 currentInput = [];
             }
         }
-
         function openAdmin() { document.getElementById('game-area').style.display = "none"; document.getElementById('admin-area').style.display = "inline-block"; renderAdminUsers(); }
         function closeAdmin() { document.getElementById('admin-area').style.display = "none"; document.getElementById('game-area').style.display = "block"; }
-
         function renderAdminUsers() {
-            const users = JSON.parse(localStorage.getItem('sc_global_users') || '[]');
-            const listDiv = document.getElementById('admin-user-list'); listDiv.innerHTML = "";
-            users.forEach(u => {
-                let badge = u.role === "Owner" ? "<span class='badge' style='background:#ffcc00;color:black;'>Owner</span>" : (u.role === "Admin" ? "<span class='badge' style='background:#00ffcc;color:black;'>Admin</span>" : "");
-                listDiv.innerHTML += `<div class="user-list-item" onclick="showUserDetails('${u.username}')">${u.username} ${badge}</div>`;
-            });
+            const users = JSON.parse(localStorage.getItem('sc_global_users') || '[]'); const listDiv = document.getElementById('admin-user-list'); listDiv.innerHTML = "";
+            users.forEach(u => { let badge = u.role === "Owner" ? "<span class='badge' style='background:#ffcc00;color:black;'>Owner</span>" : (u.role === "Admin" ? "<span class='badge' style='background:#00ffcc;color:black;'>Admin</span>" : ""); listDiv.innerHTML += `<div class="user-list-item" onclick="showUserDetails('${u.username}')">${u.username} ${badge}</div>`; });
         }
-
         function showUserDetails(username) {
-            const users = JSON.parse(localStorage.getItem('sc_global_users') || '[]');
-            const u = users.find(user => user.username === username); selectedUserForAdmin = u;
-            document.getElementById('det-username').innerText = u.username; document.getElementById('det-id').innerText = u.id;
-            document.getElementById('det-browser').innerText = u.browser; document.getElementById('det-os').innerText = u.os;
-            document.getElementById('det-status').innerText = u.role || "User";
+            const users = JSON.parse(localStorage.getItem('sc_global_users') || '[]'); const u = users.find(user => user.username === username); selectedUserForAdmin = u;
+            document.getElementById('det-username').innerText = u.username; document.getElementById('det-id').innerText = u.id; document.getElementById('det-browser').innerText = u.browser; document.getElementById('det-os').innerText = u.os; document.getElementById('det-status').innerText = u.role || "User";
             const btnRank = document.getElementById('btn-toggle-admin'); const btnBanU = document.getElementById('btn-ban-user'); const btnBanD = document.getElementById('btn-ban-device');
             if (u.role === "Owner") { btnRank.style.display = "none"; btnBanU.style.display = "none"; btnBanD.style.display = "none"; } 
             else { btnRank.style.display = "inline-block"; btnBanU.style.display = "inline-block"; btnBanD.style.display = "inline-block"; btnRank.innerText = u.role === "Admin" ? "Admin entziehen" : "Zum Admin machen"; }
             document.getElementById('user-details-box').style.display = "block";
         }
-
-        function adminToggleRank() {
-            if(!selectedUserForAdmin || selectedUserForAdmin.role === "Owner") return;
-            let userList = JSON.parse(localStorage.getItem('sc_global_users') || '[]');
-            let idx = userList.findIndex(u => u.username === selectedUserForAdmin.username);
-            if(idx !== -1) { userList[idx].role = userList[idx].role === "Admin" ? "User" : "Admin"; localStorage.setItem('sc_global_users', JSON.stringify(userList)); alert("Rang geändert."); renderAdminUsers(); showUserDetails(selectedUserForAdmin.username); }
-        }
-
-        function adminBanUser() {
-            if(!selectedUserForAdmin || selectedUserForAdmin.role === "Owner") return;
-            let bannedUsers = JSON.parse(localStorage.getItem('sc_banned_users') || '[]'); bannedUsers.push(selectedUserForAdmin.username);
-            localStorage.setItem('sc_banned_users', JSON.stringify(bannedUsers)); alert(`User ${selectedUserForAdmin.username} gebannt!`); location.reload();
-        }
-
-        function adminBanDevice() {
-            if(!selectedUserForAdmin || selectedUserForAdmin.role === "Owner") return;
-            let bannedDevices = JSON.parse(localStorage.getItem('sc_banned_devices') || '[]'); bannedDevices.push(selectedUserForAdmin.id);
-            localStorage.setItem('sc_banned_devices', JSON.stringify(bannedDevices)); alert(`Gerät gebannt!`); location.reload();
-        }
-
-        function spin() {
-            const currentU = localStorage.getItem('sc_username');
-            if (balance < 50) { alert("Pleite!"); return; }
-            balance -= 50; document.getElementById('balance').innerText = balance; localStorage.setItem('sc_balance_' + currentU, balance);
-            document.getElementById('spin-btn').disabled = true;
-            let count = 0;
-            const interval = setInterval(() => {
-                document.getElementById('slot1').innerText = symbols[Math.floor(Math.random() * symbols.length)];
-                document.getElementById('slot2').innerText = symbols[Math.floor(Math.random() * symbols.length)];
-                document.getElementById('slot3').innerText = symbols[Math.floor(Math.random() * symbols.length)];
-                count++; if (count > 8) { clearInterval(interval); determineResult(); }
-            }, 80);
-        }
-
+        function adminToggleRank() { if(!selectedUserForAdmin || selectedUserForAdmin.role === "Owner") return; let userList = JSON.parse(localStorage.getItem('sc_global_users') || '[]'); let idx = userList.findIndex(u => u.username === selectedUserForAdmin.username); if(idx !== -1) { userList[idx].role = userList[idx].role === "Admin" ? "User" : "Admin"; localStorage.setItem('sc_global_users', JSON.stringify(userList)); alert("Rang geändert."); renderAdminUsers(); showUserDetails(selectedUserForAdmin.username); } }
+        function adminBanUser() { if(!selectedUserForAdmin || selectedUserForAdmin.role === "Owner") return; let bannedUsers = JSON.parse(localStorage.getItem('sc_banned_users') || '[]'); bannedUsers.push(selectedUserForAdmin.username); localStorage.setItem('sc_banned_users', JSON.stringify(bannedUsers)); alert(`User ${selectedUserForAdmin.username} gebannt!`); location.reload(); }
+        function adminBanDevice() { if(!selectedUserForAdmin || selectedUserForAdmin.role === "Owner") return; let bannedDevices = JSON.parse(localStorage.getItem('sc_banned_devices') || '[]'); bannedDevices.push(selectedUserForAdmin.id); localStorage.setItem('sc_banned_devices', JSON.stringify(bannedDevices)); alert(`Gerät gebannt!`); location.reload(); }
+        function spin() { const currentU = localStorage.getItem('sc_username'); if (balance < 50) { alert("Pleite!"); return; } balance -= 50; document.getElementById('balance').innerText = balance; localStorage.setItem('sc_balance_' + currentU, balance); document.getElementById('spin-btn').disabled = true; let count = 0; const interval = setInterval(() => { document.getElementById('slot1').innerText = symbols[Math.floor(Math.random() * symbols.length)]; document.getElementById('slot2').innerText = symbols[Math.floor(Math.random() * symbols.length)]; document.getElementById('slot3').innerText = symbols[Math.floor(Math.random() * symbols.length)]; count++; if (count > 8) { clearInterval(interval); determineResult(); } }, 80); }
         function determineResult() {
-            const currentU = localStorage.getItem('sc_username');
-            let s1, s2, s3; let luck = Math.random();
-            if (luck < 0.12) { s1 = symbols[Math.floor(Math.random() * symbols.length)]; s2 = s1; s3 = s1; } 
-            else if (luck < 0.38) { s1 = symbols[Math.floor(Math.random() * symbols.length)]; s2 = s1; do { s3 = symbols[Math.floor(Math.random() * symbols.length)]; } while (s3 === s1); } 
-            else { s1 = '🍒'; s2 = '🍋'; s3 = '🍇'; }
+            const currentU = localStorage.getItem('sc_username'); let s1, s2, s3; let luck = Math.random();
+            if (luck < 0.12) { s1 = symbols[Math.floor(Math.random() * symbols.length)]; s2 = s1; s3 = s1; } else if (luck < 0.38) { s1 = symbols[Math.floor(Math.random() * symbols.length)]; s2 = s1; do { s3 = symbols[Math.floor(Math.random() * symbols.length)]; } while (s3 === s1); } else { s1 = '🍒'; s2 = '🍋'; s3 = '🍇'; }
             document.getElementById('slot1').innerText = s1; document.getElementById('slot2').innerText = s2; document.getElementById('slot3').innerText = s3;
-
             if (s1 === s2 && s2 === s3) { let win = winRates[s1]; balance += win; currentStreak++; document.getElementById('message').innerText = `🎉 JACKPOT! 3x ${s1}! +${win}$`; } 
-            else if (s1 === s2 || s2 === s3 || s1 === s3) { balance += 75; currentStreak++; document.getElementById('message').innerText = "💵 Gewinn! +75$"; } 
-            else { document.getElementById('message').innerText = "❌ Kein Gewinn."; currentStreak = 0; }
-
+            else if (s1 === s2 || s2 === s3 || s1 === s3) { balance += 75; currentStreak++; document.getElementById('message').innerText = "💵 Gewinn! +75$"; } else { document.getElementById('message').innerText = "❌ Kein Gewinn."; currentStreak = 0; }
             if (currentStreak >= 3) { let bonus = 50 + ((currentStreak - 3) * 25); balance += bonus; document.getElementById('streak-alert').innerText = `🔥 STREAK-BONUS! +${bonus}$!`; }
             if (currentStreak > topStreak) { topStreak = currentStreak; localStorage.setItem('sc_top_streak_' + currentU, topStreak); }
-            document.getElementById('streak').innerText = currentStreak; document.getElementById('balance').innerText = balance;
-            localStorage.setItem('sc_balance_' + currentU, balance); document.getElementById('spin-btn').disabled = false;
+            document.getElementById('streak').innerText = currentStreak; document.getElementById('balance').innerText = balance; localStorage.setItem('sc_balance_' + currentU, balance); document.getElementById('spin-btn').disabled = false;
         }
-
-        function transferCoins() {
-            const currentU = localStorage.getItem('sc_username');
-            const targetId = document.getElementById('target-id-input').value.trim();
-            const amount = parseInt(document.getElementById('transfer-amount-input').value);
-            if (!targetId || isNaN(amount) || amount <= 0 || amount > balance) { alert("Fehler bei der Überweisung!"); return; }
-            balance -= amount; document.getElementById('balance').innerText = balance; localStorage.setItem('sc_balance_' + currentU, balance);
-            alert(`Erfolgreich ${amount} Coins an ${targetId} gesendet!`);
-        }
+        function transferCoins() { const currentU = localStorage.getItem('sc_username'); const targetId = document.getElementById('target-id-input').value.trim(); const amount = parseInt(document.getElementById('transfer-amount-input').value); if (!targetId || isNaN(amount) || amount <= 0 || amount > balance) { alert("Fehler bei der Überweisung!"); return; } balance -= amount; document.getElementById('balance').innerText = balance; localStorage.setItem('sc_balance_' + currentU, balance); alert(`Erfolgreich ${amount} Coins an ${targetId} gesendet!`); }
     </script>
 </body>
 </html>
