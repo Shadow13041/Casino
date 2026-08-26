@@ -17,52 +17,65 @@
             color: #ff0055; text-shadow: 0 0 10px #ff0055; font-size: 1.6rem; font-weight: bold;
             cursor: pointer; text-decoration: none; margin: 0;
         }
-        .profile-menu { color: #555566; font-size: 0.95rem; cursor: pointer; }
-        .game-container {
+        .profile-menu {
+            color: #555566; font-size: 0.95rem; cursor: pointer; text-align: right; position: relative;
+        }
+        .profile-menu:hover { color: #888899; }
+        .dropdown-content {
+            display: none; background: #161622; border: 1px solid #333344; padding: 10px; border-radius: 10px;
+            position: absolute; right: 0; top: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); width: 120px; z-index: 200;
+        }
+        .dropdown-content a { color: #ff0055; text-decoration: none; display: block; margin: 5px 0; font-size: 0.85rem; }
+        .game-container, .auth-container {
             background: #161622; padding: 25px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            display: inline-block; width: 90%; max-width: 420px; margin-top: 100px; text-align: center;
+            display: inline-block; width: 90%; max-width: 420px; margin-bottom: 20px; margin-top: 80px; text-align: center;
         }
-        .grid {
-            display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px;
-            max-width: 320px; margin: 25px auto;
-        }
+        .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; max-width: 320px; margin: 25px auto; }
         .cell {
             background: #05050a; aspect-ratio: 1; border-radius: 10px; border: 2px solid #333344;
-            font-size: 1.8rem; display: flex; justify-content: center; align-items: center;
-            cursor: pointer; transition: 0.15s; font-weight: bold;
+            font-size: 1.8rem; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: 0.15s; font-weight: bold;
         }
         .cell:hover { border-color: #ff0055; background: #0d0d1a; }
         .cell.revealed-ship { background: #16221f; border-color: #00ffcc; color: #00ffcc; cursor: default; }
         .cell.revealed-mine { background: #22161f; border-color: #ff0055; color: #ff0055; cursor: default; }
-        /* =============== ENDE BLOCK 1 / HIER BLOCK 2 ANFÜGEN =============== */
-                  /* =============== START BLOCK 2 =============== */
+                /* =============== START BLOCK 2 =============== */
         button {
             background: linear-gradient(135deg, #ff0055, #bc003f); color: white; border: none; padding: 12px 25px;
             font-size: 1.1rem; font-weight: bold; border-radius: 50px; cursor: pointer; box-shadow: 0 5px 15px rgba(255, 0, 85, 0.4);
         }
         button:disabled { background: #444; box-shadow: none; cursor: not-allowed; }
         .cashout-btn { background: linear-gradient(135deg, #00ffcc, #00b38f); color: #0d0d11; box-shadow: none; }
-        input {
-            width: 50%; padding: 10px; margin: 8px 0; border-radius: 10px; border: 1px solid #333344;
-            background: #05050a; color: white; text-align: center; font-size: 1rem;
-        }
-        select {
-            padding: 10px; border-radius: 10px; border: 1px solid #333344; background: #05050a; color: white;
-            font-size: 1rem; text-align: center; width: 55%; margin-bottom: 10px;
-        }
+        input { width: 50%; padding: 10px; margin: 8px 0; border-radius: 10px; border: 1px solid #333344; background: #05050a; color: white; text-align: center; font-size: 1rem; }
+        select { padding: 10px; border-radius: 10px; border: 1px solid #333344; background: #05050a; color: white; font-size: 1rem; text-align: center; width: 55%; margin-bottom: 10px; }
         .status-text { font-size: 1.1rem; color: #ffcc00; font-weight: bold; margin-top: 15px; height: 25px; }
+        #account-area { display: none; }
     </style>
 </head>
 <body>
     <div class="main-header">
         <div class="nav-logo" onclick="location.href='hub.html'">SHADOW CASINO</div>
-        <div class="profile-menu"><span id="menu-username">...</span></div>
+        <div class="profile-menu">
+            <span onclick="toggleDropdown()" id="menu-username">Benutzer</span>
+            <div id="profile-dropdown" class="dropdown-content">
+                <a href="#" id="admin-panel-link" style="display:none; font-weight:bold; color:#00ffcc;" onclick="location.href='index.html'">⚙️ Admin Panel</a>
+                <a href="#" onclick="location.href='hub.html'">🏠 Zentrale</a>
+                <a href="#" onclick="openAccountPage()">Passwort ändern</a>
+                <a href="#" onclick="logout()">Abmelden</a>
+            </div>
+        </div>
     </div>
-    <div class="game-container">
+    <div id="account-area" class="auth-container">
+        <h3 style="margin-top:0; color:#ffcc00;">Passwort verwalten</h3>
+        <p style="font-size:0.9rem; color:#888;">Dein Passwort lautet: <span id="current-pass-display" style="color:white; font-family:monospace;"></span></p>
+        <input type="password" id="new-password-input" placeholder="Neues Passwort"><br>
+        <button onclick="changePassword()">Passwort aktualisieren</button><br>
+        <button style="background:#444; font-size:0.9rem; padding:8px 20px;" onclick="closeAccountPage()">Zurück</button>
+    </div>
+    <div class="game-container" id="main-game-box">
         <h2 style="color:#ff0055; margin-top:0;">🚢 Schiffe versenken</h2>
         <p style="color:#888; font-size:0.9rem; margin-bottom:5px;">Finde die versteckten Schätze, aber triff keine Seemine!</p>
         <div style="font-size: 0.95rem; color: #aaa; margin-bottom: 15px;">Kontostand: <span id="coins-display" style="color:#00ffcc; font-weight:bold;">0</span> $</div>
-        
+                /* =============== START BLOCK 3 =============== */
         <div id="setup-area">
             <input type="number" id="bet-input" placeholder="Einsatz in $" value="50"><br>
             <label style="font-size:0.85rem; color:#aaa; display:block; margin-top:5px;">Anzahl der Seeminen (1-24):</label>
@@ -73,8 +86,6 @@
             </select><br>
             <button onclick="startGame()">Flotte aussenden</button>
         </div>
-        /* =============== ENDE BLOCK 2 / HIER BLOCK 3 ANFÜGEN =============== */
-              /* =============== START BLOCK 3 =============== */
         <div id="play-area" style="display: none;">
             <div style="font-size:0.9rem; color:#aaa;">Aktueller Gewinn: <span id="potential-win" style="color:#00ffcc; font-weight:bold;">0</span> $ (<span id="mult-display" style="color:#00ffcc; font-weight:bold;">1.0x</span>)</div>
             <div style="font-size:0.85rem; color:#888; margin-top:5px;">Gefundene Schätze: <span id="found-display" style="color:#ffcc00; font-weight:bold;">0</span> / <span id="total-ships-display">0</span></div>
@@ -99,91 +110,50 @@
 
         window.onload = function() {
             currentU = localStorage.getItem('sc_username'); if (!currentU) { location.href = 'index.html'; return; }
-            document.getElementById('menu-username').innerText = currentU; updateBalanceDisplay();
+            document.getElementById('menu-username').innerText = currentU;
+            const currentRole = localStorage.getItem('sc_role');
+            if (currentRole === "Owner" || currentRole === "Admin") { document.getElementById('admin-panel-link').style.display = "block"; }
+            updateBalanceDisplay();
         };
         function updateBalanceDisplay() { document.getElementById('coins-display').innerText = localStorage.getItem('sc_balance_' + currentU) || 1000; }
-        /* =============== ENDE BLOCK 3 / HIER BLOCK 4 ANFÜGEN =============== */
-              /* =============== START BLOCK 4 =============== */
+        function toggleDropdown() { const drop = document.getElementById('profile-dropdown'); drop.style.display = drop.style.display === "block" ? "none" : "block"; }
+        function openAccountPage() { document.getElementById('main-game-box').style.display = "none"; document.getElementById('account-area').style.display = "inline-block"; document.getElementById('current-pass-display').innerText = localStorage.getItem('sc_password'); toggleDropdown(); }
+        function closeAccountPage() { document.getElementById('account-area').style.display = "none"; document.getElementById('main-game-box').style.display = "inline-block"; }
+        function logout() { localStorage.removeItem('sc_username'); localStorage.removeItem('sc_role'); localStorage.removeItem('sc_password'); location.href = 'index.html'; }
+                /* =============== START BLOCK 4 =============== */
+        function changePassword() {
+            const newP = document.getElementById('new-password-input').value.trim(); if(!newP) return;
+            let userList = JSON.parse(localStorage.getItem('sc_global_users') || '[]'); let idx = userList.findIndex(u => u.username === currentU);
+            if(idx !== -1) { userList[idx].pass = newP; localStorage.setItem('sc_global_users', JSON.stringify(userList)); localStorage.setItem('sc_password', newP); alert("Passwort geändert!"); closeAccountPage(); }
+        }
         function startGame() {
-            bet = parseInt(document.getElementById('bet-input').value);
-            totalMines = parseInt(document.getElementById('mines-select').value);
-            let coins = parseInt(localStorage.getItem('sc_balance_' + currentU) || 1000);
-            if (isNaN(bet) || bet <= 0 || bet > coins) { alert("Ungültiger Einsatz!"); return; }
-            
+            bet = parseInt(document.getElementById('bet-input').value); totalMines = parseInt(document.getElementById('mines-select').value);
+            let coins = parseInt(localStorage.getItem('sc_balance_' + currentU) || 1000); if (isNaN(bet) || bet <= 0 || bet > coins) { alert("Ungültiger Einsatz!"); return; }
             coins -= bet; localStorage.setItem('sc_balance_' + currentU, coins); updateBalanceDisplay();
             selectedCellsCount = 0; currentMultiplier = 1.0; mineLocations = [];
-            
-            while(mineLocations.length < totalMines) {
-                let loc = Math.floor(Math.random() * 25);
-                if(!mineLocations.includes(loc)) mineLocations.push(loc);
-            }
-            
+            while(mineLocations.length < totalMines) { let loc = Math.floor(Math.random() * 25); if(!mineLocations.includes(loc)) mineLocations.push(loc); }
             document.getElementById('setup-area').style.display = "none"; document.getElementById('play-area').style.display = "block";
             document.getElementById('status-box').style.color = "#ffcc00"; document.getElementById('status-box').innerText = "Wähle ein Feld auf der Seekarte!";
-            
             const gridContainer = document.getElementById('mine-grid'); gridContainer.innerHTML = "";
-            for(let i=0; i<25; i++) {
-                let cell = document.createElement('div'); cell.className = "cell"; cell.dataset.index = i;
-                cell.innerText = "🌊"; cell.onclick = function() { clickCell(this); };
-                gridContainer.appendChild(cell);
-            }
+            for(let i=0; i<25; i++) { let cell = document.createElement('div'); cell.className = "cell"; cell.dataset.index = i; cell.innerText = "🌊"; cell.onclick = function() { clickCell(this); }; gridContainer.appendChild(cell); }
             updateStats();
         }
-
-        function calculateMultiplier() {
-            let safeCellsLeft = 25 - totalMines;
-            if (selectedCellsCount === 0) return 1.0;
-            let mult = 1.0;
-            for (let i = 0; i < selectedCellsCount; i++) {
-                mult *= (25 - i) / (25 - totalMines - i);
-            }
-            return mult * 0.96; // 4% Hausvorteil für das Shadow Casino
-        }
-
-        function updateStats() {
-            document.getElementById('found-display').innerText = selectedCellsCount;
-            document.getElementById('total-ships-display').innerText = 25 - totalMines;
-            document.getElementById('mult-display').innerText = currentMultiplier.toFixed(2) + "x";
-            document.getElementById('potential-win').innerText = Math.floor(bet * currentMultiplier);
-            document.getElementById('cash-btn').disabled = selectedCellsCount === 0;
-        }
-
+        function calculateMultiplier() { if (selectedCellsCount === 0) return 1.0; let mult = 1.0; for (let i = 0; i < selectedCellsCount; i++) { mult *= (25 - i) / (25 - totalMines - i); } return mult * 0.96; }
+        function updateStats() { document.getElementById('found-display').innerText = selectedCellsCount; document.getElementById('total-ships-display').innerText = 25 - totalMines; document.getElementById('mult-display').innerText = currentMultiplier.toFixed(2) + "x"; document.getElementById('potential-win').innerText = Math.floor(bet * currentMultiplier); document.getElementById('cash-btn').disabled = selectedCellsCount === 0; }
         function clickCell(cell) {
-            let idx = parseInt(cell.dataset.index);
-            if(cell.classList.contains('revealed-ship') || cell.classList.contains('revealed-mine')) return;
-            
+            let idx = parseInt(cell.dataset.index); if(cell.classList.contains('revealed-ship') || cell.classList.contains('revealed-mine')) return;
             if(mineLocations.includes(idx)) {
-                playSound('boom'); cell.className = "cell revealed-mine"; cell.innerText = "💥";
-                document.getElementById('status-box').style.color = "#ff0055"; document.getElementById('status-box').innerText = "Seemine getroffen! Totalschaden!";
-                // Alle Minen aufdecken
-                document.querySelectorAll('.cell').forEach(c => {
-                    let cIdx = parseInt(c.dataset.index);
-                    if(mineLocations.includes(cIdx)) { c.className = "cell revealed-mine"; c.innerText = "💣"; }
-                });
+                playSound('boom'); cell.className = "cell revealed-mine"; cell.innerText = "💥"; document.getElementById('status-box').style.color = "#ff0055"; document.getElementById('status-box').innerText = "Seemine getroffen! Totalschaden!";
+                document.querySelectorAll('.cell').forEach(c => { let cIdx = parseInt(c.dataset.index); if(mineLocations.includes(cIdx)) { c.className = "cell revealed-mine"; c.innerText = "💣"; } });
                 setTimeout(resetGame, 2500);
             } else {
-                playSound('ship'); cell.className = "cell revealed-ship"; cell.innerText = "🚢";
-                selectedCellsCount++;
-                currentMultiplier = calculateMultiplier();
-                document.getElementById('status-box').style.color = "#00ffcc"; document.getElementById('status-box').innerText = "Sicherer Gewässerabschnitt erkundet!";
-                updateStats();
+                playSound('ship'); cell.className = "cell revealed-ship"; cell.innerText = "🚢"; selectedCellsCount++; currentMultiplier = calculateMultiplier();
+                document.getElementById('status-box').style.color = "#00ffcc"; document.getElementById('status-box').innerText = "Sicherer Gewässerabschnitt erkundet!"; updateStats();
                 if(selectedCellsCount === (25 - totalMines)) { alert("Phänomenal! Das gesamte Meer ist gesäubert!"); cashout(); }
             }
         }
-
-        function cashout() {
-            let coins = parseInt(localStorage.getItem('sc_balance_' + currentU) || 1000);
-            let totalWin = Math.floor(bet * currentMultiplier);
-            coins += totalWin; localStorage.setItem('sc_balance_' + currentU, coins);
-            playSound('cash'); alert(`Erfolgreich den Hafen erreicht. +${totalWin}$ gesichert!`); resetGame();
-        }
-
-        function resetGame() {
-            updateBalanceDisplay();
-            document.getElementById('setup-area').style.display = "block"; document.getElementById('play-area').style.display = "none";
-            document.getElementById('status-box').style.color = "#ffcc00"; document.getElementById('status-box').innerText = "Bereite deine Flotte vor!";
-        }
+        function cashout() { let coins = parseInt(localStorage.getItem('sc_balance_' + currentU) || 1000); let totalWin = Math.floor(bet * currentMultiplier); coins += totalWin; localStorage.setItem('sc_balance_' + currentU, coins); playSound('cash'); alert(`Erfolgreich den Hafen erreicht. +${totalWin}$ gesichert!`); resetGame(); }
+        function resetGame() { updateBalanceDisplay(); document.getElementById('setup-area').style.display = "block"; document.getElementById('play-area').style.display = "none"; document.getElementById('status-box').style.color = "#ffcc00"; document.getElementById('status-box').innerText = "Bereite deine Flotte vor!"; }
     </script>
 </body>
 </html>
-
