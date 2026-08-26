@@ -235,4 +235,28 @@
         function toggleEditMode() { const area = document.getElementById('edit-actions-area'); area.style.display = area.style.display === "block" ? "none" : "block"; }
         function adminSaveCoins() { const val = parseInt(document.getElementById('edit-coins-input').value); if(isNaN(val)) return; localStorage.setItem('sc_balance_' + selectedUserForAdmin.username, val); alert("Coins aktualisiert!"); showUserDetails(selectedUserForAdmin.username); switchAdminTab('active'); }
         /* =============== ENDE BLOCK 9 / HIER BLOCK 10 ANFÜGEN =============== */
-        
+               /* =============== START BLOCK 10 =============== */
+        function adminToggleRank() { let userList = JSON.parse(localStorage.getItem('sc_global_users') || '[]'); let idx = userList.findIndex(u => u.username === selectedUserForAdmin.username); if(idx !== -1) { userList[idx].role = userList[idx].role === "Admin" ? "User" : "Admin"; localStorage.setItem('sc_global_users', JSON.stringify(userList)); switchAdminTab('active'); showUserDetails(selectedUserForAdmin.username); } }
+        function adminBanUser() { let bannedUsers = JSON.parse(localStorage.getItem('sc_banned_users') || '[]'); bannedUsers.push(selectedUserForAdmin.username); localStorage.setItem('sc_banned_users', JSON.stringify(bannedUsers)); alert("User gesperrt!"); switchAdminTab('active'); document.getElementById('user-details-box').style.display = "none"; }
+        function adminBanDevice() { let bannedDevices = JSON.parse(localStorage.getItem('sc_banned_devices') || '[]'); bannedDevices.push(selectedUserForAdmin.id); localStorage.setItem('sc_banned_devices', JSON.stringify(bannedDevices)); alert("Gerät gesperrt!"); switchAdminTab('active'); document.getElementById('user-details-box').style.display = "none"; }
+        function adminUnbanAll() {
+            let bu = JSON.parse(localStorage.getItem('sc_banned_users') || '[]'); let bd = JSON.parse(localStorage.getItem('sc_banned_devices') || '[]');
+            bu = bu.filter(u => u !== selectedUserForAdmin.username); bd = bd.filter(d => d !== selectedUserForAdmin.id);
+            localStorage.setItem('sc_banned_users', JSON.stringify(bu)); localStorage.setItem('sc_banned_devices', JSON.stringify(bd)); alert("Erfolgreich entbannt!"); switchAdminTab('banned'); document.getElementById('user-details-box').style.display = "none";
+        }
+        function spin() { const currentV = localStorage.getItem('sc_username'); if (balance < 50) { alert("Pleite!"); return; } balance -= 50; document.getElementById('balance').innerText = balance; localStorage.setItem('sc_balance_' + currentV, balance); document.getElementById('spin-btn').disabled = true; let count = 0; const interval = setInterval(() => { document.getElementById('slot1').innerText = symbols[Math.floor(Math.random() * symbols.length)]; document.getElementById('slot2').innerText = symbols[Math.floor(Math.random() * symbols.length)]; document.getElementById('slot3').innerText = symbols[Math.floor(Math.random() * symbols.length)]; count++; if (count > 8) { clearInterval(interval); determineResult(); } }, 80); }
+        function determineResult() {
+            const currentV = localStorage.getItem('sc_username'); let s1, s2, s3; let luck = Math.random();
+            if (luck < 0.12) { s1 = symbols[Math.floor(Math.random() * symbols.length)]; s2 = s1; s3 = s1; } else if (luck < 0.38) { s1 = symbols[Math.floor(Math.random() * symbols.length)]; s2 = s1; do { s3 = symbols[Math.floor(Math.random() * symbols.length)]; } while (s3 === s1); } else { s1 = '🍒'; s2 = '🍋'; s3 = '🍇'; }
+            document.getElementById('slot1').innerText = s1; document.getElementById('slot2').innerText = s2; document.getElementById('slot3').innerText = s3;
+            if (s1 === s2 && s2 === s3) { let win = winRates[s1]; balance += win; currentStreak++; document.getElementById('message').innerText = `🎉 JACKPOT! 3x ${s1}! +${win}$`; } 
+            else if (s1 === s2 || s2 === s3 || s1 === s3) { balance += 75; currentStreak++; document.getElementById('message').innerText = "💵 Gewinn! +75$"; } else { document.getElementById('message').innerText = "❌ Kein Gewinn."; currentStreak = 0; }
+            if (currentStreak >= 3) { let bonus = 50 + ((currentStreak - 3) * 25); balance += bonus; document.getElementById('streak-alert').innerText = `🔥 STREAK-BONUS! +${bonus}$!`; }
+            if (currentStreak > topStreak) { topStreak = currentStreak; localStorage.setItem('sc_top_streak_' + currentV, topStreak); }
+            document.getElementById('streak').innerText = currentStreak; document.getElementById('balance').innerText = balance; localStorage.setItem('sc_balance_' + currentV, balance); document.getElementById('spin-btn').disabled = false;
+        }
+        function transferCoins() { const currentV = localStorage.getItem('sc_username'); const targetId = document.getElementById('target-id-input').value.trim(); const amount = parseInt(document.getElementById('transfer-amount-input').value); if (!targetId || isNaN(amount) || amount <= 0 || amount > balance) { alert("Fehler bei der Überweisung!"); return; } balance -= amount; document.getElementById('balance').innerText = balance; localStorage.setItem('sc_balance_' + currentV, balance); alert(`Erfolgreich ${amount} Coins an ${targetId} gesendet!`); }
+    </script>
+</body>
+</html>
+
