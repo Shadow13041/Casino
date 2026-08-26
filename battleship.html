@@ -26,6 +26,8 @@
             position: absolute; right: 0; top: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); width: 120px; z-index: 200;
         }
         .dropdown-content a { color: #ff0055; text-decoration: none; display: block; margin: 5px 0; font-size: 0.85rem; }
+        /* =============== ENDE BLOCK 1 / HIER BLOCK 2 ANFÜGEN =============== */
+                /* =============== START BLOCK 2 =============== */
         .game-container, .auth-container {
             background: #161622; padding: 25px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
             display: inline-block; width: 90%; max-width: 420px; margin-bottom: 20px; margin-top: 80px; text-align: center;
@@ -38,7 +40,6 @@
         .cell:hover { border-color: #ff0055; background: #0d0d1a; }
         .cell.revealed-ship { background: #16221f; border-color: #00ffcc; color: #00ffcc; cursor: default; }
         .cell.revealed-mine { background: #22161f; border-color: #ff0055; color: #ff0055; cursor: default; }
-                /* =============== START BLOCK 2 =============== */
         button {
             background: linear-gradient(135deg, #ff0055, #bc003f); color: white; border: none; padding: 12px 25px;
             font-size: 1.1rem; font-weight: bold; border-radius: 50px; cursor: pointer; box-shadow: 0 5px 15px rgba(255, 0, 85, 0.4);
@@ -57,8 +58,8 @@
         <div class="profile-menu">
             <span onclick="toggleDropdown()" id="menu-username">Benutzer</span>
             <div id="profile-dropdown" class="dropdown-content">
-                <a href="#" id="admin-panel-link" style="display:none; font-weight:bold; color:#00ffcc;" onclick="location.href='index.html'">⚙️ Admin Panel</a>
-                <a href="#" onclick="location.href='hub.html'">🏠 Zentrale</a>
+                <a href="admin.html" id="admin-panel-link" style="display:none; font-weight:bold; color:#00ffcc;">⚙️ Admin Panel</a>
+                <a href="hub.html">🏠 Zentrale</a>
                 <a href="#" onclick="openAccountPage()">Passwort ändern</a>
                 <a href="#" onclick="logout()">Abmelden</a>
             </div>
@@ -71,11 +72,12 @@
         <button onclick="changePassword()">Passwort aktualisieren</button><br>
         <button style="background:#444; font-size:0.9rem; padding:8px 20px;" onclick="closeAccountPage()">Zurück</button>
     </div>
+        /* =============== ENDE BLOCK 2 / HIER BLOCK 3 ANFÜGEN =============== */
+        <!-- =============== START BLOCK 3 =============== -->
     <div class="game-container" id="main-game-box">
         <h2 style="color:#ff0055; margin-top:0;">🚢 Schiffe versenken</h2>
         <p style="color:#888; font-size:0.9rem; margin-bottom:5px;">Finde die versteckten Schätze, aber triff keine Seemine!</p>
         <div style="font-size: 0.95rem; color: #aaa; margin-bottom: 15px;">Kontostand: <span id="coins-display" style="color:#00ffcc; font-weight:bold;">0</span> $</div>
-                /* =============== START BLOCK 3 =============== */
         <div id="setup-area">
             <input type="number" id="bet-input" placeholder="Einsatz in $" value="50"><br>
             <label style="font-size:0.85rem; color:#aaa; display:block; margin-top:5px;">Anzahl der Seeminen (1-24):</label>
@@ -107,7 +109,6 @@
                 else if (type === 'cash') { osc.type = 'sine'; osc.frequency.setValueAtTime(659.25, audioCtx.currentTime); osc.frequency.setValueAtTime(987.77, audioCtx.currentTime + 0.08); gain.gain.setValueAtTime(0.1, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3); osc.start(); osc.stop(audioCtx.currentTime + 0.3); }
             } catch(e) {}
         }
-
         window.onload = function() {
             currentU = localStorage.getItem('sc_username'); if (!currentU) { location.href = 'index.html'; return; }
             document.getElementById('menu-username').innerText = currentU;
@@ -120,40 +121,14 @@
         function openAccountPage() { document.getElementById('main-game-box').style.display = "none"; document.getElementById('account-area').style.display = "inline-block"; document.getElementById('current-pass-display').innerText = localStorage.getItem('sc_password'); toggleDropdown(); }
         function closeAccountPage() { document.getElementById('account-area').style.display = "none"; document.getElementById('main-game-box').style.display = "inline-block"; }
         function logout() { localStorage.removeItem('sc_username'); localStorage.removeItem('sc_role'); localStorage.removeItem('sc_password'); location.href = 'index.html'; }
-                /* =============== START BLOCK 4 =============== */
-        function changePassword() {
-            const newP = document.getElementById('new-password-input').value.trim(); if(!newP) return;
-            let userList = JSON.parse(localStorage.getItem('sc_global_users') || '[]'); let idx = userList.findIndex(u => u.username === currentU);
-            if(idx !== -1) { userList[idx].pass = newP; localStorage.setItem('sc_global_users', JSON.stringify(userList)); localStorage.setItem('sc_password', newP); alert("Passwort geändert!"); closeAccountPage(); }
-        }
-        function startGame() {
-            bet = parseInt(document.getElementById('bet-input').value); totalMines = parseInt(document.getElementById('mines-select').value);
-            let coins = parseInt(localStorage.getItem('sc_balance_' + currentU) || 1000); if (isNaN(bet) || bet <= 0 || bet > coins) { alert("Ungültiger Einsatz!"); return; }
-            coins -= bet; localStorage.setItem('sc_balance_' + currentU, coins); updateBalanceDisplay();
-            selectedCellsCount = 0; currentMultiplier = 1.0; mineLocations = [];
-            while(mineLocations.length < totalMines) { let loc = Math.floor(Math.random() * 25); if(!mineLocations.includes(loc)) mineLocations.push(loc); }
-            document.getElementById('setup-area').style.display = "none"; document.getElementById('play-area').style.display = "block";
-            document.getElementById('status-box').style.color = "#ffcc00"; document.getElementById('status-box').innerText = "Wähle ein Feld auf der Seekarte!";
-            const gridContainer = document.getElementById('mine-grid'); gridContainer.innerHTML = "";
-            for(let i=0; i<25; i++) { let cell = document.createElement('div'); cell.className = "cell"; cell.dataset.index = i; cell.innerText = "🌊"; cell.onclick = function() { clickCell(this); }; gridContainer.appendChild(cell); }
-            updateStats();
-        }
+        function changePassword() { const newP = document.getElementById('new-password-input').value.trim(); if(!newP) return; let userList = JSON.parse(localStorage.getItem('sc_global_users') || '[]'); let idx = userList.findIndex(u => u.username === currentU); if(idx !== -1) { userList[idx].pass = newP; localStorage.setItem('sc_global_users', JSON.stringify(userList)); localStorage.setItem('sc_password', newP); alert("Passwort geändert!"); closeAccountPage(); } }
+        function startGame() { bet = parseInt(document.getElementById('bet-input').value); totalMines = parseInt(document.getElementById('mines-select').value); let coins = parseInt(localStorage.getItem('sc_balance_' + currentU) || 1000); if (isNaN(bet) || bet <= 0 || bet > coins) { alert("Ungültiger Einsatz!"); return; } coins -= bet; localStorage.setItem('sc_balance_' + currentU, coins); updateBalanceDisplay(); selectedCellsCount = 0; currentMultiplier = 1.0; mineLocations = []; while(mineLocations.length < totalMines) { let loc = Math.floor(Math.random() * 25); if(!mineLocations.includes(loc)) mineLocations.push(loc); } document.getElementById('setup-area').style.display = "none"; document.getElementById('play-area').style.display = "block"; document.getElementById('status-box').style.color = "#ffcc00"; document.getElementById('status-box').innerText = "Wähle ein Feld auf der Seekarte!"; const gridContainer = document.getElementById('mine-grid'); gridContainer.innerHTML = ""; for(let i=0; i<25; i++) { let cell = document.createElement('div'); cell.className = "cell"; cell.dataset.index = i; cell.innerText = "🌊"; cell.onclick = function() { clickCell(this); }; gridContainer.appendChild(cell); } updateStats(); }
         function calculateMultiplier() { if (selectedCellsCount === 0) return 1.0; let mult = 1.0; for (let i = 0; i < selectedCellsCount; i++) { mult *= (25 - i) / (25 - totalMines - i); } return mult * 0.96; }
         function updateStats() { document.getElementById('found-display').innerText = selectedCellsCount; document.getElementById('total-ships-display').innerText = 25 - totalMines; document.getElementById('mult-display').innerText = currentMultiplier.toFixed(2) + "x"; document.getElementById('potential-win').innerText = Math.floor(bet * currentMultiplier); document.getElementById('cash-btn').disabled = selectedCellsCount === 0; }
-        function clickCell(cell) {
-            let idx = parseInt(cell.dataset.index); if(cell.classList.contains('revealed-ship') || cell.classList.contains('revealed-mine')) return;
-            if(mineLocations.includes(idx)) {
-                playSound('boom'); cell.className = "cell revealed-mine"; cell.innerText = "💥"; document.getElementById('status-box').style.color = "#ff0055"; document.getElementById('status-box').innerText = "Seemine getroffen! Totalschaden!";
-                document.querySelectorAll('.cell').forEach(c => { let cIdx = parseInt(c.dataset.index); if(mineLocations.includes(cIdx)) { c.className = "cell revealed-mine"; c.innerText = "💣"; } });
-                setTimeout(resetGame, 2500);
-            } else {
-                playSound('ship'); cell.className = "cell revealed-ship"; cell.innerText = "🚢"; selectedCellsCount++; currentMultiplier = calculateMultiplier();
-                document.getElementById('status-box').style.color = "#00ffcc"; document.getElementById('status-box').innerText = "Sicherer Gewässerabschnitt erkundet!"; updateStats();
-                if(selectedCellsCount === (25 - totalMines)) { alert("Phänomenal! Das gesamte Meer ist gesäubert!"); cashout(); }
-            }
-        }
+        function clickCell(cell) { let idx = parseInt(cell.dataset.index); if(cell.classList.contains('revealed-ship') || cell.classList.contains('revealed-mine')) return; if(mineLocations.includes(idx)) { playSound('boom'); cell.className = "cell revealed-mine"; cell.innerText = "💥"; document.getElementById('status-box').style.color = "#ff0055"; document.getElementById('status-box').innerText = "Seemine getroffen! Totalschaden!"; document.querySelectorAll('.cell').forEach(c => { let cIdx = parseInt(c.dataset.index); if(mineLocations.includes(cIdx)) { c.className = "cell revealed-mine"; c.innerText = "💣"; } }); setTimeout(resetGame, 2500); } else { playSound('ship'); cell.className = "cell revealed-ship"; cell.innerText = "🚢"; selectedCellsCount++; currentMultiplier = calculateMultiplier(); document.getElementById('status-box').style.color = "#00ffcc"; document.getElementById('status-box').innerText = "Sicherer Gewässerabschnitt erkundet!"; updateStats(); if(selectedCellsCount === (25 - totalMines)) { alert("Phänomenal! Das gesamte Meer ist gesäubert!"); cashout(); } } }
         function cashout() { let coins = parseInt(localStorage.getItem('sc_balance_' + currentU) || 1000); let totalWin = Math.floor(bet * currentMultiplier); coins += totalWin; localStorage.setItem('sc_balance_' + currentU, coins); playSound('cash'); alert(`Erfolgreich den Hafen erreicht. +${totalWin}$ gesichert!`); resetGame(); }
         function resetGame() { updateBalanceDisplay(); document.getElementById('setup-area').style.display = "block"; document.getElementById('play-area').style.display = "none"; document.getElementById('status-box').style.color = "#ffcc00"; document.getElementById('status-box').innerText = "Bereite deine Flotte vor!"; }
     </script>
 </body>
 </html>
+
