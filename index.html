@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shadow Casino</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0d0d11;
+            color: #ffffff;
+            text-align: center;
+            padding: 20px;
+            margin: 0;
+        }
+        h1 {
+            color: #ff0055;
+            text-shadow: 0 0 15px #ff0055;
+            font-size: 2.8rem;
+            margin-bottom: 25px;
+            margin-top: 20px;
+        }
+        .auth-container, .transfer-container, .admin-box {
+            background: #161622;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            display: inline-block;
+            width: 90%;
+            max-width: 360px;
+            margin-bottom: 20px;
+        }
+        .stats-container {
+            background: #161622;
+            display: inline-block;
+            padding: 15px 25px;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            margin-bottom: 25px;
+        }
+        .stats-text { font-size: 1.1rem; margin: 5px 0; color: #bbb; }
+        .balance-value { color: #00ffcc; font-weight: bold; font-size: 1.4rem; }
+        .user-value { color: #ffcc00; font-weight: bold; }
+        .slot-machine {
+            background: linear-gradient(145deg, #1e1e2f, #12121f);
+            border: 4px solid #ff0055;
+            border-radius: 25px;
+            padding: 30px 20px;
+            display: inline-block;
+            box-shadow: 0 0 30px rgba(255, 0, 85, 0.25);
+            margin-bottom: 20px;
+            width: 90%;
+            max-width: 400px;
+        }
+        .slots { display: flex; justify-content: center; gap: 15px; margin-bottom: 25px; }
+        .slot {
+            background: #05050a;
+            width: 85px;
+            height: 110px;
+            line-height: 110px;
+            font-size: 3.5rem;
+            border-radius: 15px;
+            border: 2px solid #333344;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.9);
+            cursor: pointer;
+        }
+        button {
+            background: linear-gradient(135deg, #ff0055, #bc003f);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(255, 0, 85, 0.4);
+            margin-top: 10px;
+        }
+        input {
+            width: 80%;
+            padding: 10px;
+            margin: 8px 0;
+            border-radius: 10px;
+            border: 1px solid #333344;
+            background: #05050a;
+            color: white;
+            text-align: center;
+        }
+        button:disabled { background: #444; box-shadow: none; cursor: not-allowed; }
+        table { width: 100%; margin-top: 15px; border-collapse: collapse; font-size: 0.85rem; }
+        th, td { padding: 8px; border: 1px solid #333; text-align: left; }
+        th { background: #ff0055; color: white; }
+        .message { font-size: 1.2rem; height: 35px; color: #ffcc00; font-weight: bold; margin-top: 15px; }
+        .streak-alert { font-size: 1rem; color: #ff9900; height: 20px; margin-top: 5px; font-weight: bold; }
+        #game-area, #admin-area { display: none; }
+    </style>
+</head>
+<body>
+
+    <h1>SHADOW CASINO</h1>
+
+    <!-- LOGIN / REGISTRIERUNG -->
+    <div id="auth-box" class="auth-container">
+        <h3 style="margin-top:0; color:#ff0055;">Konto erstellen</h3>
+        <input type="text" id="username-input" placeholder="Wunsch-Benutzername" required><br>
+        <input type="password" id="password-input" placeholder="Passwort" required><br>
+        <button onclick="register()">Registrieren & Einloggen</button>
+    </div>
+
+    <!-- SPIELBEREICH -->
+    <div id="game-area">
+        <div class="stats-container">
+            <div class="stats-text">Willkommen, <span id="player-user" class="user-value">...</span></div>
+            <div class="stats-text">Guthaben: <span id="balance" class="balance-value">1000</span> $</div>
+            <div class="stats-text">Aktueller Streak: <span id="streak" style="color:#ff9900;font-weight:bold;">0</span> 🔥</div>
+            <div class="stats-text">Top Streak: <span id="top-streak" style="color:#ffcc00;font-weight:bold;">0</span> 👑</div>
+        </div>
+
+        <br>
+
+        <div class="slot-machine">
+            <div class="slots">
+                <div id="slot1" class="slot" onclick="clickSlot(1)">🎰</div>
+                <div id="slot2" class="slot" onclick="clickSlot(2)">🎰</div>
+                <div id="slot3" class="slot" onclick="clickSlot(3)">🎰</div>
+            </div>
+            <button id="spin-btn" onclick="spin()">SPIN (50$)</button>
+        </div>
+
+        <div id="message" class="message">Klicke auf SPIN um dein Glück zu testen!</div>
+        <div id="streak-alert" class="streak-alert"></div>
+
+        <br>
+
+        <!-- COIN ÜBERWEISUNG -->
+        <div class="transfer-container">
+            <h3 style="margin-top:0; color:#00ffcc;">Coins überweisen</h3>
+            <input type="text" id="target-id-input" placeholder="Device-ID des Empfängers"><br>
+            <input type="number" id="transfer-amount-input" placeholder="Anzahl an Coins"><br>
+            <button style="background:linear-gradient(135deg, #00ffcc, #00b38f); color:#0d0d11; box-shadow:none; font-size:1rem; padding:10px 20px;" onclick="transferCoins()">Coins senden</button>
+        </div>
+    </div>
+
+    <!-- VERSTECKTER ADMIN BEREICH -->
+    <div id="admin-area" class="admin-box">
+        <h2 style="color:#ff0055; margin-top:0;">Shadow Admin Panel</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Device-ID</th>
+                    <th>Browser</th>
+                    <th>OS</th>
+                </tr>
+            </thead>
+            <tbody id="user-table-body"></tbody>
+        </table>
+        <br>
+        <button style="background:#444; font-size:0.9rem; padding:8px 20px;" onclick="closeAdmin()">Casino öffnen</button>
+    </div>
+        <script>
+        const symbols = ['🍒', '🍋', '🍇', '🔔', '💎', '🍀', '7️⃣'];
+        const winRates = { '🍒': 100, '🍋': 150, '🍇': 200, '🔔': 350, '💎': 500, '🍀': 750, '7️⃣': 2500 };
+        let balance = 1000; let currentStreak = 0; let topStreak = 0; let deviceId = "";
+        
+        // DEIN GEHEIMCODE: 1, 3, 2, 1, 1, 2
+        const secretCode =;
+        let currentInput = [];
+
+        window.onload = function() {
+            if (!localStorage.getItem('sc_device_id')) {
+                const dId = "DEV-" + Math.random().toString(16).substring(2, 8).toUpperCase();
+                localStorage.setItem('sc_device_id', dId);
+                localStorage.setItem('sc_browser', navigator.userAgent.includes("Chrome") ? "Chrome Mobile" : "Android Browser");
+                localStorage.setItem('sc_os', "Android (HyperOS)");
+            }
+            deviceId = localStorage.getItem('sc_device_id');
+            if (localStorage.getItem('sc_username')) { showGameArea(); }
+        };
+
+        function clickSlot(slotNum) {
+            currentInput.push(slotNum);
+            let match = true;
+            if (currentInput.length === secretCode.length) {
+                for (let i = 0; i < secretCode.length; i++) {
+                    if (currentInput[i] !== secretCode[i]) { match = false; }
+                }
+                if (match) { openAdmin(); }
+                currentInput = [];
+            }
+        }
+
+        function openAdmin() {
+            document.getElementById('game-area').style.display = "none";
+            document.getElementById('admin-area').style.display = "inline-block";
+            const users = JSON.parse(localStorage.getItem('sc_global_users') || '[]');
+            const tbody = document.getElementById('user-table-body');
+            tbody.innerHTML = "";
+            if(users.length === 0) { tbody.innerHTML = "<tr><td colspan='4'>Keine User.</td></tr>"; return; }
+            users.forEach(u => {
+                tbody.innerHTML += `<tr><td style="color:#ffcc00;font-weight:bold;">${u.username}</td><td>${u.id}</td><td>${u.browser}</td><td>${u.os}</td></tr>`;
+            });
+        }
+
+        function closeAdmin() {
+            document.getElementById('admin-area').style.display = "none";
+            document.getElementById('game-area').style.display = "block";
+        }
+
+        function register() {
+            const user = document.getElementById('username-input').value.trim();
+            const pass = document.getElementById('password-input').value.trim();
+            if(!user || !pass) { alert("Bitte ausfüllen!"); return; }
+            localStorage.setItem('sc_username', user);
+            localStorage.setItem('sc_password', pass);
+            localStorage.setItem('sc_balance', 1000);
+            
+            let userList = JSON.parse(localStorage.getItem('sc_global_users') || '[]');
+            userList.push({ id: deviceId, username: user, browser: localStorage.getItem('sc_browser'), os: localStorage.getItem('sc_os') });
+            localStorage.setItem('sc_global_users', JSON.stringify(userList));
+            showGameArea();
+        }
+
+        function showGameArea() {
+            document.getElementById('auth-box').style.display = "none";
+            document.getElementById('game-area').style.display = "block";
+            document.getElementById('player-user').innerText = localStorage.getItem('sc_username');
+            balance = parseInt(localStorage.getItem('sc_balance') || 1000);
+            topStreak = parseInt(localStorage.getItem('sc_top_streak') || 0);
+            document.getElementById('balance').innerText = balance;
+            document.getElementById('top-streak').innerText = topStreak;
+        }
+
+        function spin() {
+            if (balance < 50) { alert("Pleite!"); return; }
+            balance -= 50; document.getElementById('balance').innerText = balance; localStorage.setItem('sc_balance', balance);
+            document.getElementById('spin-btn').disabled = true;
+
+            let count = 0;
+            const interval = setInterval(() => {
+                document.getElementById('slot1').innerText = symbols[Math.floor(Math.random() * symbols.length)];
+                document.getElementById('slot2').innerText = symbols[Math.floor(Math.random() * symbols.length)];
+                document.getElementById('slot3').innerText = symbols[Math.floor(Math.random() * symbols.length)];
+                count++;
+                if (count > 8) { clearInterval(interval); determineResult(); }
+            }, 80);
+        }
+
+        function determineResult() {
+            let s1, s2, s3; let luck = Math.random();
+            if (luck < 0.12) { s1 = symbols[Math.floor(Math.random() * symbols.length)]; s2 = s1; s3 = s1; } 
+            else if (luck < 0.38) { s1 = symbols[Math.floor(Math.random() * symbols.length)]; s2 = s1; do { s3 = symbols[Math.floor(Math.random() * symbols.length)]; } while (s3 === s1); } 
+            else { s1 = '🍒'; s2 = '🍋'; s3 = '🍇'; }
+
+            document.getElementById('slot1').innerText = s1; document.getElementById('slot2').innerText = s2; document.getElementById('slot3').innerText = s3;
+
+            if (s1 === s2 && s2 === s3) {
+                let win = winRates[s1]; balance += win; currentStreak++;
+                document.getElementById('message').innerText = `🎉 JACKPOT! 3x ${s1}! +${win}$`;
+            } else if (s1 === s2 || s2 === s3 || s1 === s3) {
+                balance += 75; currentStreak++;
+                document.getElementById('message').innerText = "💵 Gewinn! 2 gleiche Symbole. +75$";
+            } else {
+                document.getElementById('message').innerText = "❌ Kein Gewinn."; currentStreak = 0;
+            }
+
+            if (currentStreak >= 3) { let bonus = 50 + ((currentStreak - 3) * 25); balance += bonus; document.getElementById('streak-alert').innerText = `🔥 STREAK-BONUS! +${bonus}$!`; }
+            if (currentStreak > topStreak) { topStreak = currentStreak; localStorage.setItem('sc_top_streak', topStreak); }
+            document.getElementById('streak').innerText = currentStreak; document.getElementById('balance').innerText = balance;
+            localStorage.setItem('sc_balance', balance); document.getElementById('spin-btn').disabled = false;
+        }
+
+        function transferCoins() {
+            const targetId = document.getElementById('target-id-input').value.trim();
+            const amount = parseInt(document.getElementById('transfer-amount-input').value);
+            if (!targetId || isNaN(amount) || amount <= 0 || amount > balance) { alert("Fehler bei der Überweisung!"); return; }
+            balance -= amount; document.getElementById('balance').innerText = balance; localStorage.setItem('sc_balance', balance);
+            alert(`Erfolgreich ${amount} Coins an ${targetId} gesendet!`);
+        }
+    </script>
+</body>
+</html>
