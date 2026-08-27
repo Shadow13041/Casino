@@ -93,11 +93,11 @@
             </div>
             <button id="spin-btn" onclick="spin()">SPIN (50$)</button>
         </div>
-        <div id="message" class="message">Finde die geheimen Schatten-Muster!</div>
+        <div id="message" class="message">Finde die echten Schatten-Muster!</div>
         <div id="streak-alert" class="streak-alert"></div>
     </div>
 <!-- =============== ENDE BLOCK 6 / HIER BLOCK 7 ANFÜGEN =============== -->
-        <!-- =============== START BLOCK 7 =============== -->
+                                                              <!-- =============== START BLOCK 7 =============== -->
     <script>
         const symbols = ['🍒', '🍋', '🍇', '🔔', '💎', '🍀', '7️⃣'];
         const winRates = { '🍒': 40, '🍋': 60, '🍇': 100, '🔔': 200, '💎': 400, '🍀': 600, '7️⃣': 1500 };
@@ -154,55 +154,57 @@
         }
         /* =============== ENDE BLOCK 9 / HIER BLOCK 10 ANFÜGEN =============== */
                 /* =============== START BLOCK 10 =============== */
-                function determineResult() {
+        function determineResult() {
             let grid = [];
             for(let i=0; i<15; i++) { grid.push(document.getElementById('c' + i).innerText); }
             
-            // Die 12 exakten Muster-Pfade (Indizes im 15er Grid von links nach rechts)
-            let lines = "0,1,2,3,4|5,6,7,8,9|10,11,12,13,14|0,5,10|1,6,11|2,7,12|3,8,13|4,9,14|0,6,12,8,4|10,6,2,8,14|0,6,12,6,0|4,8,12,8,4".split("|").map(l => l.split(",").map(Number));
+            // Definiert alle 12 echten Paylines händisch (Keine Strings, absolut filter-sicher)
+            const paylines = [,     // Horizontale 1,     // Horizontale 2
+                [10, 11, 12, 13, 14],// Horizontale 3,          // Spalte 1,          // Spalte 2,          // Spalte 3,          // Spalte 4,          // Spalte 5,    // Große Diagonale runter-hoch,   // Große Diagonale hoch-runter,    // Großes Dreieck (V-Form)
+                [4, 8, 12, 8, 4]     // Großes Dreieck (Umgedrehtes V)
+            ];
             
-            let totalWin = 0; let linesWon = 0; let jackpotTriggered = false; let jackpotSymbol = "";
+            let totalWin = 0; let linesWon = 0;
             
-            lines.forEach(line => {
-                // START LINKS: Das erste Symbol auf der Linie bestimmt, was gesucht wird
-                let firstSym = grid[line[0]]; 
+            // Jede Payline wird lückenlos von ihrem jeweiligen Startpunkt aus geprüft
+            paylines.forEach(line => {
+                let startSym = grid[line[0]];
                 let matchCount = 1;
                 
-                // Prüfe die restlichen Felder der Linie strikt von links nach rechts auf Lücken
                 for(let k = 1; k < line.length; k++) {
-                    if(grid[line[k]] === firstSym) { 
-                        matchCount++; 
-                    } else { 
-                        break; // LÜCKE GEFUNDEN! Die Gewinnkette bricht sofort ab.
+                    if(grid[line[k]] === startSym) {
+                        matchCount++;
+                    } else {
+                        break; // LÜCKE GEFUNDEN! Kette stoppt sofort.
                     }
                 }
                 
-                // Nur gewertet, wenn die Kette von links mindestens 3 Symbole lang ist
+                // Gültig ab einer lückenlosen Kette von mindestens 3 Symbolen
                 if(matchCount >= 3) {
-                    let baseWin = winRates[firstSym];
+                    let baseWin = winRates[startSym];
                     let factor = 1;
-                    
                     if (matchCount === 3) factor = 1;
                     else if (matchCount === 4) factor = 2.5;
-                    else if (matchCount === 5) { 
-                        factor = 10; // Mega-Jackpot bei 5er-Kette
-                        jackpotTriggered = true;
-                        jackpotSymbol = firstSym;
-                    }
+                    else if (matchCount === 5) factor = 6;
                     
                     totalWin += Math.floor(baseWin * factor);
                     linesWon++;
                 }
             });
             
-            if (totalWin > 0) {
+            // !!! DER ECHTE JACKPOT: Prüft, ob alle 15 Felder absolut identisch sind !!!
+            const firstCellSym = grid[0];
+            const isFullHouse = grid.every(cell => cell === firstCellSym);
+            
+            if (isFullHouse) {
+                let jackpotWin = winRates[firstCellSym] * 50; // 50-facher Bonus-Gewinn auf alle Symbole!
+                totalWin = jackpotWin;
+                alert(`🚨🚨🚨 ULTRA MEGA JACKPOT!!! DAS GESAMTE BOARD IST VOLL MIT ${firstCellSym}!!! 🚨🚨🚨`);
+                document.getElementById('message').innerText = `🏆 SPIELFELD-JACKPOT! +${totalWin}$`;
+                playSound('win');
+            } else if (totalWin > 0) {
                 balance += totalWin; currentStreak++;
-                if (jackpotTriggered) {
-                    alert(`🚨 MEGA JACKPOT!!! Volle 5er-Kette mit ${jackpotSymbol}! 10x BONUS AUSZAHLUNG!!! 🚨`);
-                    document.getElementById('message').innerText = `🏆 JACKPOT-GEWINN! +${totalWin}$`;
-                } else {
-                    document.getElementById('message').innerText = `🎉 ${linesWon} Muster-Treffer! +${totalWin}$`;
-                }
+                document.getElementById('message').innerText = `🎉 ${linesWon} Muster-Treffer! +${totalWin}$`;
                 playSound('win');
             } else {
                 document.getElementById('message').innerText = "❌ Kein Muster getroffen.";
