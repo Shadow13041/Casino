@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shadow Roulette - Shadow Casino</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0d0d11; color: #ffffff; text-align: center; padding: 20px; margin: 0;
+        }
+        .main-header {
+            display: flex; justify-content: space-between; align-items: center; padding: 15px 20px;
+            position: absolute; top: 0; left: 0; right: 0; z-index: 100; background: rgba(13, 13, 17, 0.9);
+        }
+        .nav-logo {
+            color: #ff0055; text-shadow: 0 0 10px #ff0055; font-size: 1.6rem; font-weight: bold;
+            cursor: pointer; text-decoration: none; margin: 0;
+        }
+        .profile-menu {
+            color: #555566; font-size: 0.95rem; cursor: pointer; text-align: right; position: relative;
+        }
+        .profile-menu:hover { color: #888899; }
+        /* =============== START BLOCK 2 =============== */
+        .dropdown-content {
+            display: none; background: #161622; border: 1px solid #333344; padding: 10px; border-radius: 10px;
+            position: absolute; right: 0; top: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); width: 120px; z-index: 200;
+        }
+        .dropdown-content a { color: #ff0055; text-decoration: none; display: block; margin: 5px 0; font-size: 0.85rem; }
+        .game-container, .auth-container {
+            background: #161622; padding: 25px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            display: inline-block; width: 90%; max-width: 440px; margin-top: 100px; text-align: center;
+        }
+        .roulette-wheel-display {
+            background: #05050a; border: 4px solid #ff0055; width: 130px; height: 130px; line-height: 130px;
+            font-size: 3rem; font-weight: bold; border-radius: 50%; margin: 20px auto;
+            box-shadow: 0 0 25px rgba(255, 0, 85, 0.3); transition: transform 2s cubic-bezier(0.1, 1, 0.1, 1);
+        }
+        .bet-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 15px; }
+        /* =============== START BLOCK 3 =============== */
+        button {
+            background: linear-gradient(135deg, #ff0055, #bc003f); color: white; border: none; padding: 12px 20px;
+            font-size: 1rem; font-weight: bold; border-radius: 50px; cursor: pointer; box-shadow: 0 4px 12px rgba(255, 0, 85, 0.3);
+        }
+        button:disabled { background: #444; box-shadow: none; cursor: not-allowed; }
+        .btn-red { background: linear-gradient(135deg, #ff3333, #990000); box-shadow: 0 4px 10px rgba(255,51,51,0.2); }
+        .btn-black { background: linear-gradient(135deg, #333333, #111111); border: 1px solid #444; box-shadow: 0 4px 10px rgba(0,0,0,0.4); }
+        .btn-green { background: linear-gradient(135deg, #00ffcc, #006644); color: black; box-shadow: 0 4px 10px rgba(0,255,204,0.2); }
+        input, select {
+            width: 80%; padding: 10px; margin: 6px 0; border-radius: 10px; border: 1px solid #333344;
+            background: #05050a; color: white; text-align: center; font-size: 1rem;
+        }
+        .status-text { font-size: 1.1rem; color: #ffcc00; font-weight: bold; margin-top: 15px; height: 25px; }
+        #account-area { display: none; }
+    </style>
+</head>
+<body>
+    <div class="main-header">
+        <div class="nav-logo" onclick="location.href='hub.html'">SHADOW CASINO</div>
+        <div class="profile-menu">
+            <span onclick="toggleDropdown()" id="menu-username">Benutzer</span>
+            <div id="profile-dropdown" class="dropdown-content">
+                <a href="admin.html" id="admin-panel-link" style="display:none; font-weight:bold; color:#00ffcc;">⚙️ Admin Panel</a>
+                <a href="hub.html">🏠 Zentrale</a>
+                <a href="#" onclick="openAccountPage()">Passwort ändern</a>
+                <a href="#" onclick="logout()">Abmelden</a>
+            </div>
+        </div>
+    </div>
+<!-- =============== START BLOCK 4 =============== -->
+    <div id="account-area" class="auth-container">
+        <h3 style="margin-top:0; color:#ffcc00;">Passwort verwalten</h3>
+        <p style="font-size:0.9rem; color:#888;">Dein Passwort lautet: <span id="current-pass-display" style="color:white; font-family:monospace;"></span></p>
+        <input type="password" id="new-password-input" placeholder="Neues Passwort"><br>
+        <button onclick="changePassword()">Passwort aktualisieren</button><br>
+        <button style="background:#444; font-size:0.9rem; padding:8px 20px;" onclick="closeAccountPage()">Zurück</button>
+    </div>
+    <div class="game-container" id="main-game-box">
+        <h2 style="color:#ff0055; margin-top:0;">🎡 Shadow Roulette</h2>
+        <p style="color:#888; font-size:0.9rem; margin-bottom:5px;">Platziere deine Wette auf Farben, gerade/ungerade Zahlen oder eine exakte Nummer!</p>
+        <div style="font-size: 0.95rem; color: #aaa; margin-bottom: 15px;">Kontostand: <span id="coins-display" style="color:#00ffcc; font-weight:bold;">0</span> $</div>
+        
+        <div id="setup-area">
+            <input type="number" id="bet-input" placeholder="Einsatz in $" value="50"><br>
+            <select id="bet-type" onchange="switchBetType(this.value)">
+                <option value="red">Auf ROT setzen (2x Gewinn)</option>
+                <option value="black">Auf SCHWARZ setzen (2x Gewinn)</option>
+                <option value="even">Auf GERADE setzen (2x Gewinn)</option>
+                <option value="odd">Auf UNGERADE setzen (2x Gewinn)</option>
+                <option value="number">Auf EXAKTE ZAHL setzen (35x Gewinn!)</option>
+            </select><br>
+            <input type="number" id="exact-number-input" placeholder="Zahl eingeben (0-36)" min="0" max="36" style="display:none;"><br>
+            <button id="spin-btn" onclick="spinRoulette()">Rad drehen!</button>
+        </div>
+        <div class="roulette-wheel-display" id="wheel-box">❓</div>
+        <div class="status-text" id="status-box">Wähle deinen Einsatz und dreh das Rad!</div>
+    </div>
+    <!-- =============== START BLOCK 5 =============== -->
+    <script>
+        // Internes Zahlen-Feld für die Farberkennung des Rads (Als Text deklariert)
+        const redNumbers =;
+        let currentU = ""; let bet = 0; let audioCtx = null;
+
+        function playSound(type) {
+            try {
+                if (!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+                let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain(); osc.connect(gain); gain.connect(audioCtx.destination);
+                if (type === 'tick') { osc.type = 'triangle'; osc.frequency.setValueAtTime(450, audioCtx.currentTime); gain.gain.setValueAtTime(0.05, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.04); osc.start(); osc.stop(audioCtx.currentTime + 0.04); }
+                else if (type === 'win') { osc.type = 'sine'; osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.08); osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.16); gain.gain.setValueAtTime(0.12, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35); osc.start(); osc.stop(audioCtx.currentTime + 0.35); }
+                else if (type === 'lose') { osc.type = 'sawtooth'; osc.frequency.setValueAtTime(160, audioCtx.currentTime); osc.frequency.linearRampToValueAtTime(80, audioCtx.currentTime + 0.3); gain.gain.setValueAtTime(0.12, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3); osc.start(); osc.stop(audioCtx.currentTime + 0.3); }
+            } catch(e) {}
+        }
+
+        window.onload = function() {
+            currentU = localStorage.getItem('sc_username'); if (!currentU) { location.href = 'index.html'; return; }
+            document.getElementById('menu-username').innerText = currentU;
+            const currentRole = localStorage.getItem('sc_role');
+            if (currentRole === "Owner" || currentRole === "Admin") { document.getElementById('admin-panel-link').style.display = "block"; }
+            updateBalanceDisplay();
+        };
+
+        function updateBalanceDisplay() { document.getElementById('coins-display').innerText = localStorage.getItem('sc_balance_' + currentU) || 1000; }
+        function switchBetType(val) { document.getElementById('exact-number-input').style.display = val === 'number' ? 'inline-block' : 'none'; }
+        function toggleDropdown() { const drop = document.getElementById('profile-dropdown'); drop.style.display = drop.style.display === "block" ? "none" : "block"; }
+        function openAccountPage() { document.getElementById('main-game-box').style.display = "none"; document.getElementById('account-area').style.display = "inline-block"; document.getElementById('current-pass-display').innerText = localStorage.getItem('sc_password'); toggleDropdown(); }
+        function closeAccountPage() { document.getElementById('account-area').style.display = "none"; document.getElementById('main-game-box').style.display = "inline-block"; }
+        function logout() { localStorage.removeItem('sc_username'); localStorage.removeItem('sc_role'); localStorage.removeItem('sc_password'); location.href = 'index.html'; }
+        function changePassword() { const newP = document.getElementById('new-password-input').value.trim(); if(!newP) return; let userList = JSON.parse(localStorage.getItem('sc_global_users') || '[]'); let idx = userList.findIndex(u => u.username === currentU); if(idx !== -1) { userList[idx].pass = newP; localStorage.setItem('sc_global_users', JSON.stringify(userList)); localStorage.setItem('sc_password', newP); alert("Passwort geändert!"); closeAccountPage(); } }
+
+        function spinRoulette() {
+            bet = parseInt(document.getElementById('bet-input').value);
+            const betType = document.getElementById('bet-type').value;
+            const exactNum = parseInt(document.getElementById('exact-number-input').value);
+            let coins = parseInt(localStorage.getItem('sc_balance_' + currentU) || 1000);
+
+            if (isNaN(bet) || bet <= 0 || bet > coins) { alert("Ungültiger Einsatz!"); return; }
+            if (betType === 'number' && (isNaN(exactNum) || exactNum < 0 || exactNum > 36)) { alert("Bitte eine Zahl zwischen 0 und 36 eingeben!"); return; }
+
+            coins -= bet; localStorage.setItem('sc_balance_' + currentU, coins); updateBalanceDisplay();
+            document.getElementById('spin-btn').disabled = true;
+            document.getElementById('status-box').style.color = "#ffcc00"; document.getElementById('status-box').innerText = "Das Rad dreht sich...";
+
+            let count = 0; let currentTickNum = 0;
+            const interval = setInterval(() => {
+                currentTickNum = Math.floor(Math.random() * 37);
+                const wheel = document.getElementById('wheel-box');
+                wheel.innerText = currentTickNum;
+                if(currentTickNum === 0) { wheel.style.color = "#00ffcc"; }
+                else { wheel.style.color = redNumbers.includes(currentTickNum) ? "#ff3333" : "#ffffff"; }
+                playSound('tick'); count++;
+                
+                if (count > 15) {
+                    clearInterval(interval);
+                    determineRouletteResult(currentTickNum, betType, exactNum);
+                }
+            }, 130);
+        }
+
+        function determineRouletteResult(resultNum, betType, exactNum) {
+            let coins = parseInt(localStorage.getItem('sc_balance_' + currentU) || 1000);
+            let isWin = false; let multiplier = 2;
+            const isRed = redNumbers.includes(resultNum);
+
+            if (betType === 'red' && resultNum !== 0 && isRed) isWin = true;
+            else if (betType === 'black' && resultNum !== 0 && !isRed) isWin = true;
+            else if (betType === 'even' && resultNum !== 0 && resultNum % 2 === 0) isWin = true;
+            else if (betType === 'odd' && resultNum !== 0 && resultNum % 2 !== 0) isWin = true;
+            else if (betType === 'number' && resultNum === exactNum) { isWin = true; multiplier = 35; }
+
+            if (isWin) {
+                const totalWin = bet * multiplier; coins += totalWin;
+                localStorage.setItem('sc_balance_' + currentU, coins); playSound('win');
+                document.getElementById('status-box').style.color = "#00ffcc";
+                document.getElementById('status-box').innerText = `Gewinn! Die Zahl ist ${resultNum}. +${totalWin}$ erhalten!`;
+            } else {
+                playSound('lose'); document.getElementById('status-box').style.color = "#ff0055";
+                document.getElementById('status-box').innerText = `Kein Treffer. Die Zahl ist ${resultNum}. Einsatz verloren.`;
+            }
+            updateBalanceDisplay(); document.getElementById('spin-btn').disabled = false;
+        }
+    </script>
+</body>
+</html>
+
