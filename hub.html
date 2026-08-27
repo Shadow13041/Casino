@@ -21,20 +21,32 @@
             color: #555566; font-size: 0.95rem; cursor: pointer; text-align: right; position: relative;
         }
         .profile-menu:hover { color: #888899; }
+        /* =============== ENDE BLOCK 1 / HIER BLOCK 2 ANFÜGEN =============== */
                 /* =============== START BLOCK 2 =============== */
         .dropdown-content {
             display: none; background: #161622; border: 1px solid #333344; padding: 10px; border-radius: 10px;
-            position: absolute; right: 0; top: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); width: 120px;
+            position: absolute; right: 0; top: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); width: 120px; z-index: 200;
         }
         .dropdown-content a { color: #ff0055; text-decoration: none; display: block; margin: 5px 0; font-size: 0.85rem; }
         .hub-container {
             background: #161622; padding: 25px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
             display: inline-block; width: 90%; max-width: 450px; margin-top: 100px; text-align: center;
         }
-        .welcome-back { font-size: 1.1rem; color: #bbb; margin-bottom: 20px; }
-        .coin-display { font-size: 1.3rem; color: #00ffcc; font-weight: bold; margin-bottom: 25px; }
-        .game-grid { display: flex; flex-direction: column; gap: 15px; }
+        .welcome-back { font-size: 1.1rem; color: #bbb; margin-bottom: 15px; }
+        .coin-display { font-size: 1.3rem; color: #00ffcc; font-weight: bold; margin-bottom: 20px; }
+        .daily-chest-box {
+            background: linear-gradient(135deg, #1f142e, #0f0a1c); border: 2px solid #ffcc00; border-radius: 15px;
+            padding: 15px; margin-bottom: 25px; box-shadow: 0 0 15px rgba(255, 204, 0, 0.15);
+        }
+        /* =============== ENDE BLOCK 2 / HIER BLOCK 3 ANFÜGEN =============== */
                 /* =============== START BLOCK 3 =============== */
+        .chest-btn {
+            background: linear-gradient(135deg, #ffcc00, #b38f00); color: #0d0d11; border: none;
+            padding: 8px 20px; font-size: 0.95rem; font-weight: bold; border-radius: 50px; cursor: pointer;
+            box-shadow: 0 4px 10px rgba(255, 204, 0, 0.3); margin-top: 5px;
+        }
+        .chest-btn:disabled { background: #333; color: #777; box-shadow: none; cursor: not-allowed; border-color: #444; }
+        .game-grid { display: flex; flex-direction: column; gap: 15px; }
         .hub-card {
             background: linear-gradient(135deg, #1e1e2f, #12121f); border: 2px solid #333344; border-radius: 15px;
             padding: 20px; cursor: pointer; transition: 0.2s; text-align: left;
@@ -42,21 +54,29 @@
         .hub-card:hover { border-color: #ff0055; transform: translateY(-2px); }
     </style>
 </head>
+    <!-- =============== START BLOCK 4 =============== -->
 <body>
     <div class="main-header">
         <div class="nav-logo" onclick="location.reload()">SHADOW CASINO</div>
         <div class="profile-menu">
             <span onclick="toggleDropdown()" id="menu-username">Lädt...</span>
             <div id="profile-dropdown" class="dropdown-content">
+                <a href="admin.html" id="admin-panel-link" style="display:none; font-weight:bold; color:#00ffcc;">⚙️ Admin Panel</a>
                 <a href="#" onclick="logout()">Abmelden</a>
             </div>
         </div>
     </div>
-        <!-- =============== START BLOCK 4 =============== -->
     <div class="hub-container">
         <h2 style="color:#ff0055; margin-top:0; font-size:1.8rem; text-shadow: 0 0 10px rgba(255,0,85,0.3);">SPIELE-ZENTRALE</h2>
         <div class="welcome-back">Willkommen zurück, <span id="user-display" style="color:#ffcc00; font-weight:bold;">...</span>!</div>
         <div class="coin-display">Dein Kontostand: <span id="coins-display">0</span> $</div>
+        
+        <div class="daily-chest-box">
+            <h3 style="margin: 0 0 5px 0; color: #ffcc00;">🎁 Tägliche Kiste</h3>
+            <p id="chest-status-text" style="margin: 0 0 10px 0; font-size: 0.85rem; color: #ccc;">Hol dir alle 24 Stunden gratis Coins!</p>
+            <button id="claim-chest-btn" class="chest-btn" onclick="claimDailyChest()">Kiste öffnen</button>
+        </div>
+
         <div class="game-grid">
             <div class="hub-card" onclick="location.href='index.html'">
                 <h3 style="margin:0 0 5px 0; color:#00ffcc;">🎰 Fruit Slots</h3>
@@ -68,28 +88,95 @@
             </div>
             <div class="hub-card" onclick="location.href='battleship.html'">
                 <h3 style="margin:0 0 5px 0; color:#ff0055;">🚢 Schiffe versenken</h3>
-                <p style="margin:0; font-size:0.85rem; color:#aaa;">Erkunde das Meer und berge Schätze. Weiche den Seeminen aus für maximale Multiplikatoren!</p>
+                <p style="margin:0; font-size:0.85rem; color:#aaa;">Erkunde das Meer und jage die feindliche Flotte für massive Kachelgewinne!</p>
+            </div>
+            <div class="hub-card" onclick="location.href='roulette.html'">
+                <h3 style="margin:0 0 5px 0; color:#ff7700;">🎡 Shadow Roulette</h3>
+                <p style="margin:0; font-size:0.85rem; color:#aaa;">Setze auf Rot, Schwarz oder Zahlen! Gewinne bis zum 35-fachen deines Einsatzes!</p>
             </div>
         </div>
     </div>
+<!-- =============== ENDE BLOCK 4 / HIER BLOCK 5 ANFÜGEN =============== -->
         <!-- =============== START BLOCK 5 =============== -->
     <script>
+        let currentU = "";
+
         window.onload = function() {
-            const currentU = localStorage.getItem('sc_username');
-            if (!currentU) {
-                location.href = 'index.html';
-                return;
-            }
+            currentU = localStorage.getItem('sc_username');
+            if (!currentU) { location.href = 'index.html'; return; }
+            
             document.getElementById('menu-username').innerText = currentU;
             document.getElementById('user-display').innerText = currentU;
             
+            const currentRole = localStorage.getItem('sc_role');
+            if (currentRole === "Owner" || currentRole === "Admin") {
+                const adminLink = document.getElementById('admin-panel-link');
+                if(adminLink) adminLink.style.display = "block";
+            }
+            
+            updateBalanceDisplay();
+            checkChestStatus();
+            setInterval(checkChestStatus, 1000);
+        };
+
+        function updateBalanceDisplay() {
             const balance = localStorage.getItem('sc_balance_' + currentU) || 1000;
             document.getElementById('coins-display').innerText = balance;
-        };
+        }
+
+        function checkChestStatus() {
+            const lastClaim = localStorage.getItem('sc_chest_claim_' + currentU);
+            const btn = document.getElementById('claim-chest-btn');
+            const statusText = document.getElementById('chest-status-text');
+            
+            if (lastClaim) {
+                const now = Date.now();
+                const nextClaimTime = parseInt(lastClaim) + (24 * 60 * 60 * 1000);
+                
+                if (now < nextClaimTime) {
+                    btn.disabled = true;
+                    const diff = nextClaimTime - now;
+                    const hours = Math.floor(diff / (1000 * 60 * 60));
+                    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                    
+                    const hStr = hours < 10 ? "0" + hours : hours;
+                    const mStr = minutes < 10 ? "0" + minutes : minutes;
+                    const sStr = seconds < 10 ? "0" + seconds : seconds;
+                    
+                    statusText.style.color = "#ff7700";
+                    statusText.innerText = `Nächste Kiste verfügbar in: ${hStr}:${mStr}:${sStr} ⏳`;
+                    return;
+                }
+            }
+            btn.disabled = false;
+            statusText.style.color = "#00ffcc";
+            statusText.innerText = "Deine tägliche Kiste steht bereit! 🔓";
+        }
+
+        function claimDailyChest() {
+            const lastClaim = localStorage.getItem('sc_chest_claim_' + currentU);
+            const now = Date.now();
+            if (lastClaim && now < (parseInt(lastClaim) + (24 * 60 * 60 * 1000))) return;
+            
+            const reward = Math.floor(Math.random() * (500 - 150 + 1)) + 150;
+            let coins = parseInt(localStorage.getItem('sc_balance_' + currentU) || 1000);
+            coins += reward;
+            
+            localStorage.setItem('sc_balance_' + currentU, coins);
+            localStorage.setItem('sc_chest_claim_' + currentU, now.toString());
+            
+            alert(`🎉 Kiste geöffnet! Du hast +${reward}$ gratis erhalten!`);
+            updateBalanceDisplay();
+            checkChestStatus();
+        }
+
+        // Dropdown leeren (wird hier nicht gebraucht, aber hält Schnittstellen sauber)
         function toggleDropdown() {
             const drop = document.getElementById('profile-dropdown');
             drop.style.display = drop.style.display === "block" ? "none" : "block";
         }
+
         function logout() {
             localStorage.removeItem('sc_username'); localStorage.removeItem('sc_role'); localStorage.removeItem('sc_password');
             location.href = 'index.html';
