@@ -22,7 +22,7 @@
         }
         .profile-menu:hover { color: #888899; }
         /* =============== ENDE BLOCK 1 / HIER BLOCK 2 ANFÜGEN =============== */
-              /* =============== START BLOCK 2 =============== */
+                /* =============== START BLOCK 2 =============== */
         .dropdown-content {
             display: none; background: #161622; border: 1px solid #333344; padding: 10px; border-radius: 10px;
             position: absolute; right: 0; top: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); width: 120px; z-index: 200;
@@ -38,13 +38,12 @@
         .stats-text { font-size: 1rem; margin: 3px 0; color: #bbb; }
         .balance-value { color: #00ffcc; font-weight: bold; font-size: 1.2rem; }
         /* =============== ENDE BLOCK 2 / HIER BLOCK 3 ANFÜGEN =============== */
-              /* =============== START BLOCK 3 =============== */
+                /* =============== START BLOCK 3 =============== */
         .slot-machine {
             background: linear-gradient(145deg, #1e1e2f, #12121f); border: 4px solid #ff0055; border-radius: 25px;
             padding: 25px 15px; display: inline-block; box-shadow: 0 0 30px rgba(255, 0, 85, 0.25);
             margin-bottom: 10px; width: 100%; max-width: 500px; box-sizing: border-box;
         }
-        /* Das 5x3 Grid-System für die 15 Walzenfelder */
         .slots-grid {
             display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 20px;
             background: #05050a; padding: 12px; border-radius: 15px; box-shadow: inset 0 0 20px rgba(0,0,0,0.9);
@@ -54,7 +53,7 @@
             border-radius: 10px; border: 1px solid #333344; transition: transform 0.1s;
         }
         /* =============== ENDE BLOCK 3 / HIER BLOCK 4 ANFÜGEN =============== */
-              /* =============== START BLOCK 4 =============== */
+                /* =============== START BLOCK 4 =============== */
         button {
             background: linear-gradient(135deg, #ff0055, #bc003f); color: white; border: none; padding: 12px 35px;
             font-size: 1.2rem; font-weight: bold; border-radius: 50px; cursor: pointer; box-shadow: 0 5px 15px rgba(255, 0, 85, 0.4);
@@ -64,7 +63,7 @@
         .streak-alert { font-size: 0.95rem; color: #ff9900; height: 20px; margin-top: 5px; font-weight: bold; }
     </style>
 </head>
-  <!-- =============== START BLOCK 5 =============== -->
+<!-- =============== START BLOCK 5 =============== -->
 <body>
     <div class="main-header">
         <div class="nav-logo" onclick="location.href='index.html'">SHADOW CASINO</div>
@@ -78,7 +77,7 @@
         </div>
     </div>
 <!-- =============== ENDE BLOCK 5 / HIER BLOCK 6 ANFÜGEN =============== -->
-  <!-- =============== START BLOCK 6 =============== -->
+    <!-- =============== START BLOCK 6 =============== -->
     <div class="game-container">
         <div class="stats-container">
             <div class="stats-text">Guthaben: <span id="balance" class="balance-value">1000</span> $</div>
@@ -87,7 +86,6 @@
         </div>
         <br>
         <div class="slot-machine">
-            <!-- Die 15 Felder (5 Spalten x 3 Reihen) -->
             <div class="slots-grid">
                 <div id="c0" class="slot-cell">🎰</div><div id="c1" class="slot-cell">🎰</div><div id="c2" class="slot-cell">🎰</div><div id="c3" class="slot-cell">🎰</div><div id="c4" class="slot-cell">🎰</div>
                 <div id="c5" class="slot-cell">🎰</div><div id="c6" class="slot-cell">🎰</div><div id="c7" class="slot-cell">🎰</div><div id="c8" class="slot-cell">🎰</div><div id="c9" class="slot-cell">🎰</div>
@@ -95,13 +93,12 @@
             </div>
             <button id="spin-btn" onclick="spin()">SPIN (50$)</button>
         </div>
-        <div id="message" class="message">Klicke auf SPIN um dein Glück im 5x3 Format zu testen!</div>
+        <div id="message" class="message">Finde die geheimen Schatten-Muster!</div>
         <div id="streak-alert" class="streak-alert"></div>
     </div>
 <!-- =============== ENDE BLOCK 6 / HIER BLOCK 7 ANFÜGEN =============== -->
-      <!-- =============== START BLOCK 7 =============== -->
+        <!-- =============== START BLOCK 7 =============== -->
     <script>
-        // Symbole und Auszahlungen pro getroffener 3er, 4er oder 5er Linie
         const symbols = ['🍒', '🍋', '🍇', '🔔', '💎', '🍀', '7️⃣'];
         const winRates = { '🍒': 40, '🍋': 60, '🍇': 100, '🔔': 200, '💎': 400, '🍀': 600, '7️⃣': 1500 };
         let balance = 1000; let currentStreak = 0; let topStreak = 0; let currentU = ""; let audioCtx = null;
@@ -116,7 +113,7 @@
             } catch(e) {}
         }
         /* =============== ENDE BLOCK 7 / HIER BLOCK 8 ANFÜGEN =============== */
-              /* =============== START BLOCK 8 =============== */
+                /* =============== START BLOCK 8 =============== */
         window.onload = function() {
             currentU = localStorage.getItem('sc_username'); if (!currentU) { location.href = 'index.html'; return; }
             document.getElementById('menu-username').innerText = currentU;
@@ -139,7 +136,7 @@
         function toggleDropdown() { const drop = document.getElementById('profile-dropdown'); drop.style.display = drop.style.display === "block" ? "none" : "block"; }
         function logout() { localStorage.removeItem('sc_username'); localStorage.removeItem('sc_role'); localStorage.removeItem('sc_password'); location.href = 'index.html'; }
         /* =============== ENDE BLOCK 8 / HIER BLOCK 9 ANFÜGEN =============== */
-              /* =============== START BLOCK 9 =============== */
+                /* =============== START BLOCK 9 =============== */
         function spin() { 
             if (balance < 50) { alert("Pleite!"); return; } 
             balance -= 50; document.getElementById('balance').innerText = balance; 
@@ -156,42 +153,35 @@
             }, 110); 
         }
         /* =============== ENDE BLOCK 9 / HIER BLOCK 10 ANFÜGEN =============== */
-              /* =============== START BLOCK 10 =============== */
+                /* =============== START BLOCK 10 =============== */
         function determineResult() {
             let grid = [];
             for(let i=0; i<15; i++) { grid.push(document.getElementById('c' + i).innerText); }
             
-            // Definition der 5 Gewinnlinien (Indexe im 15er Grid)
-            const lines = [
-                [5, 6, 7, 8, 9],       // Linie 1: Mitte horizontal
-                [0, 1, 2, 3, 4],       // Linie 2: Oben horizontal
-                [10, 11, 12, 13, 14],  // Linie 3: Unten horizontal
-                [0, 6, 12, 8, 4],      // Linie 4: Diagonale V-Form
-                [10, 6, 2, 8, 14]      // Linie 5: Diagonale umgedrehtes V
-            ];
+            // Definiert alle gewünschten Muster (Hintereinandergereihte Indizes des Grids)
+            let lines = "0,1,2,3,4|5,6,7,8,9|10,11,12,13,14|0,5,10|1,6,11|2,7,12|3,8,13|4,9,14|0,6,12,8,4|10,6,2,8,14|0,6,12,6,0|4,8,12,8,4".split("|").map(l => l.split(",").map(Number));
             
             let totalWin = 0; let linesWon = 0;
             
             lines.forEach(line => {
                 let sym = grid[line[0]];
-                // Check, wie viele gleiche Symbole von links nach rechts nebeneinander liegen
                 let matchCount = 1;
-                for(let k = 1; k < 5; k++) {
+                for(let k = 1; k < line.length; k++) {
                     if(grid[line[k]] === sym) { matchCount++; } else { break; }
                 }
                 if(matchCount >= 3) {
                     let baseWin = winRates[sym];
-                    let factor = matchCount === 3 ? 1 : (matchCount === 4 ? 2 : 5);
-                    totalWin += baseWin * factor; linesWon++;
+                    let factor = matchCount === 3 ? 1 : (matchCount === 4 ? 2.5 : 6);
+                    totalWin += Math.floor(baseWin * factor); linesWon++;
                 }
             });
             
             if (totalWin > 0) {
                 balance += totalWin; currentStreak++;
-                document.getElementById('message').innerText = `🎉 ${linesWon} Linie(n) gewonnen! +${totalWin}$`;
+                document.getElementById('message').innerText = `🎉 ${linesWon} Muster-Treffer! +${totalWin}$`;
                 playSound('win');
             } else {
-                document.getElementById('message').innerText = "❌ Kein Gewinn auf den Linien.";
+                document.getElementById('message').innerText = "❌ Kein Muster getroffen.";
                 currentStreak = 0; playSound('lose');
             }
             
@@ -202,7 +192,6 @@
             if (currentStreak > topStreak) {
                 topStreak = currentStreak; localStorage.setItem('sc_top_streak_' + currentU, topStreak);
             }
-            
             document.getElementById('streak').innerText = currentStreak; document.getElementById('balance').innerText = balance;
             localStorage.setItem('sc_balance_' + currentU, balance); pushToCloud();
             document.getElementById('spin-btn').disabled = false;
@@ -210,4 +199,3 @@
     </script>
 </body>
 </html>
-
