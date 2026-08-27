@@ -22,7 +22,7 @@
         }
         .profile-menu:hover { color: #888899; }
         /* =============== ENDE BLOCK 1 / HIER BLOCK 2 ANFÜGEN =============== */
-              /* =============== START BLOCK 2 =============== */
+                /* =============== START BLOCK 2 =============== */
         .dropdown-content {
             display: none; background: #161622; border: 1px solid #333344; padding: 10px; border-radius: 10px;
             position: absolute; right: 0; top: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); width: 120px; z-index: 200;
@@ -36,7 +36,7 @@
         .welcome-back { font-size: 1.1rem; color: #bbb; margin-bottom: 15px; }
         .coin-display { font-size: 1.3rem; color: #00ffcc; font-weight: bold; margin-bottom: 20px; }
         /* =============== ENDE BLOCK 2 / HIER BLOCK 3 ANFÜGEN =============== */
-              /* =============== START BLOCK 3 =============== */
+                /* =============== START BLOCK 3 =============== */
         .daily-chest-box {
             background: linear-gradient(135deg, #1f142e, #0f0a1c); border: 2px solid #ffcc00; border-radius: 15px;
             padding: 15px; margin-bottom: 25px; box-shadow: 0 0 15px rgba(255, 204, 0, 0.15);
@@ -54,7 +54,7 @@
         }
         .hub-card:hover { border-color: #ff0055; transform: translateY(-2px); }
         /* =============== ENDE BLOCK 3 / HIER BLOCK 4 ANFÜGEN =============== */
-              /* =============== START BLOCK 4 =============== */
+                /* =============== START BLOCK 4 =============== */
         button {
             background: linear-gradient(135deg, #ff0055, #bc003f); color: white; border: none; padding: 12px 25px;
             font-size: 1.1rem; font-weight: bold; border-radius: 50px; cursor: pointer; box-shadow: 0 5px 15px rgba(255, 0, 85, 0.4);
@@ -79,7 +79,7 @@
         </div>
     </div>
         <!-- =============== ENDE BLOCK 4 / HIER BLOCK 5 ANFÜGEN =============== -->
-  <!-- =============== START BLOCK 5 =============== -->
+    <!-- =============== START BLOCK 5 =============== -->
     <div id="auth-box" class="auth-container">
         <h2 style="color:#ff0055; margin-top:0;">ZENTRALE</h2>
         <h3 style="margin-top:0; color:#aaa; font-size:0.95rem;">Einloggen oder Registrieren</h3>
@@ -95,7 +95,7 @@
         <button style="background:#444; font-size:0.9rem; padding:8px 20px; margin-top:10px;" onclick="closeAccountPage()">Zurück</button>
     </div>
 <!-- =============== ENDE BLOCK 5 / HIER BLOCK 6 ANFÜGEN =============== -->
-  <!-- =============== START BLOCK 6 =============== -->
+    <!-- =============== START BLOCK 6 =============== -->
     <div id="hub-area" class="hub-container" style="margin-top:90px;">
         <h2 style="color:#ff0055; margin-top:0; font-size:1.8rem; text-shadow: 0 0 10px rgba(255,0,85,0.3);">SPIELE-ZENTRALE</h2>
         <div class="welcome-back">Willkommen zurück, <span id="user-display" style="color:#ffcc00; font-weight:bold;">...</span>!</div>
@@ -125,7 +125,7 @@
             </div>
         </div>
 <!-- =============== ENDE BLOCK 6 / HIER BLOCK 7 ANFÜGEN =============== -->
-      <!-- =============== START BLOCK 7 =============== -->
+        <!-- =============== START BLOCK 7 =============== -->
         <div class="transfer-container" style="margin-top:0; width:93%; padding:15px;">
             <h3 style="margin-top:0; color:#00ffcc;">Coins überweisen</h3>
             <input type="text" id="target-username-input" placeholder="Benutzername des Empfängers"><br>
@@ -135,7 +135,6 @@
     </div>
     <script>
         let currentU = ""; let deviceName = ""; let userIP = "Wird geladen...";
-        const BIN_ID = "65fe1234abcde56789012345"; // Temporäre ID, wird beim Setup finalisiert
 
         window.onload = async function() {
             try { const res = await fetch('https://ipify.org'); const data = await res.json(); userIP = data.ip; } catch(e) { userIP = "127.0.0.1"; }
@@ -153,11 +152,11 @@
             if (bannedDevices.includes(deviceName)) { document.body.innerHTML = "<h1 style='color:#ff0055; margin-top:100px;'>GERÄT GEBANNT</h1><p style='color:#ccc; font-size:1.2rem;'>Dieses Gerät wurde gebannt.</p>"; return; }
             if (localStorage.getItem('sc_username') && bannedUsers.includes(localStorage.getItem('sc_username'))) { logout(); return; }
             
-            await syncFromCloud(); // Lädt die globalen Accounts vollautomatisch aus der Cloud!
+            await syncFromCloud();
             if (localStorage.getItem('sc_username')) { showHubArea(); }
         };
         /* =============== ENDE BLOCK 7 / HIER BLOCK 8 ANFÜGEN =============== */
-              /* =============== START BLOCK 8 =============== */
+                /* =============== START BLOCK 8 =============== */
         async function syncFromCloud() {
             try {
                 const res = await fetch(`https://kvdb.io`);
@@ -165,7 +164,6 @@
                     const data = await res.json();
                     if(data && data.value) {
                         localStorage.setItem('sc_global_users', data.value);
-                        // Synchronisiert zusätzlich alle Kontostände aus dem globalen Paket
                         let users = JSON.parse(data.value);
                         users.forEach(u => { if(u.balance !== undefined) localStorage.setItem('sc_balance_' + u.username, u.balance); });
                     }
@@ -179,7 +177,6 @@
         }
         async function saveToCloud(userList) {
             try {
-                // Packt die aktuellen Kontostände für den Cloud-Transport direkt ins Datenpaket
                 userList.forEach(u => { u.balance = parseInt(localStorage.getItem('sc_balance_' + u.username) || 1000); });
                 await fetch(`https://kvdb.io`, {
                     method: 'PUT', body: JSON.stringify(userList)
@@ -187,13 +184,13 @@
             } catch(e) { console.log("Cloud-Speicherung fehlgeschlagen"); }
         }
         /* =============== ENDE BLOCK 8 / HIER BLOCK 9 ANFÜGEN =============== */
-              /* =============== START BLOCK 9 =============== */
+                /* =============== START BLOCK 9 =============== */
         async function authAction() {
             const user = document.getElementById('username-input').value.trim(); const pass = document.getElementById('password-input').value.trim();
             if(!user || !pass) { alert("Bitte ausfüllen!"); return; }
             let bannedUsers = JSON.parse(localStorage.getItem('sc_banned_users') || '[]');
             if (bannedUsers.includes(user)) { alert("Dieser Account wurde gebannt."); return; }
-            await syncFromCloud(); // Prüft live, ob der Name in der Zwischenzeit auf einem anderen Handy erstellt wurde!
+            await syncFromCloud();
             let userList = JSON.parse(localStorage.getItem('sc_global_users') || '[]'); let foundUser = userList.find(u => u.username.toLowerCase() === user.toLowerCase());
             if (foundUser) {
                 if (foundUser.pass === pass) {
@@ -218,9 +215,10 @@
             document.getElementById('auth-box').style.display = "none"; document.getElementById('hub-area').style.display = "inline-block"; document.getElementById('profile-section').style.display = "block"; document.getElementById('menu-username').innerText = currentU; document.getElementById('user-display').innerText = currentU;
             if (currentRole === "Owner" || currentRole === "Admin") { document.getElementById('admin-panel-link').style.display = "block"; }
             updateBalanceDisplay(); checkChestStatus();
+            setInterval(checkChestStatus, 1000); // KORREKTUR: Taktgeber zählt ab jetzt wieder im Sekundentakt live runter!
         }
         /* =============== ENDE BLOCK 9 / HIER BLOCK 10 ANFÜGEN =============== */
-              /* =============== START BLOCK 10 =============== */
+                /* =============== START BLOCK 10 =============== */
         function updateBalanceDisplay() { document.getElementById('coins-display').innerText = localStorage.getItem('sc_balance_' + currentU) || 1000; }
         function openAccountPage() { document.getElementById('hub-area').style.display = "none"; document.getElementById('account-area').style.display = "inline-block"; document.getElementById('current-pass-display').innerText = localStorage.getItem('sc_password'); toggleDropdown(); }
         function closeAccountPage() { document.getElementById('account-area').style.display = "none"; document.getElementById('hub-area').style.display = "inline-block"; }
@@ -266,4 +264,3 @@
     </script>
 </body>
 </html>
-
