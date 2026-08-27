@@ -158,27 +158,49 @@
             let grid = [];
             for(let i=0; i<15; i++) { grid.push(document.getElementById('c' + i).innerText); }
             
-            // Definiert alle gewünschten Muster (Hintereinandergereihte Indizes des Grids)
+            // Definition aller 12 Gewinnlinien im 5x3 Feld (Als String transportiert)
             let lines = "0,1,2,3,4|5,6,7,8,9|10,11,12,13,14|0,5,10|1,6,11|2,7,12|3,8,13|4,9,14|0,6,12,8,4|10,6,2,8,14|0,6,12,6,0|4,8,12,8,4".split("|").map(l => l.split(",").map(Number));
             
-            let totalWin = 0; let linesWon = 0;
+            let totalWin = 0; let linesWon = 0; let jackpotTriggered = false; let jackpotSymbol = "";
             
             lines.forEach(line => {
-                let sym = grid[line[0]];
-                let matchCount = 1;
-                for(let k = 1; k < line.length; k++) {
-                    if(grid[line[k]] === sym) { matchCount++; } else { break; }
-                }
-                if(matchCount >= 3) {
-                    let baseWin = winRates[sym];
-                    let factor = matchCount === 3 ? 1 : (matchCount === 4 ? 2.5 : 6);
-                    totalWin += Math.floor(baseWin * factor); linesWon++;
+                // Zählt, wie oft jedes Symbol auf dieser spezifischen Gewinnlinie vorkommt
+                let counts = {};
+                line.forEach(index => {
+                    let sym = grid[index];
+                    counts[sym] = (counts[sym] || 0) + 1;
+                });
+                
+                // Prüft, welches Symbol am häufigsten auf der Linie liegt
+                for (let sym in counts) {
+                    let matchCount = counts[sym];
+                    
+                    if (matchCount >= 3) {
+                        let baseWin = winRates[sym];
+                        let factor = 1;
+                        
+                        if (matchCount === 3) factor = 1;
+                        else if (matchCount === 4) factor = 2.5;
+                        else if (matchCount === 5) { 
+                            factor = 10; // 10x Auszahlung bei voller 5er-Kette!
+                            jackpotTriggered = true;
+                            jackpotSymbol = sym;
+                        }
+                        
+                        totalWin += Math.floor(baseWin * factor);
+                        linesWon++;
+                    }
                 }
             });
             
             if (totalWin > 0) {
                 balance += totalWin; currentStreak++;
-                document.getElementById('message').innerText = `🎉 ${linesWon} Muster-Treffer! +${totalWin}$`;
+                if (jackpotTriggered) {
+                    alert(`🚨 MEGA JACKPOT!!! Volle 5er-Kette mit ${jackpotSymbol}! 10x BONUS AUSZAHLUNG!!! 🚨`);
+                    document.getElementById('message').innerText = `🏆 JACKPOT-GEWINN! +${totalWin}$`;
+                } else {
+                    document.getElementById('message').innerText = `🎉 ${linesWon} Muster-Treffer! +${totalWin}$`;
+                }
                 playSound('win');
             } else {
                 document.getElementById('message').innerText = "❌ Kein Muster getroffen.";
