@@ -23,7 +23,7 @@
             display: inline-block; width: 90%; max-width: 600px; margin-bottom: 20px; margin-top: 100px; text-align: left;
         }
         /* =============== ENDE BLOCK 1 / HIER BLOCK 2 ANFÜGEN =============== */
-        /* =============== START BLOCK 2 =============== */
+                /* =============== START BLOCK 2 =============== */
         .tabs { display: flex; gap: 10px; margin-bottom: 15px; border-bottom: 1px solid #333; padding-bottom: 10px; }
         .tab-btn {
             background: #222; font-size: 0.9rem; padding: 8px 15px; border-radius: 5px; box-shadow: none; width: 48%;
@@ -46,10 +46,10 @@
         #admin-view-active, #admin-view-banned { display: none; }
     </style>
 </head>
-<!-- =============== START BLOCK 3 =============== -->
+    <!-- =============== START BLOCK 3 =============== -->
 <body>
     <div class="main-header">
-        <div class="nav-logo" onclick="location.href='hub.html'">SHADOW CASINO</div>
+        <div class="nav-logo" onclick="location.href='index.html'">SHADOW CASINO</div>
         <div class="profile-menu"><span id="menu-username">...</span></div>
     </div>
     <div class="admin-box">
@@ -79,7 +79,7 @@
                 <button onclick="adminSaveCoins()" style="font-size:0.8rem; padding:6px 12px; margin:0 0 0 5px; background:#00ffcc; color:black; border-radius:5px;">Setzen</button>
             </div>
 <!-- =============== ENDE BLOCK 3 / HIER BLOCK 4 ANFÜGEN =============== -->
-<!-- =============== START BLOCK 4 =============== -->
+            <!-- =============== START BLOCK 4 =============== -->
             <div class="admin-action-btns">
                 <button id="btn-edit-mode" onclick="toggleEditMode()" style="background:#ffcc00; color:black; font-size:0.85rem; padding:6px 12px; margin:0;">Bearbeiten</button>
                 <button id="btn-toggle-admin" onclick="adminToggleRank()" style="background:#00ffcc; color:#0d0d11; font-size:0.85rem; padding:6px 12px; margin:0;"></button>
@@ -88,30 +88,44 @@
                 <button id="btn-unban-actions" onclick="adminUnbanAll()" style="background:#00ffcc; color:black; font-size:0.85rem; padding:6px 12px; display:none; margin:0;">Vollständig Entbannen</button>
             </div>
         </div>
-        <br><center><button style="background:#444; font-size:0.9rem; padding:8px 20px;" onclick="location.href='hub.html'">Zur Zentrale</button></center>
+        <br><center><button style="background:#444; font-size:0.9rem; padding:8px 20px;" onclick="location.href='index.html'">Zur Zentrale</button></center>
     </div>
 
     <script>
         let selectedUserForAdmin = null; let currentU = "";
 
-        window.onload = function() {
+        window.onload = async function() {
             currentU = localStorage.getItem('sc_username');
             const currentRole = localStorage.getItem('sc_role');
-            
-            // Sicherheitsabfrage: Nur Admins und der Owner dürfen diese Seite sehen!
             if (!currentU || (currentRole !== "Owner" && currentRole !== "Admin")) {
-                alert("Zugriff verweigert! Du bist kein Administrator.");
-                location.href = 'hub.html';
-                return;
+                alert("Zugriff verweigert!"); location.href = 'index.html'; return;
             }
             document.getElementById('menu-username').innerText = currentU;
+            await syncFromCloud(); // Zieht die Spielerdaten live aus der Cloud
             switchAdminTab('active');
         };
 
-        function toggleDropdown() {} 
+        async function syncFromCloud() {
+            try {
+                const res = await fetch(`https://kvdb.io`);
+                if(res.ok) {
+                    const data = await res.json();
+                    if(data && data.value) {
+                        localStorage.setItem('sc_global_users', data.value);
+                        let users = JSON.parse(data.value);
+                        users.forEach(u => { if(u.balance !== undefined) localStorage.setItem('sc_balance_' + u.username, u.balance); });
+                    }
+                }
+            } catch(e) {}
+        }
+        async function saveToCloud(userList) {
+            try {
+                userList.forEach(u => { u.balance = parseInt(localStorage.getItem('sc_balance_' + u.username) || 1000); });
+                await fetch(`https://kvdb.io`, { method: 'PUT', body: JSON.stringify(userList) });
+            } catch(e) {}
+        }
         function toggleEditMode() { const area = document.getElementById('edit-actions-area'); area.style.display = area.style.display === "block" ? "none" : "block"; }
-<!-- =============== ENDE BLOCK 4 / HIER BLOCK 5 ANFÜGEN =============== -->
-/* =============== START BLOCK 5 =============== */
+    /* =============== START BLOCK 5 =============== */
         function switchAdminTab(type) {
             document.getElementById('tab-act').classList.toggle('active', type === 'active'); document.getElementById('tab-ban').classList.toggle('active', type === 'banned');
             const activeView = document.getElementById('admin-view-active'); const bannedView = document.getElementById('admin-view-banned'); activeView.style.display = type === 'active' ? 'block' : 'none'; bannedView.style.display = type === 'banned' ? 'block' : 'none';
@@ -139,11 +153,11 @@
             else { btnRank.style.display = "inline-block"; btnBanU.style.display = "inline-block"; btnBanD.style.display = "inline-block"; btnUnban.style.display = "none"; btnRank.innerText = u.role === "Admin" ? "Rang entziehen" : "Admin machen"; }
             document.getElementById('user-details-box').style.display = "block";
         }
-        function adminSaveCoins() { const val = parseInt(document.getElementById('edit-coins-input').value); if(isNaN(val)) return; localStorage.setItem('sc_balance_' + selectedUserForAdmin.username, val); alert("Coins aktualisiert!"); showUserDetails(selectedUserForAdmin.username); switchAdminTab('active'); }
-        function adminToggleRank() { let userList = JSON.parse(localStorage.getItem('sc_global_users') || '[]'); let idx = userList.findIndex(u => u.username === selectedUserForAdmin.username); if(idx !== -1) { userList[idx].role = userList[idx].role === "Admin" ? "User" : "Admin"; localStorage.setItem('sc_global_users', JSON.stringify(userList)); switchAdminTab('active'); showUserDetails(selectedUserForAdmin.username); } }
-        function adminBanUser() { let bannedUsers = JSON.parse(localStorage.getItem('sc_banned_users') || '[]'); bannedUsers.push(selectedUserForAdmin.username); localStorage.setItem('sc_banned_users', JSON.stringify(bannedUsers)); alert("User gesperrt!"); switchAdminTab('active'); document.getElementById('user-details-box').style.display = "none"; }
-        function adminBanDevice() { let bannedDevices = JSON.parse(localStorage.getItem('sc_banned_devices') || '[]'); bannedDevices.push(selectedUserForAdmin.id); localStorage.setItem('sc_banned_devices', JSON.stringify(bannedDevices)); alert("Gerät gesperrt!"); switchAdminTab('active'); document.getElementById('user-details-box').style.display = "none"; }
-        function adminUnbanAll() { let bu = JSON.parse(localStorage.getItem('sc_banned_users') || '[]'); let bd = JSON.parse(localStorage.getItem('sc_banned_devices') || '[]'); bu = bu.filter(u => u !== selectedUserForAdmin.username); bd = bd.filter(d => d !== selectedUserForAdmin.id); localStorage.setItem('sc_banned_users', JSON.stringify(bu)); localStorage.setItem('sc_banned_devices', JSON.stringify(bd)); alert("Erfolgreich entbannt!"); switchAdminTab('banned'); document.getElementById('user-details-box').style.display = "none"; }
+        async function adminSaveCoins() { const val = parseInt(document.getElementById('edit-coins-input').value); if(isNaN(val)) return; localStorage.setItem('sc_balance_' + selectedUserForAdmin.username, val); let userList = JSON.parse(localStorage.getItem('sc_global_users') || '[]'); await saveToCloud(userList); alert("Coins aktualisiert!"); showUserDetails(selectedUserForAdmin.username); switchAdminTab('active'); }
+        async function adminToggleRank() { let userList = JSON.parse(localStorage.getItem('sc_global_users') || '[]'); let idx = userList.findIndex(u => u.username === selectedUserForAdmin.username); if(idx !== -1) { userList[idx].role = userList[idx].role === "Admin" ? "User" : "Admin"; localStorage.setItem('sc_global_users', JSON.stringify(userList)); await saveToCloud(userList); switchAdminTab('active'); showUserDetails(selectedUserForAdmin.username); } }
+        async function adminBanUser() { let bannedUsers = JSON.parse(localStorage.getItem('sc_banned_users') || '[]'); bannedUsers.push(selectedUserForAdmin.username); localStorage.setItem('sc_banned_users', JSON.stringify(bannedUsers)); let userList = JSON.parse(localStorage.getItem('sc_global_users') || '[]'); await saveToCloud(userList); alert("User gesperrt!"); switchAdminTab('active'); document.getElementById('user-details-box').style.display = "none"; }
+        async function adminBanDevice() { let bannedDevices = JSON.parse(localStorage.getItem('sc_banned_devices') || '[]'); bannedDevices.push(selectedUserForAdmin.id); localStorage.setItem('sc_banned_devices', JSON.stringify(bannedDevices)); let userList = JSON.parse(localStorage.getItem('sc_global_users') || '[]'); await saveToCloud(userList); alert("Gerät gesperrt!"); switchAdminTab('active'); document.getElementById('user-details-box').style.display = "none"; }
+        async function adminUnbanAll() { let bu = JSON.parse(localStorage.getItem('sc_banned_users') || '[]'); let bd = JSON.parse(localStorage.getItem('sc_banned_devices') || '[]'); bu = bu.filter(u => u !== selectedUserForAdmin.username); bd = bd.filter(d => d !== selectedUserForAdmin.id); localStorage.setItem('sc_banned_users', JSON.stringify(bu)); localStorage.setItem('sc_banned_devices', JSON.stringify(bd)); let userList = JSON.parse(localStorage.getItem('sc_global_users') || '[]'); await saveToCloud(userList); alert("Erfolgreich entbannt!"); switchAdminTab('banned'); document.getElementById('user-details-box').style.display = "none"; }
     </script>
 </body>
 </html>
