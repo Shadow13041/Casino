@@ -98,7 +98,7 @@
     <!-- =============== START BLOCK 5 =============== -->
     <script>
         // Internes Zahlen-Feld für die Farberkennung des Rads (Als Text deklariert)
-        const redNumbers =;
+        const redNumbers = "1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36".split(",").map(Number);
         let currentU = ""; let bet = 0; let audioCtx = null;
 
         function playSound(type) {
