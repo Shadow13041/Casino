@@ -154,50 +154,56 @@
         }
         /* =============== ENDE BLOCK 9 / HIER BLOCK 10 ANFÜGEN =============== */
                 /* =============== START BLOCK 10 =============== */
-        function determineResult() {
+                function determineResult() {
             let grid = [];
             for(let i=0; i<15; i++) { grid.push(document.getElementById('c' + i).innerText); }
             
-            // Definiert alle 12 echten Paylines händisch (Keine Strings, absolut filter-sicher)
-            const paylines = [,     // Horizontale 1,     // Horizontale 2
-                [10, 11, 12, 13, 14],// Horizontale 3,          // Spalte 1,          // Spalte 2,          // Spalte 3,          // Spalte 4,          // Spalte 5,    // Große Diagonale runter-hoch,   // Große Diagonale hoch-runter,    // Großes Dreieck (V-Form)
-                [4, 8, 12, 8, 4]     // Großes Dreieck (Umgedrehtes V)
-            ];
-            
             let totalWin = 0; let linesWon = 0;
             
-            // Jede Payline wird lückenlos von ihrem jeweiligen Startpunkt aus geprüft
-            paylines.forEach(line => {
+            // 1. Die horizontalen und diagonalen Linien (Prüfung von links nach rechts)
+            const longLines = [
+                "0,1,2,3,4", "5,6,7,8,9", "10,11,12,13,14", // Reihen
+                "0,6,12,8,4", "10,6,2,8,14",               // Diagonalen Kreuz
+                "0,6,12,6,0", "4,8,12,8,4"                  // Dreiecke (V / Umgedreht)
+            ].map(l => l.split(",").map(Number));
+            
+            longLines.forEach(line => {
                 let startSym = grid[line[0]];
                 let matchCount = 1;
-                
                 for(let k = 1; k < line.length; k++) {
-                    if(grid[line[k]] === startSym) {
-                        matchCount++;
-                    } else {
-                        break; // LÜCKE GEFUNDEN! Kette stoppt sofort.
-                    }
+                    if(grid[line[k]] === startSym) { matchCount++; } else { break; }
                 }
-                
-                // Gültig ab einer lückenlosen Kette von mindestens 3 Symbolen
                 if(matchCount >= 3) {
                     let baseWin = winRates[startSym];
-                    let factor = 1;
-                    if (matchCount === 3) factor = 1;
-                    else if (matchCount === 4) factor = 2.5;
-                    else if (matchCount === 5) factor = 6;
-                    
-                    totalWin += Math.floor(baseWin * factor);
+                    let factor = matchCount === 3 ? 1 : (matchCount === 4 ? 2.5 : 6);
+                    totalWin += Math.floor(baseWin * factor); linesWon++;
+                }
+            });
+            
+            // 2. KORREKTUR: Die vertikalen Spalten (Prüfung von oben nach unten!)
+            const columns = [
+                "0,5,10", "1,6,11", "2,7,12", "3,8,13", "4,9,14"
+            ].map(l => l.split(",").map(Number));
+            
+            columns.forEach(col => {
+                let topSym = grid[col[0]];
+                let midSym = grid[col[1]];
+                let botSym = grid[col[2]];
+                
+                // Wenn alle 3 Symbole in der Spalte von oben nach unten identisch sind
+                if(topSym === midSym && midSym === botSym) {
+                    let baseWin = winRates[topSym];
+                    totalWin += Math.floor(baseWin * 1.5); // Spalten-Gewinn mit 1.5x Multiplikator!
                     linesWon++;
                 }
             });
             
-            // !!! DER ECHTE JACKPOT: Prüft, ob alle 15 Felder absolut identisch sind !!!
+            // 3. ECHTER JACKPOT: Wenn alle 15 Felder absolut identisch sind
             const firstCellSym = grid[0];
             const isFullHouse = grid.every(cell => cell === firstCellSym);
             
             if (isFullHouse) {
-                let jackpotWin = winRates[firstCellSym] * 50; // 50-facher Bonus-Gewinn auf alle Symbole!
+                let jackpotWin = winRates[firstCellSym] * 50;
                 totalWin = jackpotWin;
                 alert(`🚨🚨🚨 ULTRA MEGA JACKPOT!!! DAS GESAMTE BOARD IST VOLL MIT ${firstCellSym}!!! 🚨🚨🚨`);
                 document.getElementById('message').innerText = `🏆 SPIELFELD-JACKPOT! +${totalWin}$`;
