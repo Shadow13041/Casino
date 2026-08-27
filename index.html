@@ -107,9 +107,13 @@
             <button id="claim-chest-btn" class="chest-btn" onclick="claimDailyChest()">Kiste öffnen</button>
         </div>
         <div class="game-grid">
-            <div class="hub-card" onclick="location.href='slots.html'">
-                <h3 style="margin:0 0 5px 0; color:#00ffcc;">🎰 Fruit Slots</h3>
-                <p style="margin:0; font-size:0.85rem; color:#aaa;">Der klassische Automat mit deinen angepassten Symbolen und Streaks.</p>
+            <div class="hub-card" onclick="location.href='slots3x1.html'">
+                <h3 style="margin:0 0 5px 0; color:#00ffcc;">🎰 Slots 3x1</h3>
+                <p style="margin:0; font-size:0.85rem; color:#aaa;">Der klassische Automat mit 3 Walzen und schnellen Streaks.</p>
+            </div>
+            <div class="hub-card" onclick="location.href='slots5x3.html'">
+                <h3 style="margin:0 0 5px 0; color:#00ffcc;">🎰 Slots 5x1</h3>
+                <p style="margin:0; font-size:0.85rem; color:#aaa;">Das fette 5x3 Raster mit 5 Gewinnlinien für maximale Trefferchancen.</p>
             </div>
             <div class="hub-card" onclick="location.href='highlow.html'">
                 <h3 style="margin:0 0 5px 0; color:#ffcc00;">🃏 Höher oder Tiefer</h3>
@@ -215,7 +219,7 @@
             document.getElementById('auth-box').style.display = "none"; document.getElementById('hub-area').style.display = "inline-block"; document.getElementById('profile-section').style.display = "block"; document.getElementById('menu-username').innerText = currentU; document.getElementById('user-display').innerText = currentU;
             if (currentRole === "Owner" || currentRole === "Admin") { document.getElementById('admin-panel-link').style.display = "block"; }
             updateBalanceDisplay(); checkChestStatus();
-            setInterval(checkChestStatus, 1000); // KORREKTUR: Taktgeber zählt ab jetzt wieder im Sekundentakt live runter!
+            setInterval(checkChestStatus, 1000);
         }
         /* =============== ENDE BLOCK 9 / HIER BLOCK 10 ANFÜGEN =============== */
                 /* =============== START BLOCK 10 =============== */
