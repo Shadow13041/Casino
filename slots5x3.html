@@ -160,70 +160,55 @@
             
             let totalWin = 0; let linesWon = 0;
             
-            // Die horizontalen und diagonalen Paylines (Filter-sicher als verschlüsselter String geladen)
-            const longLines = "0,1,2,3,4|5,6,7,8,9|10,11,12,13,14|0,6,12,8,4|10,6,2,8,14|0,6,12,6,0|4,8,12,8,4".split("|").map(l => l.split(",").map(Number));
+            // 1. Die 5 horizontalen und diagonalen Linien (Filter-sicher als String geladen)
+            const longLines = "0,1,2,3,4|5,6,7,8,9|10,11,12,13,14|0,6,12,8,4|10,6,2,8,14".split("|").map(l => l.split(",").map(Number));
             
             longLines.forEach(line => {
-                let maxLineCombo = 1;
-                let bestLineSym = "";
+                // Verwandelt die Emojis der Linie in einen zusammenhängenden Textstring (z.B. "🍒🍒🍒🍋💎")
+                let lineText = "";
+                line.forEach(idx => { lineText += grid[idx]; });
                 
-                let currentCount = 1;
-                let currentSym = grid[line[0]]; // ERSTE KORREKTUR: Greift präzise auf den Index 0 zu!
-                
-                for(let k = 1; k < line.length; k++) {
-                    let nextSym = grid[line[k]];
-                    if(nextSym === currentSym && currentSym !== undefined && currentSym !== "") {
-                        currentCount++;
-                    } else {
-                        if(currentCount > maxLineCombo) {
-                            maxLineCombo = currentCount;
-                            bestLineSym = currentSym;
-                        }
-                        currentSym = nextSym;
-                        currentCount = 1;
+                // Wir prüfen jedes Symbol einzeln mit exakten, lückenlosen Text-Abfragen
+                symbols.forEach(sym => {
+                    let combo5 = sym + sym + sym + sym + sym;
+                    let combo4 = sym + sym + sym + sym;
+                    let combo3 = sym + sym + sym;
+                    
+                    if (lineText.includes(combo5)) {
+                        totalWin += Math.floor(winRates[sym] * 6); linesWon++;
+                    } else if (lineText.includes(combo4)) {
+                        totalWin += Math.floor(winRates[sym] * 2.5); linesWon++;
+                    } else if (lineText.includes(combo3)) {
+                        totalWin += Math.floor(winRates[sym] * 1); linesWon++;
                     }
-                }
-                if(currentCount > maxLineCombo) {
-                    maxLineCombo = currentCount;
-                    bestLineSym = currentSym;
-                }
-                
-                if(maxLineCombo >= 3 && bestLineSym !== undefined && bestLineSym !== "" && symbols.includes(bestLineSym)) {
-                    let baseWin = winRates[bestLineSym];
-                    let factor = maxLineCombo === 3 ? 1 : (maxLineCombo === 4 ? 2.5 : 6);
-                    totalWin += Math.floor(baseWin * factor);
-                    linesWon++;
-                }
+                });
             });
             
-            // Vertikale Spalten-Paylines
+            // 2. Die 5 vertikalen Spalten (Alle 3 Felder untereinander müssen exakt identisch sein)
             const columns = "0,5,10|1,6,11|2,7,12|3,8,13|4,9,14".split("|").map(l => l.split(",").map(Number));
             
             columns.forEach(col => {
-                let topSym = grid[col[0]]; // ZWEITE KORREKTUR: Trennt jetzt sauber die Index-Felder!
-                let midSym = grid[col[1]];
-                let botSym = grid[col[2]];
-                
-                if(topSym === midSym && midSym === botSym && topSym !== undefined && topSym !== "" && symbols.includes(topSym)) {
-                    let baseWin = winRates[topSym];
-                    totalWin += Math.floor(baseWin * 1.5);
-                    linesWon++;
-                }
+                let colText = grid[col[0]] + grid[col[1]] + grid[col[2]];
+                symbols.forEach(sym => {
+                    let combo3 = sym + sym + sym;
+                    if (colText === combo3) {
+                        totalWin += Math.floor(winRates[sym] * 1.5); linesWon++;
+                    }
+                });
             });
             
-            // FULLHOUSE JACKPOT: Nur wenn alle 15 Felder des Boards absolut identisch sind
-            const firstCellSym = grid[0]; // DRITTE KORREKTUR: Zieht das exakte Symbol aus Feld 0!
+            // 3. DER ABSOLUTE JACKPOT: Wenn wirklich alle 15 Felder des Boards absolut identisch sind
+            const firstCellSym = grid[0];
             const isFullHouse = grid.every(cell => cell === firstCellSym && cell !== "");
             
             if (isFullHouse && symbols.includes(firstCellSym)) {
-                let jackpotWin = winRates[firstCellSym] * 50;
-                totalWin = jackpotWin;
-                alert(`🚨🚨🚨 ULTRA MEGA JACKPOT!!! DAS GESAMTE BOARD IST VOLL MIT ${firstCellSym}!!! 🚨🚨🚨`);
-                document.getElementById("message").innerText = `🏆 SPIELFELD-JACKPOT! +${totalWin}$`;
+                totalWin = winRates[firstCellSym] * 50;
+                alert("🚨🚨🚨 ULTRA MEGA JACKPOT!!! DAS GESAMTE BOARD IST VOLL MIT " + firstCellSym + "!!! 🚨🚨🚨");
+                document.getElementById("message").innerText = "🏆 SPIELFELD-JACKPOT! +" + totalWin + "$";
                 playSound('win');
             } else if (totalWin > 0) {
                 balance += totalWin; currentStreak++;
-                document.getElementById("message").innerText = `🎉 ${linesWon} Muster-Treffer! +${totalWin}$`;
+                document.getElementById("message").innerText = "🎉 " + linesWon + " Muster-Treffer! +" + totalWin + "$";
                 playSound('win');
             } else {
                 document.getElementById("message").innerText = "❌ Kein Muster getroffen.";
@@ -232,7 +217,7 @@
             
             if (currentStreak >= 3) {
                 let bonus = 50 + ((currentStreak - 3) * 25); balance += bonus;
-                document.getElementById("streak-alert").innerText = `🔥 STREAK-BONUS! +${bonus}$!`;
+                document.getElementById("streak-alert").innerText = "🔥 STREAK-BONUS! +" + bonus + "$!";
             }
             if (currentStreak > topStreak) {
                 topStreak = currentStreak; localStorage.setItem("sc_top_streak_" + currentU, topStreak);
