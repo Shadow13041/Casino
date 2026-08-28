@@ -161,7 +161,7 @@
             let totalWin = 0; let linesWon = 0;
             
             // 1. Die horizontalen und diagonalen Linien (Sucht ECHTE, lückenlose Ketten!)
-            const longLines = [, [5,6,7,8,9], [10,11,12,13,14], // Reihen, [10,6,2,8,14],               // Diagonalen Kreuz, [4,8,12,8,4]                  // Dreiecke (V / Umgedreht)
+            const longLines = "0,1,2,3,4|5,6,7,8,9|10,11,12,13,14|0,6,12,8,4|10,6,2,8,14|0,6,12,6,0|4,8,12,8,4".split("|").map(l => l.split(",").map(Number));
             ];
             
             longLines.forEach(line => {
@@ -199,7 +199,7 @@
             });
             
             // 2. Die vertikalen Spalten (Alle 3 Felder untereinander MÜSSEN absolut gleich sein!)
-            const columns = [, [1,6,11], [2,7,12], [3,8,13], [4,9,14]
+            const columns = "0,5,10|1,6,11|2,7,12|3,8,13|4,9,14".split("|").map(l => l.split(",").map(Number));
             ];
             
             columns.forEach(col => {
