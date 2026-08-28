@@ -33,7 +33,7 @@
         }
     </style>
 </head>
-    <!-- =============== START BLOCK 3 =============== -->
+<!-- =============== START BLOCK 3 =============== -->
 <body>
     <div class="main-header">
         <div class="nav-logo" onclick="location.reload()">SHADOW CASINO</div>
@@ -49,18 +49,28 @@
         <!-- =============== START BLOCK 4 =============== -->
     <script>
         let deviceName = "Xiaomi Redmi";
-        const CLOUD_URL = "https://jsonbin.io";
+        
+        // !!! KORREKTUR: TRAGE HIER DEINE ECHTEN GITHUB-DATEN EIN !!!
+        const GH_USER = "DEIN_GITHUB_NAME"; 
+        const GH_REPO = "DEIN_CASINO_ORDNER_NAME";
+        const GH_TOKEN = "DEIN_EBEN_GENERIERT_TOKEN_GHP_..."; 
+        
+        let currentFileSha = ""; // Wird von GitHub benötigt, um die Datei zu überschreiben
 
         async function syncFromCloud() {
             try {
-                const res = await fetch(CLOUD_URL, { headers: { "X-Master-Key": "$2b$10$ShadowCasinoSecretKey12345" } });
+                // Holt die users.json direkt aus deinem GitHub-Projekt
+                const res = await fetch(`https://github.com{GH_USER}/${GH_REPO}/contents/users.json`, {
+                    headers: { "Authorization": `token ${GH_TOKEN}`, "Accept": "application/vnd.github.v3+json" }
+                });
                 if(res.ok) {
                     const data = await res.json();
-                    if(data && data.record) {
-                        localStorage.setItem("sc_global_users", JSON.stringify(data.record));
-                    }
+                    currentFileSha = data.sha; // Speichert den aktuellen Datei-Fingerabdruck
+                    // Dekodiert den Base64-Text von GitHub in normales JSON
+                    let decryptedText = decodeURIComponent(escape(atob(data.content)));
+                    localStorage.setItem("sc_global_users", decryptedText);
                 }
-            } catch(e) {}
+            } catch(e) { console.log("GitHub-Ladefehler"); }
             
             let userList = JSON.parse(localStorage.getItem("sc_global_users") || "[]");
             if (!userList.some(u => u.username === "Shadow")) {
@@ -71,12 +81,20 @@
 
         async function saveToCloud(userList) {
             try {
-                await fetch(CLOUD_URL, {
+                let jsonString = JSON.stringify(userList);
+                // Konvertiert den Text in das von GitHub verlangte Base64-Format
+                let b64Content = btoa(unescape(encodeURIComponent(jsonString)));
+                
+                await fetch(`https://github.com{GH_USER}/${GH_REPO}/contents/users.json`, {
                     method: "PUT",
-                    headers: { "Content-Type": "application/json", "X-Master-Key": "$2b$10$ShadowCasinoSecretKey12345" },
-                    body: JSON.stringify(userList)
+                    headers: { "Authorization": `token ${GH_TOKEN}`, "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        message: "Casino-Cloud: Konten-Update",
+                        content: b64Content,
+                        sha: currentFileSha
+                    })
                 });
-            } catch(e) {}
+            } catch(e) { console.log("GitHub-Schreibfehler"); }
         }
                 /* =============== START BLOCK 5 =============== */
         async function authAction() {
@@ -128,4 +146,3 @@
     </script>
 </body>
 </html>
-
