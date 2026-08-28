@@ -64,6 +64,7 @@
         #hub-area, #account-area, #profile-section { display: none; }
     </style>
 </head>
+        /* =============== ENDE BLOCK 3 / HIER BLOCK 4 ANFÜGEN =============== */
     <!-- =============== START BLOCK 4 =============== -->
 <body>
     <div class="main-header">
@@ -134,7 +135,7 @@
             </div>
             <div class="hub-card" onclick="location.href='race.html'">
                 <h3 style="margin:0 0 5px 0; color:#00ffcc;">🏇 Shadow Derby</h3>
-                <p style="margin:0; font-size:0.85rem; color:#aaa;">Setze auf eines von 5 gespiegelten Rennpferden und hol dir den 5x Gewinn!</p>
+                <p style="margin:0; font-size:0.85rem; color:#aaa;">Setze auf eines von 5 Rennpferden und hol dir den 5x Gewinn!</p>
             </div>
         </div>
 <!-- =============== ENDE BLOCK 6 / HIER BLOCK 7 ANFÜGEN =============== -->
@@ -148,6 +149,7 @@
     </div>
     <script>
         let currentU = "";
+        const CLOUD_URL = "https://jsonbin.io";
 
         window.onload = async function() {
             currentU = localStorage.getItem("sc_username");
@@ -176,13 +178,12 @@
                 /* =============== START BLOCK 8 =============== */
         async function syncFromCloud() {
             try {
-                const res = await fetch("https://kvdb.io");
+                const res = await fetch(CLOUD_URL, { headers: { "X-Master-Key": "$2b$10$ShadowCasinoSecretKey12345" } });
                 if(res.ok) {
                     const data = await res.json();
-                    if(data && data.value) {
-                        localStorage.setItem("sc_global_users", data.value);
-                        let users = JSON.parse(data.value);
-                        users.forEach(u => { if(u.balance !== undefined) localStorage.setItem("sc_balance_" + u.username, u.balance); });
+                    if(data && data.record) {
+                        localStorage.setItem("sc_global_users", JSON.stringify(data.record));
+                        data.record.forEach(u => { if(u.balance !== undefined) localStorage.setItem("sc_balance_" + u.username, u.balance); });
                     }
                 }
             } catch(e) {}
@@ -191,7 +192,11 @@
         async function saveToCloud(userList) {
             try {
                 userList.forEach(u => { u.balance = parseInt(localStorage.getItem("sc_balance_" + u.username) || 1000); });
-                await fetch("https://kvdb.io", { method: "PUT", body: JSON.stringify(userList) });
+                await fetch(CLOUD_URL, { 
+                    method: "PUT", 
+                    headers: { "Content-Type": "application/json", "X-Master-Key": "$2b$10$ShadowCasinoSecretKey12345" },
+                    body: JSON.stringify(userList) 
+                });
             } catch(e) {}
         }
 
@@ -213,7 +218,7 @@
             }
         }
         /* =============== ENDE BLOCK 9 / HIER BLOCK 10 ANFÜGEN =============== */
-                        /* =============== START BLOCK 10 =============== */
+                /* =============== START BLOCK 10 =============== */
         function checkChestStatus() {
             const lastClaim = localStorage.getItem("sc_chest_claim_" + currentU); const btn = document.getElementById("claim-chest-btn"); const statusText = document.getElementById("chest-status-text"); if(!btn || !statusText) return;
             if (lastClaim) {
@@ -255,4 +260,3 @@
     </script>
 </body>
 </html>
-
