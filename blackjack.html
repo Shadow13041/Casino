@@ -157,20 +157,25 @@
             return `<div class="${cClass}">${card.value}${card.suit}</div>`;
         }
 
-        function updateBoard(hideDealer) {
-            let pCards = ""; playerHand.forEach(c => { pCards += renderCardHTML(c, false); });
-            document.getElementById("player-cards").innerHTML = pCards;
-            document.getElementById("player-score").innerText = getHandScore(playerHand);
+function updateBoard(hideDealer) {
+    let pCards = ""; playerHand.forEach(c => { pCards += renderCardHTML(c, false); });
+    document.getElementById("player-cards").innerHTML = pCards;
+    document.getElementById("player-score").innerText = getHandScore(playerHand);
 
-            let dCards = "";
-            if (hideDealer) {
-                dCards += renderCardHTML(dealerHand[0], false) + renderCardHTML(dealerHand[1], true);
-                document.getElementById("dealer-score").innerText = "?";
-            } else {
-                dealerHand.forEach(c => { dCards += renderCardHTML(c, false); });
-                document.getElementById("dealer-score").innerText = getHandScore(dealerHand);
-            }
-        }
+    let dCards = "";
+    if (hideDealer) {
+        // REPARATUR: Zeichnet die erste Karte offen und die zweite Karte echt als verdecktes Fragezeichen!
+        dCards += renderCardHTML(dealerHand[0], false) + renderCardHTML(dealerHand[1], true);
+        document.getElementById("dealer-cards").innerHTML = dCards;
+        document.getElementById("dealer-score").innerText = "?";
+    } else {
+        // Wenn die Runde vorbei ist, werden alle Karten des Dealers lückenlos aufgedeckt!
+        dealerHand.forEach(c => { dCards += renderCardHTML(c, false); });
+        document.getElementById("dealer-cards").innerHTML = dCards;
+        document.getElementById("dealer-score").innerText = getHandScore(dealerHand);
+    }
+}
+        
 
         function startBlackjack() {
             bet = parseInt(document.getElementById("bet-input").value);
