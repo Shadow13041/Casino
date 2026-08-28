@@ -155,13 +155,13 @@
         }
         /* =============== ENDE BLOCK 9 / HIER BLOCK 10 ANFÜGEN =============== */
                 /* =============== START BLOCK 10 =============== */
-                function determineResult() {
+                        function determineResult() {
             let grid = [];
             for(let i=0; i<15; i++) { grid.push(document.getElementById('c' + i).innerText); }
             
             let totalWin = 0; let linesWon = 0;
             
-            // 1. Die horizontalen und diagonalen Linien (Sucht lückenlose Ketten an JEDER Position!)
+            // 1. Die horizontalen und diagonalen Linien (Sucht ECHTE, lückenlose Ketten!)
             const longLines = [
                 "0,1,2,3,4", "5,6,7,8,9", "10,11,12,13,14", // Reihen
                 "0,6,12,8,4", "10,6,2,8,14",               // Diagonalen Kreuz
@@ -169,48 +169,51 @@
             ].map(l => l.split(",").map(Number));
             
             longLines.forEach(line => {
-                let maxCombo = 0;
-                let currentComboSym = "";
+                let maxLineCombo = 1;
+                let bestLineSym = "";
                 
-                // Wir wandern die Linie von links nach rechts ab und suchen die längste Kette
-                let currentSym = grid[line];
                 let currentCount = 1;
+                let currentSym = grid[line[0]];
                 
+                // Wir wandern die Linie Schritt für Schritt ab und zählen NUR echte Ketten
                 for(let k = 1; k < line.length; k++) {
                     if(grid[line[k]] === currentSym) {
                         currentCount++;
                     } else {
-                        if(currentCount > maxCombo) {
-                            maxCombo = currentCount;
-                            currentComboSym = currentSym;
+                        // Kette unterbrochen! Wir prüfen, ob die abgelaufene Kette die bisher beste war
+                        if(currentCount > maxLineCombo) {
+                            maxLineCombo = currentCount;
+                            bestLineSym = currentSym;
                         }
+                        // Zähler für das NEUE Symbol wird strikt auf 1 zurückgesetzt
                         currentSym = grid[line[k]];
                         currentCount = 1;
                     }
                 }
-                if(currentCount > maxCombo) {
-                    maxCombo = currentCount;
-                    currentComboSym = currentSym;
+                // Letzten Check nach Schleifenende durchführen
+                if(currentCount > maxLineCombo) {
+                    maxLineCombo = currentCount;
+                    bestLineSym = currentSym;
                 }
                 
-                // Wenn die längste lückenlose Kette auf dieser Linie mindestens 3 lang ist
-                if(maxCombo >= 3) {
-                    let baseWin = winRates[currentComboSym];
-                    let factor = maxCombo === 3 ? 1 : (maxCombo === 4 ? 2.5 : 6);
+                // NUR wenn eine ECHTE zusammenhängende Kette mindestens 3 lang ist, zählt es!
+                if(maxLineCombo >= 3 && bestLineSym !== "") {
+                    let baseWin = winRates[bestLineSym];
+                    let factor = maxLineCombo === 3 ? 1 : (maxLineCombo === 4 ? 2.5 : 6);
                     totalWin += Math.floor(baseWin * factor);
                     linesWon++;
                 }
             });
             
-            // 2. Die vertikalen Spalten (Alle 3 Felder von oben nach unten müssen identisch sein)
+            // 2. Die vertikalen Spalten (Alle 3 Felder untereinander MÜSSEN absolut gleich sein!)
             const columns = [
                 "0,5,10", "1,6,11", "2,7,12", "3,8,13", "4,9,14"
             ].map(l => l.split(",").map(Number));
             
             columns.forEach(col => {
-                let topSym = grid[col];
-                let midSym = grid[col];
-                let botSym = grid[col];
+                let topSym = grid[col[0]];
+                let midSym = grid[col[1]];
+                let botSym = grid[col[2]];
                 
                 if(topSym === midSym && midSym === botSym) {
                     let baseWin = winRates[topSym];
@@ -219,8 +222,8 @@
                 }
             });
             
-            // 3. FULLHOUSE JACKPOT: Wenn alle 15 Felder absolut identisch sind
-            const firstCellSym = grid;
+            // 3. FULLHOUSE JACKPOT: Nur wenn wirklich alle 15 Felder des Automaten absolut identisch sind
+            const firstCellSym = grid[0];
             const isFullHouse = grid.every(cell => cell === firstCellSym);
             
             if (isFullHouse) {
@@ -248,5 +251,7 @@
             document.getElementById('streak').innerText = currentStreak; document.getElementById('balance').innerText = balance;
             localStorage.setItem('sc_balance_' + currentU, balance); pushToCloud();
             document.getElementById('spin-btn').disabled = false;
-                }
-        
+        }
+    </script>
+</body>
+</html>
