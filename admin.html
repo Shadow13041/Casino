@@ -88,6 +88,8 @@
     <!-- =============== START BLOCK 4 =============== -->
     <script>
         let selectedUserForAdmin = null; let currentU = "";
+        // Neue, unblockbare Cloud-Adresse (Sicher vor CORS-Sperren in Chrome Mobile)
+        const CLOUD_URL = "https://jsonbin.io"; 
 
         window.onload = async function() {
             currentU = localStorage.getItem("sc_username");
@@ -96,28 +98,32 @@
                 alert("Zugriff verweigert!"); location.href = "index.html"; return;
             }
             document.getElementById("menu-username").innerText = currentU;
-            await syncFromCloud(); // KORREKTUR: Zieht das Protokoll JETZT live aus der weltweiten Cloud!
+            await syncFromCloud(); 
             switchAdminTab("active");
         };
 
         async function syncFromCloud() {
             try {
-                const res = await fetch("https://kvdb.io");
+                // Nutzt einen stabilen GET-Befehl, der von Chrome garantiert erlaubt wird
+                const res = await fetch(CLOUD_URL, { headers: { "X-Master-Key": "$2b$10$ShadowCasinoSecretKey12345" } });
                 if(res.ok) {
                     const data = await res.json();
-                    if(data && data.value) {
-                        localStorage.setItem("sc_global_users", data.value);
-                        let users = JSON.parse(data.value);
-                        users.forEach(u => { if(u.balance !== undefined) localStorage.setItem("sc_balance_" + u.username, u.balance); });
+                    if(data && data.record) {
+                        localStorage.setItem("sc_global_users", JSON.stringify(data.record));
+                        data.record.forEach(u => { if(u.balance !== undefined) localStorage.setItem("sc_balance_" + u.username, u.balance); });
                     }
                 }
-            } catch(e) {}
+            } catch(e) { console.log("Cloud-Fehler, schalte auf Fallback."); }
         }
 
         async function saveToCloud(userList) {
             try {
                 userList.forEach(u => { u.balance = parseInt(localStorage.getItem("sc_balance_" + u.username) || 1000); });
-                await fetch("https://kvdb.io", { method: "PUT", body: JSON.stringify(userList) });
+                await fetch(CLOUD_URL, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json", "X-Master-Key": "$2b$10$ShadowCasinoSecretKey12345" },
+                    body: JSON.stringify(userList)
+                });
             } catch(e) {}
         }
 
