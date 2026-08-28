@@ -108,6 +108,10 @@
                 <h3 style="margin:0 0 5px 0; color:#00ffcc;">🎰 Slots 5x3</h3>
                 <p style="margin:0; font-size:0.85rem; color:#aaa;">Das fette 5x3 Raster mit echten, lückenlosen Gewinn-Mustern.</p>
             </div>
+            <div class="hub-card" onclick="location.href='blackjack.html'">
+                <h3 style="margin:0 0 5px 0; color:#ffcc00;">🃏 Shadow Blackjack</h3>
+                <p style="margin:0; font-size:0.85rem; color:#aaa;">Tritt gegen den Dealer an, fordere Karten und knacke die magische 21!</p>
+            </div>
             <div class="hub-card" onclick="location.href='highlow.html'">
                 <h3 style="margin:0 0 5px 0; color:#ffcc00;">🃏 Höher oder Tiefer</h3>
                 <p style="margin:0; font-size:0.85rem; color:#aaa;">Errate die nächste Karte und vervielfache deinen Einsatz!</p>
@@ -209,7 +213,7 @@
             }
         }
         /* =============== ENDE BLOCK 9 / HIER BLOCK 10 ANFÜGEN =============== */
-                /* =============== START BLOCK 10 =============== */
+                        /* =============== START BLOCK 10 =============== */
         function checkChestStatus() {
             const lastClaim = localStorage.getItem("sc_chest_claim_" + currentU); const btn = document.getElementById("claim-chest-btn"); const statusText = document.getElementById("chest-status-text"); if(!btn || !statusText) return;
             if (lastClaim) {
@@ -251,3 +255,4 @@
     </script>
 </body>
 </html>
+
