@@ -17,17 +17,19 @@
             color: #ff0055; text-shadow: 0 0 10px #ff0055; font-size: 1.6rem; font-weight: bold;
             cursor: pointer; text-decoration: none; margin: 0;
         }
+        /* =============== ENDE BLOCK 1 / HIER BLOCK 2 ANFÜGEN =============== */
+                /* =============== START BLOCK 2 =============== */
         .profile-menu {
             color: #555566; font-size: 0.95rem; cursor: pointer; text-align: right; position: relative;
         }
         .profile-menu:hover { color: #888899; }
-        /* =============== ENDE BLOCK 1 / HIER BLOCK 2 ANFÜGEN =============== */
-                /* =============== START BLOCK 2 =============== */
         .dropdown-content {
             display: none; background: #161622; border: 1px solid #333344; padding: 10px; border-radius: 10px;
             position: absolute; right: 0; top: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); width: 120px; z-index: 200;
         }
         .dropdown-content a { color: #ff0055; text-decoration: none; display: block; margin: 5px 0; font-size: 0.85rem; }
+        /* =============== ENDE BLOCK 2 / HIER BLOCK 3 ANFÜGEN =============== */
+                /* =============== START BLOCK 3 =============== */
         .game-container {
             background: #161622; padding: 25px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
             display: inline-block; width: 95%; max-width: 550px; margin-top: 100px; text-align: center;
@@ -37,8 +39,8 @@
         }
         .stats-text { font-size: 1rem; margin: 3px 0; color: #bbb; }
         .balance-value { color: #00ffcc; font-weight: bold; font-size: 1.2rem; }
-        /* =============== ENDE BLOCK 2 / HIER BLOCK 3 ANFÜGEN =============== */
-                /* =============== START BLOCK 3 =============== */
+        /* =============== ENDE BLOCK 3 / HIER BLOCK 4 ANFÜGEN =============== */
+                /* =============== START BLOCK 4 =============== */
         .slot-machine {
             background: linear-gradient(145deg, #1e1e2f, #12121f); border: 4px solid #ff0055; border-radius: 25px;
             padding: 25px 15px; display: inline-block; box-shadow: 0 0 30px rgba(255, 0, 85, 0.25);
@@ -52,8 +54,6 @@
             background: #11111a; height: 75px; line-height: 75px; font-size: 2.3rem;
             border-radius: 10px; border: 1px solid #333344; transition: transform 0.1s;
         }
-        /* =============== ENDE BLOCK 3 / HIER BLOCK 4 ANFÜGEN =============== */
-                /* =============== START BLOCK 4 =============== */
         button {
             background: linear-gradient(135deg, #ff0055, #bc003f); color: white; border: none; padding: 12px 35px;
             font-size: 1.2rem; font-weight: bold; border-radius: 50px; cursor: pointer; box-shadow: 0 5px 15px rgba(255, 0, 85, 0.4);
@@ -63,7 +63,7 @@
         .streak-alert { font-size: 0.95rem; color: #ff9900; height: 20px; margin-top: 5px; font-weight: bold; }
     </style>
 </head>
-<!-- =============== START BLOCK 5 =============== -->
+    <!-- =============== START BLOCK 5 =============== -->
 <body>
     <div class="main-header">
         <div class="nav-logo" onclick="location.href='index.html'">SHADOW CASINO</div>
@@ -77,7 +77,8 @@
         </div>
     </div>
 <!-- =============== ENDE BLOCK 5 / HIER BLOCK 6 ANFÜGEN =============== -->
-    <!-- =============== START BLOCK 6 =============== -->
+    
+<!-- =============== START BLOCK 6 =============== -->
     <div class="game-container">
         <div class="stats-container">
             <div class="stats-text">Guthaben: <span id="balance" class="balance-value">1000</span> $</div>
@@ -97,7 +98,7 @@
         <div id="streak-alert" class="streak-alert"></div>
     </div>
 <!-- =============== ENDE BLOCK 6 / HIER BLOCK 7 ANFÜGEN =============== -->
-                                                              <!-- =============== START BLOCK 7 =============== -->
+        <!-- =============== START BLOCK 7 =============== -->
     <script>
         const symbols = ['🍒', '🍋', '🍇', '🔔', '💎', '🍀', '7️⃣'];
         const winRates = { '🍒': 40, '🍋': 60, '🍇': 100, '🔔': 200, '💎': 400, '🍀': 600, '7️⃣': 1500 };
@@ -154,25 +155,31 @@
         }
         /* =============== ENDE BLOCK 9 / HIER BLOCK 10 ANFÜGEN =============== */
                 /* =============== START BLOCK 10 =============== */
-                function determineResult() {
+        function determineResult() {
             let grid = [];
             for(let i=0; i<15; i++) { grid.push(document.getElementById('c' + i).innerText); }
             
             let totalWin = 0; let linesWon = 0;
             
-            // 1. Die horizontalen und diagonalen Linien (Prüfung von links nach rechts)
+            // 1. Die horizontalen und diagonalen Linien (Müssen zwingend ganz links lückenlos starten!)
             const longLines = [
-                "0,1,2,3,4", "5,6,7,8,9", "10,11,12,13,14", // Reihen
-                "0,6,12,8,4", "10,6,2,8,14",               // Diagonalen Kreuz
-                "0,6,12,6,0", "4,8,12,8,4"                  // Dreiecke (V / Umgedreht)
+                "0,1,2,3,4", "5,6,7,8,9", "10,11,12,13,14", // Die 3 Reihen von links nach rechts
+                "0,6,12,8,4", "10,6,2,8,14",               // Großes Kreuz von Ecke zu Ecke
+                "0,6,12,6,0", "4,8,12,8,4"                  // Große Dreiecke V-Form und umgedreht
             ].map(l => l.split(",").map(Number));
             
             longLines.forEach(line => {
-                let startSym = grid[line[0]];
+                let startSym = grid[line[0]]; // Nimmt IMMER das Symbol ganz links als Basis
                 let matchCount = 1;
+                
                 for(let k = 1; k < line.length; k++) {
-                    if(grid[line[k]] === startSym) { matchCount++; } else { break; }
+                    if(grid[line[k]] === startSym) { 
+                        matchCount++; 
+                    } else { 
+                        break; // LÜCKE GEFUNDEN! Reihe reißt sofort ab.
+                    }
                 }
+                
                 if(matchCount >= 3) {
                     let baseWin = winRates[startSym];
                     let factor = matchCount === 3 ? 1 : (matchCount === 4 ? 2.5 : 6);
@@ -180,7 +187,7 @@
                 }
             });
             
-            // 2. KORREKTUR: Die vertikalen Spalten (Prüfung von oben nach unten!)
+            // 2. Die vertikalen Spalten (Alle 3 Felder von oben nach unten müssen exakt gleich sein!)
             const columns = [
                 "0,5,10", "1,6,11", "2,7,12", "3,8,13", "4,9,14"
             ].map(l => l.split(",").map(Number));
@@ -190,15 +197,14 @@
                 let midSym = grid[col[1]];
                 let botSym = grid[col[2]];
                 
-                // Wenn alle 3 Symbole in der Spalte von oben nach unten identisch sind
                 if(topSym === midSym && midSym === botSym) {
                     let baseWin = winRates[topSym];
-                    totalWin += Math.floor(baseWin * 1.5); // Spalten-Gewinn mit 1.5x Multiplikator!
+                    totalWin += Math.floor(baseWin * 1.5); // Spalten-Treffer zählt!
                     linesWon++;
                 }
             });
             
-            // 3. ECHTER JACKPOT: Wenn alle 15 Felder absolut identisch sind
+            // 3. DER EINZIGE ECHTE JACKPOT: Wenn alle 15 Felder des Boards absolut identisch sind
             const firstCellSym = grid[0];
             const isFullHouse = grid.every(cell => cell === firstCellSym);
             
