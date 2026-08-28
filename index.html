@@ -160,7 +160,13 @@
     </div>
     <script>
         let currentU = "";
-        const CLOUD_URL = "https://jsonbin.io";
+        
+        // DEINE DIREKT EINGEBAUTEN GITHUB-DATEN
+        const GH_USER = "Shadow13041"; 
+        const GH_REPO = "Casino";
+        const GH_TOKEN = "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"; 
+        
+        let currentFileSha = "";
 
         window.onload = async function() {
             currentU = localStorage.getItem("sc_username");
@@ -189,13 +195,17 @@
                 /* =============== START BLOCK 8 =============== */
         async function syncFromCloud() {
             try {
-                const res = await fetch(CLOUD_URL, { headers: { "X-Master-Key": "$2b$10$ShadowCasinoSecretKey12345" } });
+                const res = await fetch(`https://github.com{GH_USER}/${GH_REPO}/contents/users.json`, {
+                    headers: { "Authorization": `token ${GH_TOKEN}`, "Accept": "application/vnd.github.v3+json" }
+                });
                 if(res.ok) {
                     const data = await res.json();
-                    if(data && data.record) {
-                        localStorage.setItem("sc_global_users", JSON.stringify(data.record));
-                        data.record.forEach(u => { if(u.balance !== undefined) localStorage.setItem("sc_balance_" + u.username, u.balance); });
-                    }
+                    currentFileSha = data.sha;
+                    let decryptedText = decodeURIComponent(escape(atob(data.content)));
+                    localStorage.setItem("sc_global_users", decryptedText);
+                    
+                    let users = JSON.parse(decryptedText);
+                    users.forEach(u => { if(u.balance !== undefined) localStorage.setItem("sc_balance_" + u.username, u.balance); });
                 }
             } catch(e) {}
         }
@@ -203,10 +213,17 @@
         async function saveToCloud(userList) {
             try {
                 userList.forEach(u => { u.balance = parseInt(localStorage.getItem("sc_balance_" + u.username) || 1000); });
-                await fetch(CLOUD_URL, { 
-                    method: "PUT", 
-                    headers: { "Content-Type": "application/json", "X-Master-Key": "$2b$10$ShadowCasinoSecretKey12345" },
-                    body: JSON.stringify(userList) 
+                let jsonString = JSON.stringify(userList);
+                let b64Content = btoa(unescape(encodeURIComponent(jsonString)));
+                
+                await fetch(`https://github.com{GH_USER}/${GH_REPO}/contents/users.json`, {
+                    method: "PUT",
+                    headers: { "Authorization": `token ${GH_TOKEN}`, "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        message: "Casino-Cloud: Dashboard-Update",
+                        content: b64Content,
+                        sha: currentFileSha
+                    })
                 });
             } catch(e) {}
         }
@@ -248,7 +265,7 @@
             const reward = Math.floor(Math.random() * (500 - 150 + 1)) + 150; let coins = parseInt(localStorage.getItem("sc_balance_" + currentU) || 1000); coins += reward;
             localStorage.setItem("sc_balance_" + currentU, coins); localStorage.setItem("sc_chest_claim_" + currentU, now.toString());
             let userList = JSON.parse(localStorage.getItem("sc_global_users") || "[]"); await saveToCloud(userList);
-            alert("🎉 Kiste geöffnet! Du hast +" + reward + "$ gratis erhalten!"); updateBalanceDisplay(); checkChestStatus();
+            alert(`🎉 Kiste geöffnet! Du hast +${reward}$ gratis erhalten!`); updateBalanceDisplay(); checkChestStatus();
         }
 
         async function transferCoins() {
