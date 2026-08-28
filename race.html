@@ -21,7 +21,7 @@
             color: #555566; font-size: 0.95rem; cursor: pointer; text-align: right; position: relative;
         }
         .profile-menu:hover { color: #888899; }
-              /* =============== START BLOCK 2 =============== */
+                /* =============== START BLOCK 2 =============== */
         .dropdown-content {
             display: none; background: #161622; border: 1px solid #333344; padding: 10px; border-radius: 10px;
             position: absolute; right: 0; top: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); width: 120px; z-index: 200;
@@ -41,12 +41,12 @@
         .lane:last-child { border-bottom: none; }
         .horse {
             font-size: 2.2rem; position: absolute; left: 0px; 
-            transform: scaleX(-1); /* KORREKTUR: Spiegelt die Emojis, damit sie perfekt nach RECHTS schauen! */
+            transform: scaleX(-1); /* Spiegelt das Pferd, damit es nach rechts schaut */
             will-change: transform;
         }
-              /* =============== START BLOCK 3 =============== */
+                /* =============== START BLOCK 3 =============== */
         .finish-line {
-            position: absolute; right: 10px; top: 0; bottom: 0; width: 6px;
+            position: absolute; right: 15px; top: 0; bottom: 0; width: 8px;
             background: repeating-linear-gradient(0deg, #fff, #fff 10px, #000 10px, #000 20px); z-index: 10;
         }
         button {
@@ -75,18 +75,19 @@
     </div>
     <!-- =============== START BLOCK 4 =============== -->
     <div class="game-container">
-        <h2 style="color:#ff0055; margin-top:0;">🏇 Shadow Derby</h2>
+        <h2 style="color:#ff0055; margin-top:0;">
+        Derby</h2>
         <p style="color:#888; font-size:0.9rem; margin-bottom:5px;">Setze auf deinen Favoriten. Ein richtiger Tipp bringt den 5-fachen Gewinn!</p>
         <div style="font-size: 0.95rem; color: #aaa; margin-bottom: 15px;">Kontostand: <span id="coins-display" style="color:#00ffcc; font-weight:bold;">0</span> $</div>
         
         <div id="setup-area">
             <input type="number" id="bet-input" placeholder="Einsatz in $" value="50"><br>
             <select id="horse-select">
-                <option value="1">Pferd 1 (🏇)</option>
-                <option value="2">Pferd 2 (🏇🇺)</option>
-                <option value="3">Pferd 3 (🏇🏼)</option>
-                <option value="4">Pferd 4 (🏇🏽)</option>
-                <option value="5">Pferd 5 (🏇🏾)</option>
+                <option value="1">Pferd 1 (Anfang) (🏇)</option>
+                <option value="2">Pferd 2 (Hell) (🏇🏻)</option>
+                <option value="3">Pferd 3 (Mittel) (🏇🏼)</option>
+                <option value="4">Pferd 4 (Dunkel) (🏇🏽)</option>
+                <option value="5">Pferd 5 (Schwarz) (🏇🏾)</option>
             </select><br>
             <button id="start-btn" onclick="startRace()">Rennen starten</button>
         </div>
@@ -150,7 +151,8 @@
             for (let i = 1; i <= 5; i++) {
                 let h = document.getElementById("h" + i);
                 h.style.transition = "none"; 
-                h.style.transform = "scaleX(-1) translateX(0px)"; // Startpunkt links
+                h.style.left = "0px";
+                h.style.transform = "scaleX(-1)"; // Schauen nach rechts
             }
 
             let rawDistances = "100,85,70,65,50".split(",").map(Number);
@@ -165,17 +167,17 @@
             let soundInterval = setInterval(() => { playSound('gallop'); }, 250);
 
             setTimeout(() => {
-                // Berechnet die maximale Laufdistanz bis zur Ziellinie rechts
-                let trackWidth = document.querySelector(".race-track").clientWidth - 70;
+                // Berechnet das Spielfeld abzüglich der Pferdebreite (ca. 45px)
+                let trackWidth = document.querySelector(".race-track").clientWidth - 65;
                 
                 for (let i = 1; i <= 5; i++) {
                     let h = document.getElementById("h" + i);
                     let pct = finalDistances[i - 1];
                     let movePixels = Math.floor((pct / 100) * trackWidth);
                     
-                    // KORREKTUR: Nutzt hardwarebeschleunigtes CSS-Translate für eine absolut flüssige 60-FPS-Animation!
-                    h.style.transition = "transform 5s linear";
-                    h.style.transform = "scaleX(-1) translateX(" + movePixels + "px)";
+                    // KORREKTUR: Nutzt left-Verschiebung gepaart mit scaleX, damit sie flüssig und echt nach rechts preschen!
+                    h.style.transition = "left 5s linear";
+                    h.style.left = movePixels + "px";
                 }
             }, 50);
 
@@ -189,7 +191,7 @@
                     let totalWin = bet * 5; wonCoins += totalWin;
                     localStorage.setItem("sc_balance_" + currentU, wonCoins); playSound('win');
                     document.getElementById("status-box").style.color = "#00ffcc";
-                    document.getElementById("status-box").innerText = "SIEG! Pferd " + winnerHorseIndex + " überquert zuerst die Linie! +" + totalWin + "$!";
+                    document.getElementById("status-box").innerText = "SIEG! Pferd " + winnerHorseIndex + " überquert zuerst die Ziellinie! +" + totalWin + "$!";
                 } else {
                     playSound('lose'); document.getElementById("status-box").style.color = "#ff0055";
                     document.getElementById("status-box").innerText = "Einsatz verloren! Pferd " + winnerHorseIndex + " holt den Pokal.";
