@@ -25,7 +25,7 @@
                 /* =============== START BLOCK 2 =============== */
         .tabs { display: flex; gap: 10px; margin-bottom: 15px; border-bottom: 1px solid #333; padding-bottom: 10px; }
         .tab-btn {
-            background: #222; font-size: 0.9rem; padding: 8px 15px; border-radius: 5px; box-shadow: none; width: 48%;
+            background: #222; font-size: 0.9rem; padding: 8px 15px; border-radius: 50px; box-shadow: none; width: 48%;
             border: none; color: white; font-weight: bold; cursor: pointer;
         }
         .tab-btn.active { background: #ff0055; }
@@ -88,8 +88,9 @@
     <!-- =============== START BLOCK 4 =============== -->
     <script>
         let selectedUserForAdmin = null; let currentU = "";
-        // Neue, unblockbare Cloud-Adresse (Sicher vor CORS-Sperren in Chrome Mobile)
-        const CLOUD_URL = "https://jsonbin.io"; 
+        const GH_USER = "Shadow13041"; 
+        const GH_REPO = "Casino";
+        const GH_TOKEN = "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";
 
         window.onload = async function() {
             currentU = localStorage.getItem("sc_username");
@@ -104,25 +105,35 @@
 
         async function syncFromCloud() {
             try {
-                // Nutzt einen stabilen GET-Befehl, der von Chrome garantiert erlaubt wird
-                const res = await fetch(CLOUD_URL, { headers: { "X-Master-Key": "$2b$10$ShadowCasinoSecretKey12345" } });
+                const res = await fetch(`https://github.com{GH_USER}/${GH_REPO}/contents/users.json`, {
+                    headers: { "Authorization": `token ${GH_TOKEN}`, "Accept": "application/vnd.github.v3+json" }
+                });
                 if(res.ok) {
                     const data = await res.json();
-                    if(data && data.record) {
-                        localStorage.setItem("sc_global_users", JSON.stringify(data.record));
-                        data.record.forEach(u => { if(u.balance !== undefined) localStorage.setItem("sc_balance_" + u.username, u.balance); });
-                    }
+                    currentFileSha = data.sha;
+                    let decryptedText = decodeURIComponent(escape(atob(data.content)));
+                    localStorage.setItem("sc_global_users", decryptedText);
+                    
+                    let users = JSON.parse(decryptedText);
+                    users.forEach(u => { if(u.balance !== undefined) localStorage.setItem("sc_balance_" + u.username, u.balance); });
                 }
-            } catch(e) { console.log("Cloud-Fehler, schalte auf Fallback."); }
+            } catch(e) {}
         }
 
         async function saveToCloud(userList) {
             try {
                 userList.forEach(u => { u.balance = parseInt(localStorage.getItem("sc_balance_" + u.username) || 1000); });
-                await fetch(CLOUD_URL, {
+                let jsonString = JSON.stringify(userList);
+                let b64Content = btoa(unescape(encodeURIComponent(jsonString)));
+                
+                await fetch(`https://github.com{GH_USER}/${GH_REPO}/contents/users.json`, {
                     method: "PUT",
-                    headers: { "Content-Type": "application/json", "X-Master-Key": "$2b$10$ShadowCasinoSecretKey12345" },
-                    body: JSON.stringify(userList)
+                    headers: { "Authorization": `token ${GH_TOKEN}`, "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        message: "Casino-Cloud: Admin-Update",
+                        content: b64Content,
+                        sha: currentFileSha
+                    })
                 });
             } catch(e) {}
         }
