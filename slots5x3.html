@@ -155,7 +155,7 @@
         }
         /* =============== ENDE BLOCK 9 / HIER BLOCK 10 ANFÜGEN =============== */
                 /* =============== START BLOCK 10 =============== */
-                        function determineResult() {
+                                function determineResult() {
             let grid = [];
             for(let i=0; i<15; i++) { grid.push(document.getElementById('c' + i).innerText); }
             
@@ -173,31 +173,27 @@
                 let bestLineSym = "";
                 
                 let currentCount = 1;
-                let currentSym = grid[line[0]];
+                let currentSym = grid[line];
                 
-                // Wir wandern die Linie Schritt für Schritt ab und zählen NUR echte Ketten
                 for(let k = 1; k < line.length; k++) {
                     if(grid[line[k]] === currentSym) {
                         currentCount++;
                     } else {
-                        // Kette unterbrochen! Wir prüfen, ob die abgelaufene Kette die bisher beste war
                         if(currentCount > maxLineCombo) {
                             maxLineCombo = currentCount;
                             bestLineSym = currentSym;
                         }
-                        // Zähler für das NEUE Symbol wird strikt auf 1 zurückgesetzt
                         currentSym = grid[line[k]];
                         currentCount = 1;
                     }
                 }
-                // Letzten Check nach Schleifenende durchführen
                 if(currentCount > maxLineCombo) {
                     maxLineCombo = currentCount;
                     bestLineSym = currentSym;
                 }
                 
-                // NUR wenn eine ECHTE zusammenhängende Kette mindestens 3 lang ist, zählt es!
-                if(maxLineCombo >= 3 && bestLineSym !== "") {
+                // KORREKTUR: Gewinntopf wird NUR gefüllt, wenn das Symbol existiert und die Kette groß genug ist!
+                if(maxLineCombo >= 3 && bestLineSym !== "" && symbols.includes(bestLineSym)) {
                     let baseWin = winRates[bestLineSym];
                     let factor = maxLineCombo === 3 ? 1 : (maxLineCombo === 4 ? 2.5 : 6);
                     totalWin += Math.floor(baseWin * factor);
@@ -211,22 +207,22 @@
             ].map(l => l.split(",").map(Number));
             
             columns.forEach(col => {
-                let topSym = grid[col[0]];
-                let midSym = grid[col[1]];
-                let botSym = grid[col[2]];
+                let topSym = grid[col];
+                let midSym = grid[col];
+                let botSym = grid[col];
                 
-                if(topSym === midSym && midSym === botSym) {
+                if(topSym === midSym && midSym === botSym && symbols.includes(topSym)) {
                     let baseWin = winRates[topSym];
                     totalWin += Math.floor(baseWin * 1.5);
                     linesWon++;
                 }
             });
             
-            // 3. FULLHOUSE JACKPOT: Nur wenn wirklich alle 15 Felder des Automaten absolut identisch sind
-            const firstCellSym = grid[0];
+            // 3. FULLHOUSE JACKPOT: Nur wenn wirklich alle 15 Felder absolut identisch sind
+            const firstCellSym = grid;
             const isFullHouse = grid.every(cell => cell === firstCellSym);
             
-            if (isFullHouse) {
+            if (isFullHouse && symbols.includes(firstCellSym)) {
                 let jackpotWin = winRates[firstCellSym] * 50;
                 totalWin = jackpotWin;
                 alert(`🚨🚨🚨 ULTRA MEGA JACKPOT!!! DAS GESAMTE BOARD IST VOLL MIT ${firstCellSym}!!! 🚨🚨🚨`);
@@ -252,6 +248,3 @@
             localStorage.setItem('sc_balance_' + currentU, balance); pushToCloud();
             document.getElementById('spin-btn').disabled = false;
         }
-    </script>
-</body>
-</html>
