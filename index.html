@@ -108,6 +108,10 @@
                 <h3 style="margin:0 0 5px 0; color:#00ffcc;">🎰 Slots 5x3</h3>
                 <p style="margin:0; font-size:0.85rem; color:#aaa;">Das fette 5x3 Raster mit echten, lückenlosen Gewinn-Mustern.</p>
             </div>
+            <div class="hub-card" onclick="location.href='mines.html'">
+                <h3 style="margin:0 0 5px 0; color:#00ffcc;">💎 Diamond Mines</h3>
+                <p style="margin:0; font-size:0.85rem; color:#aaa;">Finde die verdeckten Diamanten im 5x5 Raster und flüchte vor den Bomben!</p>
+            </div>
             <div class="hub-card" onclick="location.href='blackjack.html'">
                 <h3 style="margin:0 0 5px 0; color:#ffcc00;">🃏 Shadow Blackjack</h3>
                 <p style="margin:0; font-size:0.85rem; color:#aaa;">Tritt gegen den Dealer an, fordere Karten und knacke die magische 21!</p>
@@ -174,7 +178,7 @@
             setInterval(checkChestStatus, 1000);
         };
         /* =============== ENDE BLOCK 7 / HIER BLOCK 8 ANFÜGEN =============== */
-                /* =============== START BLOCK 8 =============== */
+                        /* =============== START BLOCK 8 =============== */
         async function syncFromCloud() {
             try {
                 const res = await fetch(CLOUD_URL, { headers: { "X-Master-Key": "$2b$10$ShadowCasinoSecretKey12345" } });
@@ -202,7 +206,7 @@
         function updateBalanceDisplay() { document.getElementById("coins-display").innerText = localStorage.getItem("sc_balance_" + currentU) || 1000; }
         function openAccountPage() { document.getElementById("hub-area").style.display = "none"; document.getElementById("account-area").style.display = "inline-block"; document.getElementById("current-pass-display").innerText = localStorage.getItem("sc_password"); toggleDropdown(); }
         /* =============== ENDE BLOCK 8 / HIER BLOCK 9 ANFÜGEN =============== */
-                /* =============== START BLOCK 9 =============== */
+                    /* =============== START BLOCK 9 =============== */
         function closeAccountPage() { document.getElementById("account-area").style.display = "none"; document.getElementById("hub-area").style.display = "inline-block"; }
         function toggleDropdown() { const drop = document.getElementById("profile-dropdown"); drop.style.display = drop.style.display === "block" ? "none" : "block"; }
         function logout() { localStorage.removeItem("sc_username"); localStorage.removeItem("sc_role"); localStorage.removeItem("sc_password"); location.reload(); }
@@ -259,3 +263,4 @@
     </script>
 </body>
 </html>
+
