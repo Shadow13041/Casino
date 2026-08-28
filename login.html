@@ -17,7 +17,7 @@
             color: #ff0055; text-shadow: 0 0 10px #ff0055; font-size: 1.6rem; font-weight: bold;
             cursor: pointer; text-decoration: none; margin: 0;
         }
-              /* =============== START BLOCK 2 =============== */
+                /* =============== START BLOCK 2 =============== */
         .auth-container {
             background: #161622; padding: 25px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
             display: inline-block; width: 90%; max-width: 360px; margin-top: 120px; text-align: center;
@@ -33,7 +33,7 @@
         }
     </style>
 </head>
-  <!-- =============== START BLOCK 3 =============== -->
+    <!-- =============== START BLOCK 3 =============== -->
 <body>
     <div class="main-header">
         <div class="nav-logo" onclick="location.reload()">SHADOW CASINO</div>
@@ -46,17 +46,18 @@
         <input type="password" id="password-input" placeholder="Passwort" required><br>
         <button onclick="authAction()">Bestätigen</button>
     </div>
-      <!-- =============== START BLOCK 4 =============== -->
+        <!-- =============== START BLOCK 4 =============== -->
     <script>
         let deviceName = "Xiaomi Redmi";
+        const CLOUD_URL = "https://jsonbin.io";
 
         async function syncFromCloud() {
             try {
-                const res = await fetch("https://kvdb.io");
+                const res = await fetch(CLOUD_URL, { headers: { "X-Master-Key": "$2b$10$ShadowCasinoSecretKey12345" } });
                 if(res.ok) {
                     const data = await res.json();
-                    if(data && data.value) {
-                        localStorage.setItem("sc_global_users", data.value);
+                    if(data && data.record) {
+                        localStorage.setItem("sc_global_users", JSON.stringify(data.record));
                     }
                 }
             } catch(e) {}
@@ -70,12 +71,14 @@
 
         async function saveToCloud(userList) {
             try {
-                await fetch("https://kvdb.io", {
-                    method: "PUT", body: JSON.stringify(userList)
+                await fetch(CLOUD_URL, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json", "X-Master-Key": "$2b$10$ShadowCasinoSecretKey12345" },
+                    body: JSON.stringify(userList)
                 });
             } catch(e) {}
         }
-              /* =============== START BLOCK 5 =============== */
+                /* =============== START BLOCK 5 =============== */
         async function authAction() {
             const user = document.getElementById("username-input").value.trim(); 
             const pass = document.getElementById("password-input").value.trim();
@@ -96,7 +99,7 @@
                     if(!localStorage.getItem("sc_balance_" + foundUser.username)) {
                         localStorage.setItem("sc_balance_" + foundUser.username, 1000);
                     }
-                    location.href = "index.html"; // Erfolgreich eingeloggt -> Weiterleitung zum Dashboard!
+                    location.href = "index.html";
                 } else { alert("Falsches Passwort!"); }
             } else {
                 if (user.toLowerCase() === "shadow") { alert("Name reserviert!"); return; }
