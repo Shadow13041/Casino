@@ -154,36 +154,33 @@
             }, 110); 
         }
         /* =============== ENDE BLOCK 9 / HIER BLOCK 10 ANFÜGEN =============== */
-                /* =============== START BLOCK 10 =============== */
-                                function determineResult() {
+                        function determineResult() {
             let grid = [];
             for(let i=0; i<15; i++) { grid.push(document.getElementById('c' + i).innerText); }
             
             let totalWin = 0; let linesWon = 0;
             
             // 1. Die horizontalen und diagonalen Linien (Sucht ECHTE, lückenlose Ketten!)
-            const longLines = [
-                "0,1,2,3,4", "5,6,7,8,9", "10,11,12,13,14", // Reihen
-                "0,6,12,8,4", "10,6,2,8,14",               // Diagonalen Kreuz
-                "0,6,12,6,0", "4,8,12,8,4"                  // Dreiecke (V / Umgedreht)
-            ].map(l => l.split(",").map(Number));
+            const longLines = [, [5,6,7,8,9], [10,11,12,13,14], // Reihen, [10,6,2,8,14],               // Diagonalen Kreuz, [4,8,12,8,4]                  // Dreiecke (V / Umgedreht)
+            ];
             
             longLines.forEach(line => {
                 let maxLineCombo = 1;
                 let bestLineSym = "";
                 
                 let currentCount = 1;
-                let currentSym = grid[line];
+                let currentSym = grid[line[0]]; // KORREKTUR: Holt jetzt exakt das Emoji aus dem ersten Feld!
                 
                 for(let k = 1; k < line.length; k++) {
-                    if(grid[line[k]] === currentSym) {
+                    let nextSym = grid[line[k]];
+                    if(nextSym === currentSym && currentSym !== undefined && currentSym !== "") {
                         currentCount++;
                     } else {
                         if(currentCount > maxLineCombo) {
                             maxLineCombo = currentCount;
                             bestLineSym = currentSym;
                         }
-                        currentSym = grid[line[k]];
+                        currentSym = nextSym;
                         currentCount = 1;
                     }
                 }
@@ -192,8 +189,8 @@
                     bestLineSym = currentSym;
                 }
                 
-                // KORREKTUR: Gewinntopf wird NUR gefüllt, wenn das Symbol existiert und die Kette groß genug ist!
-                if(maxLineCombo >= 3 && bestLineSym !== "" && symbols.includes(bestLineSym)) {
+                // KORREKTUR: Gewinntopf wird nur gefüllt, wenn eine ECHTE Kette von mindestens 3 Symbolen existiert!
+                if(maxLineCombo >= 3 && bestLineSym !== undefined && bestLineSym !== "" && symbols.includes(bestLineSym)) {
                     let baseWin = winRates[bestLineSym];
                     let factor = maxLineCombo === 3 ? 1 : (maxLineCombo === 4 ? 2.5 : 6);
                     totalWin += Math.floor(baseWin * factor);
@@ -202,16 +199,15 @@
             });
             
             // 2. Die vertikalen Spalten (Alle 3 Felder untereinander MÜSSEN absolut gleich sein!)
-            const columns = [
-                "0,5,10", "1,6,11", "2,7,12", "3,8,13", "4,9,14"
-            ].map(l => l.split(",").map(Number));
+            const columns = [, [1,6,11], [2,7,12], [3,8,13], [4,9,14]
+            ];
             
             columns.forEach(col => {
-                let topSym = grid[col];
-                let midSym = grid[col];
-                let botSym = grid[col];
+                let topSym = grid[col[0]];
+                let midSym = grid[col[1]];
+                let botSym = grid[col[2]];
                 
-                if(topSym === midSym && midSym === botSym && symbols.includes(topSym)) {
+                if(topSym === midSym && midSym === botSym && topSym !== undefined && topSym !== "" && symbols.includes(topSym)) {
                     let baseWin = winRates[topSym];
                     totalWin += Math.floor(baseWin * 1.5);
                     linesWon++;
@@ -219,8 +215,8 @@
             });
             
             // 3. FULLHOUSE JACKPOT: Nur wenn wirklich alle 15 Felder absolut identisch sind
-            const firstCellSym = grid;
-            const isFullHouse = grid.every(cell => cell === firstCellSym);
+            const firstCellSym = grid[0];
+            const isFullHouse = grid.every(cell => cell === firstCellSym && cell !== "");
             
             if (isFullHouse && symbols.includes(firstCellSym)) {
                 let jackpotWin = winRates[firstCellSym] * 50;
@@ -248,3 +244,6 @@
             localStorage.setItem('sc_balance_' + currentU, balance); pushToCloud();
             document.getElementById('spin-btn').disabled = false;
         }
+    </script>
+</body>
+</html>
