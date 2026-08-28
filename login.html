@@ -33,7 +33,7 @@
         }
     </style>
 </head>
-<!-- =============== START BLOCK 3 =============== -->
+    <!-- =============== START BLOCK 3 =============== -->
 <body>
     <div class="main-header">
         <div class="nav-logo" onclick="location.reload()">SHADOW CASINO</div>
@@ -50,27 +50,25 @@
     <script>
         let deviceName = "Xiaomi Redmi";
         
-        // !!! KORREKTUR: TRAGE HIER DEINE ECHTEN GITHUB-DATEN EIN !!!
-        const GH_USER = "DEIN_GITHUB_NAME"; 
-        const GH_REPO = "DEIN_CASINO_ORDNER_NAME";
-        const GH_TOKEN = "DEIN_EBEN_GENERIERT_TOKEN_GHP_..."; 
+        // !!! DEINE DIREKT HINTERLEGTEN DATEN !!!
+        const GH_USER = "Shadow13041"; 
+        const GH_REPO = "Casino";
+        const GH_TOKEN = "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"; 
         
-        let currentFileSha = ""; // Wird von GitHub benötigt, um die Datei zu überschreiben
+        let currentFileSha = "";
 
         async function syncFromCloud() {
             try {
-                // Holt die users.json direkt aus deinem GitHub-Projekt
                 const res = await fetch(`https://github.com{GH_USER}/${GH_REPO}/contents/users.json`, {
                     headers: { "Authorization": `token ${GH_TOKEN}`, "Accept": "application/vnd.github.v3+json" }
                 });
                 if(res.ok) {
                     const data = await res.json();
-                    currentFileSha = data.sha; // Speichert den aktuellen Datei-Fingerabdruck
-                    // Dekodiert den Base64-Text von GitHub in normales JSON
+                    currentFileSha = data.sha;
                     let decryptedText = decodeURIComponent(escape(atob(data.content)));
                     localStorage.setItem("sc_global_users", decryptedText);
                 }
-            } catch(e) { console.log("GitHub-Ladefehler"); }
+            } catch(e) {}
             
             let userList = JSON.parse(localStorage.getItem("sc_global_users") || "[]");
             if (!userList.some(u => u.username === "Shadow")) {
@@ -82,7 +80,6 @@
         async function saveToCloud(userList) {
             try {
                 let jsonString = JSON.stringify(userList);
-                // Konvertiert den Text in das von GitHub verlangte Base64-Format
                 let b64Content = btoa(unescape(encodeURIComponent(jsonString)));
                 
                 await fetch(`https://github.com{GH_USER}/${GH_REPO}/contents/users.json`, {
@@ -94,7 +91,7 @@
                         sha: currentFileSha
                     })
                 });
-            } catch(e) { console.log("GitHub-Schreibfehler"); }
+            } catch(e) {}
         }
                 /* =============== START BLOCK 5 =============== */
         async function authAction() {
@@ -146,3 +143,4 @@
     </script>
 </body>
 </html>
+
