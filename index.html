@@ -21,6 +21,8 @@
             color: #555566; font-size: 0.95rem; cursor: pointer; text-align: right; position: relative;
         }
         .profile-menu:hover { color: #888899; }
+        /* =============== ENDE BLOCK 1 / HIER BLOCK 2 ANFÜGEN =============== */
+                /* =============== START BLOCK 2 =============== */
         .dropdown-content {
             display: none; background: #161622; border: 1px solid #333344; padding: 10px; border-radius: 10px;
             position: absolute; right: 0; top: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); width: 120px; z-index: 200;
@@ -37,6 +39,8 @@
             background: linear-gradient(135deg, #1f142e, #0f0a1c); border: 2px solid #ffcc00; border-radius: 15px;
             padding: 15px; margin-bottom: 25px; box-shadow: 0 0 15px rgba(255, 204, 0, 0.15);
         }
+        /* =============== ENDE BLOCK 2 / HIER BLOCK 3 ANFÜGEN =============== */
+                /* =============== START BLOCK 3 =============== */
         .chest-btn {
             background: linear-gradient(135deg, #ffcc00, #b38f00); color: #0d0d11; border: none;
             padding: 8px 20px; font-size: 0.95rem; font-weight: bold; border-radius: 50px; cursor: pointer;
@@ -60,6 +64,8 @@
         #hub-area, #account-area, #profile-section { display: none; }
     </style>
 </head>
+        /* =============== ENDE BLOCK 3 / HIER BLOCK 4 ANFÜGEN =============== */
+    <!-- =============== START BLOCK 4 =============== -->
 <body>
     <div class="main-header">
         <div class="nav-logo" onclick="location.reload()">SHADOW CASINO</div>
@@ -80,7 +86,8 @@
         <button onclick="changePassword()">Passwort aktualisieren</button><br>
         <button style="background:#444; font-size:0.9rem; padding:8px 20px; margin-top:10px;" onclick="closeAccountPage()">Zurück</button>
     </div>
-
+<!-- =============== ENDE BLOCK 4 / HIER BLOCK 5 ANFÜGEN =============== -->
+    <!-- =============== START BLOCK 5 =============== -->
     <div id="hub-area" class="hub-container" style="margin-top:90px;">
         <h2 style="color:#ff0055; margin-top:0; font-size:1.8rem; text-shadow: 0 0 10px rgba(255,0,85,0.3);">DASHBOARD</h2>
         <div class="welcome-back">Willkommen zurück, <span id="user-display" style="color:#ffcc00; font-weight:bold;">...</span>!</div>
@@ -91,6 +98,8 @@
             <p id="chest-status-text" style="margin: 0 0 10px 0; font-size: 0.85rem; color: #ccc;">Hol dir alle 24 Stunden gratis Coins!</p>
             <button id="claim-chest-btn" class="chest-btn" onclick="claimDailyChest()">Kiste öffnen</button>
         </div>
+<!-- =============== ENDE BLOCK 5 / HIER BLOCK 6 ANFÜGEN =============== -->
+        <!-- =============== START BLOCK 6 =============== -->
         <div class="game-grid">
             <div class="hub-card" onclick="location.href='slots3x1.html'">
                 <h3 style="margin:0 0 5px 0; color:#00ffcc;">🎰 Slots 3x1</h3>
@@ -112,7 +121,13 @@
                 <h3 style="margin:0 0 5px 0; color:#ff7700;">🎡 Shadow Roulette</h3>
                 <p style="margin:0; font-size:0.85rem; color:#aaa;">Setze auf Farben oder exakte Nummern für den 35-fachen Hauptgewinn!</p>
             </div>
+            <div class="hub-card" onclick="location.href='roulette_ru.html'">
+                <h3 style="margin:0 0 5px 0; color:#ff3333;">💀 Russisch Roulette</h3>
+                <p style="margin:0; font-size:0.85rem; color:#aaa;">Drücke ab und überlebe die leeren Kammern für massive Multiplikatoren!</p>
+            </div>
         </div>
+<!-- =============== ENDE BLOCK 6 / HIER BLOCK 7 ANFÜGEN =============== -->
+        <!-- =============== START BLOCK 7 =============== -->
         <div class="transfer-container" style="margin-top:0; width:93%; padding:15px;">
             <h3 style="margin-top:0; color:#00ffcc;">Coins überweisen</h3>
             <input type="text" id="target-username-input" placeholder="Benutzername des Empfängers"><br>
@@ -126,7 +141,7 @@
         window.onload = async function() {
             currentU = localStorage.getItem("sc_username");
             if (!currentU) { 
-                location.href = "login.html"; // KORREKTUR: Kickt nicht-eingeloggte User sofort zur login.html!
+                location.href = "login.html";
                 return; 
             }
             
@@ -146,7 +161,8 @@
             checkChestStatus();
             setInterval(checkChestStatus, 1000);
         };
-
+        /* =============== ENDE BLOCK 7 / HIER BLOCK 8 ANFÜGEN =============== */
+                /* =============== START BLOCK 8 =============== */
         async function syncFromCloud() {
             try {
                 const res = await fetch("https://kvdb.io");
@@ -170,6 +186,8 @@
 
         function updateBalanceDisplay() { document.getElementById("coins-display").innerText = localStorage.getItem("sc_balance_" + currentU) || 1000; }
         function openAccountPage() { document.getElementById("hub-area").style.display = "none"; document.getElementById("account-area").style.display = "inline-block"; document.getElementById("current-pass-display").innerText = localStorage.getItem("sc_password"); toggleDropdown(); }
+        /* =============== ENDE BLOCK 8 / HIER BLOCK 9 ANFÜGEN =============== */
+                /* =============== START BLOCK 9 =============== */
         function closeAccountPage() { document.getElementById("account-area").style.display = "none"; document.getElementById("hub-area").style.display = "inline-block"; }
         function toggleDropdown() { const drop = document.getElementById("profile-dropdown"); drop.style.display = drop.style.display === "block" ? "none" : "block"; }
         function logout() { localStorage.removeItem("sc_username"); localStorage.removeItem("sc_role"); localStorage.removeItem("sc_password"); location.reload(); }
@@ -183,7 +201,8 @@
                 await saveToCloud(userList); localStorage.setItem("sc_password", newP); alert("Passwort geändert!"); closeAccountPage();
             }
         }
-
+        /* =============== ENDE BLOCK 9 / HIER BLOCK 10 ANFÜGEN =============== */
+                /* =============== START BLOCK 10 =============== */
         function checkChestStatus() {
             const lastClaim = localStorage.getItem("sc_chest_claim_" + currentU); const btn = document.getElementById("claim-chest-btn"); const statusText = document.getElementById("chest-status-text"); if(!btn || !statusText) return;
             if (lastClaim) {
