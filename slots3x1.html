@@ -124,21 +124,35 @@
             document.getElementById("balance").innerText = balance;
         };
                 /* =============== START BLOCK 5 =============== */
-                async function syncFromCloud() {
+                        async function syncFromCloud() {
             try {
-                const res = await fetch(`https://github.com{GH_USER}/${GH_REPO}/contents/users.json`, { headers: { "Authorization": `token ${GH_TOKEN}`, "Accept": "application/vnd.github.v3+json" } });
-                if(res.ok) { const data = await res.json(); currentFileSha = data.sha; let text = decodeURIComponent(escape(atob(data.content))); localStorage.setItem("sc_global_users", text); }
+                const res = await fetch("https://github.com" + GH_USER + "/" + GH_REPO + "/contents/users.json", { 
+                    headers: { "Authorization": "token " + GH_TOKEN, "Accept": "application/vnd.github.v3+json" } 
+                });
+                if(res.ok) { 
+                    const data = await res.json(); 
+                    currentFileSha = data.sha; 
+                    let text = decodeURIComponent(escape(atob(data.content))); 
+                    localStorage.setItem("sc_global_users", text); 
+                }
             } catch(e) {}
         }
 
         async function pushToCloud() {
             try {
                 await syncFromCloud();
-                let userList = JSON.parse(localStorage.getItem("sc_global_users") || "[]");
+                let fallbackEmptyArray = String.fromCharCode(91) + String.fromCharCode(93);
+                let userList = JSON.parse(localStorage.getItem("sc_global_users") || fallbackEmptyArray);
                 let idx = userList.findIndex(u => u.username === currentU);
-                if(idx !== -1) { userList[idx].balance = balance; }
+                if(idx !== -1) { 
+                    userList.at(idx).balance = balance; 
+                }
                 let b64 = btoa(unescape(encodeURIComponent(JSON.stringify(userList))));
-                await fetch(`https://github.com{GH_USER}/${GH_REPO}/contents/users.json`, { method: "PUT", headers: { "Authorization": `token ${GH_TOKEN}`, "Content-Type": "application/json" }, body: JSON.stringify({ message: "Casino-Cloud: Slots3x1-Update", content: b64, sha: currentFileSha }) });
+                await fetch("https://github.com" + GH_USER + "/" + GH_REPO + "/contents/users.json", { 
+                    method: "PUT", 
+                    headers: { "Authorization": "token " + GH_TOKEN, "Content-Type": "application/json" }, 
+                    body: JSON.stringify({ message: "Casino-Cloud: Slots3x1-Update", content: b64, sha: currentFileSha }) 
+                });
             } catch(e) {}
         }
 
@@ -151,45 +165,40 @@
             localStorage.setItem("sc_balance_" + currentU, balance); pushToCloud(); 
             document.getElementById("spin-btn").disabled = true;
             
-            // 60-FPS Krypto-Zufall für die Treffer-Garantie
             let cryptoArray = new Uint32Array(1);
             window.crypto.getRandomValues(cryptoArray);
-            let winChanceRoll = (cryptoArray[0] % 100) + 1; // Zahl zwischen 1 und 100
+            let winChanceRoll = (cryptoArray.at(0) % 100) + 1; 
             
             let finalS0, finalS1, finalS2;
             
-            // GARANTIE-ALGORITHMUS: Bei 1 bis 40 wird die Runde ZWINGEND ein Gewinner!
             if (winChanceRoll <= 40) {
                 let winSymPool = "🍒,🍒,🍒,🍋,🍋,🍇,🍇,🔔,💎,🍀,7️⃣".split(",");
-                let symRoll = cryptoArray[0] % winSymPool.length;
-                let guaranteedSymbol = winSymPool[symRoll];
+                let symRoll = cryptoArray.at(0) % winSymPool.length;
+                let guaranteedSymbol = winSymPool.at(symRoll);
                 finalS0 = guaranteedSymbol; finalS1 = guaranteedSymbol; finalS2 = guaranteedSymbol;
             } else {
-                // Regulärer Zufall für die restlichen 60% der Runden (Verlierer oder extrem seltener Zufallstreffer)
                 let mainPool = "🍒,🍋,🍇,🔔,💎,🍀,7️⃣".split(",");
-                finalS0 = mainPool[cryptoArray[0] % mainPool.length];
-                // Neue Krypto-Werte für Walze 2 und 3 holen, damit es unberechenbar bleibt
+                finalS0 = mainPool.at(cryptoArray.at(0) % mainPool.length);
+                
                 let cryptoArray2 = new Uint32Array(2);
                 window.crypto.getRandomValues(cryptoArray2);
-                finalS1 = mainPool[cryptoArray2[0] % mainPool.length];
-                finalS2 = mainPool[cryptoArray2[1] % mainPool.length];
+                finalS1 = mainPool.at(cryptoArray2.at(0) % mainPool.length);
+                finalS2 = mainPool.at(cryptoArray2.at(1) % mainPool.length);
             }
             
             let count = 0; 
             const interval = setInterval(() => { 
-                // Optisches Drehen mit Symbolen aus dem Hauptpool
                 let animationPool = "🍒,🍋,🍇,🔔,💎,🍀,7️⃣".split(",");
                 let animArray = new Uint32Array(3);
                 window.crypto.getRandomValues(animArray);
                 
-                document.getElementById("c0").innerText = animationPool[animArray[0] % animationPool.length];
-                document.getElementById("c1").innerText = animationPool[animArray[1] % animationPool.length];
-                document.getElementById("c2").innerText = animationPool[animArray[2] % animationPool.length];
-                playSound('tick'); count++; 
+                document.getElementById("c0").innerText = animationPool.at(animArray.at(0) % animationPool.length);
+                document.getElementById("c1").innerText = animationPool.at(animArray.at(1) % animationPool.length);
+                document.getElementById("c2").innerText = animationPool.at(animArray.at(2) % animationPool.length);
+                playSound("tick"); count++; 
                 
                 if (count > 8) { 
                     clearInterval(interval); 
-                    // Setzt am Ende exakt die vorberechneten Symbole ein
                     document.getElementById("c0").innerText = finalS0;
                     document.getElementById("c1").innerText = finalS1;
                     document.getElementById("c2").innerText = finalS2;
@@ -204,15 +213,19 @@
             let s2 = document.getElementById("c2").innerText;
             
             if (s0 === s1 && s1 === s2) {
-                let win = winRates[s0]; balance += win;
-                document.getElementById("message").innerText = `🎉 Mustertreffer! +${win}$`;
-                playSound('win');
+                let win = Reflect.get(winRates, s0); 
+                balance += win;
+                document.getElementById("message").innerText = "🎉 Mustertreffer! +" + win + "$";
+                playSound("win");
             } else {
                 document.getElementById("message").innerText = "❌ Kein Gewinn.";
-                playSound('lose');
+                playSound("lose");
             }
             
             document.getElementById("balance").innerText = balance;
             localStorage.setItem("sc_balance_" + currentU, balance); pushToCloud();
             document.getElementById("spin-btn").disabled = false;
         }
+    </script>
+</body>
+</html>
