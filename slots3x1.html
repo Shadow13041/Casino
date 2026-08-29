@@ -124,7 +124,7 @@
             document.getElementById("balance").innerText = balance;
         };
                 /* =============== START BLOCK 5 =============== */
-             async function syncFromCloud() {
+           async function syncFromCloud() {
             try {
                 let apiPrefix = "https://github.com";
                 let targetUrl = apiPrefix + GH_USER + "/" + GH_REPO + "/contents/users.json";
@@ -142,6 +142,17 @@
 
         async function pushToCloud() {
             try {
+                // Holt sich erst die aktuellste Datei-Version (SHA-Abgleich), um GitHub-Konflikte zu vermeiden
+                let apiPrefix = "https://github.com";
+                let targetUrl = apiPrefix + GH_USER + "/" + GH_REPO + "/contents/users.json";
+                const checkRes = await fetch(targetUrl, { 
+                    headers: { "Authorization": "token " + GH_TOKEN, "Accept": "application/vnd.github.v3+json" } 
+                });
+                if(checkRes.ok) {
+                    const checkData = await checkRes.json();
+                    currentFileSha = checkData.sha;
+                }
+
                 let opBracket = String.fromCharCode(91);
                 let clBracket = String.fromCharCode(93);
                 let fallbackEmptyArray = opBracket + clBracket;
@@ -152,10 +163,8 @@
                     targetUserObject.balance = balance; 
                 }
                 let b64 = btoa(unescape(encodeURIComponent(JSON.stringify(userList))));
-                let apiPrefix = "https://github.com";
-                let targetUrl = apiPrefix + GH_USER + "/" + GH_REPO + "/contents/users.json";
                 
-                // KORREKTUR: Wir warten nicht mehr blockierend auf die Server-Antwort, sondern schießen die Daten im Hintergrund hoch!
+                // Feuert das Paket autark hoch, blockiert aber die Benutzeroberfläche nicht
                 fetch(targetUrl, { 
                     method: "PUT", 
                     headers: { "Authorization": "token " + GH_TOKEN, "Content-Type": "application/json" }, 
@@ -169,11 +178,12 @@
 
         function spin() { 
             if (balance < 50) { alert("Pleite!"); return; } 
-            balance -= 50; document.getElementById("balance").innerText = balance; 
+            
+            // KORREKTUR: Zieht die Coins SOFORT rein lokal ab, damit du ungestört dauerfeuern kannst!
+            balance -= 50; 
+            document.getElementById("balance").innerText = balance; 
             localStorage.setItem("sc_balance_" + currentU, balance); 
             
-            // Startet das unblockbare Cloud-Backup im Hintergrund
-            pushToCloud(); 
             document.getElementById("spin-btn").disabled = true;
             
             let cryptoArray = new Uint32Array(1);
@@ -255,9 +265,9 @@
             
             localStorage.setItem("sc_balance_" + currentU, balance); 
             
-            // KORREKTUR: Schaltet den Button JETZT absolut verlässlich frei, völlig egal ob das Internet hakt!
+            // KORREKTUR: Erst JETZT, wo das Ergebnis feststeht, schieben wir die Daten im Hintergrund in die Cloud!
+            pushToCloud();
+            
+            // Der Button wird absolut sofort freigegeben – keine Blockade mehr!
             document.getElementById("spin-btn").disabled = false;
         }
-    </script>
-</body>
-</html>
