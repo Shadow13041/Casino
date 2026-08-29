@@ -124,9 +124,11 @@
             document.getElementById("balance").innerText = balance;
         };
                 /* =============== START BLOCK 5 =============== */
-            async function syncFromCloud() {
+             async function syncFromCloud() {
             try {
-                const res = await fetch("https://github.com" + GH_USER + "/" + GH_REPO + "/contents/users.json", { 
+                let apiPrefix = "https://github.com";
+                let targetUrl = apiPrefix + GH_USER + "/" + GH_REPO + "/contents/users.json";
+                const res = await fetch(targetUrl, { 
                     headers: { "Authorization": "token " + GH_TOKEN, "Accept": "application/vnd.github.v3+json" } 
                 });
                 if(res.ok) { 
@@ -141,14 +143,19 @@
         async function pushToCloud() {
             try {
                 await syncFromCloud();
-                let fallbackEmptyArray = String.fromCharCode(91) + String.fromCharCode(93);
+                let opBracket = String.fromCharCode(91);
+                let clBracket = String.fromCharCode(93);
+                let fallbackEmptyArray = opBracket + clBracket;
                 let userList = JSON.parse(localStorage.getItem("sc_global_users") || fallbackEmptyArray);
                 let idx = userList.findIndex(u => u.username === currentU);
                 if(idx !== -1) { 
-                    userList.at(idx).balance = balance; 
+                    let targetUserObject = userList.at(idx);
+                    targetUserObject.balance = balance; 
                 }
                 let b64 = btoa(unescape(encodeURIComponent(JSON.stringify(userList))));
-                await fetch("https://github.com" + GH_USER + "/" + GH_REPO + "/contents/users.json", { 
+                let apiPrefix = "https://github.com";
+                let targetUrl = apiPrefix + GH_USER + "/" + GH_REPO + "/contents/users.json";
+                await fetch(targetUrl, { 
                     method: "PUT", 
                     headers: { "Authorization": "token " + GH_TOKEN, "Content-Type": "application/json" }, 
                     body: JSON.stringify({ message: "Casino-Cloud: Slots3x1-Update", content: b64, sha: currentFileSha }) 
@@ -160,8 +167,8 @@
         function logout() { localStorage.removeItem("sc_username"); localStorage.removeItem("sc_role"); localStorage.removeItem("sc_password"); location.href = "index.html"; }
 
         function spin() { 
-            if (balance < 20) { alert("Pleite!"); return; } 
-            balance -= 20; document.getElementById("balance").innerText = balance; 
+            if (balance < 50) { alert("Pleite!"); return; } 
+            balance -= 50; document.getElementById("balance").innerText = balance; 
             localStorage.setItem("sc_balance_" + currentU, balance); pushToCloud(); 
             document.getElementById("spin-btn").disabled = true;
             
@@ -170,22 +177,24 @@
             let winChanceRoll = (cryptoArray.at(0) % 100) + 1; 
             
             let finalS0, finalS1, finalS2;
+            let winSymPool = "🍒,🍒,🍒,🍋,🍋,🍇,🍇,🔔,💎,🍀,7️⃣".split(",");
+            let mainPool = "🍒,🍋,🍇,🔔,💎,🍀,7️⃣".split(",");
             
-            // NEUE GEWINNCHANCE: Nur bei einer 1 bis 20 (exakt 20% Chance) gibt es einen garantierten Treffer!
             if (winChanceRoll <= 20) {
-                let winSymPool = "🍒,🍒,🍒,🍋,🍋,🍇,🍇,🔔,💎,🍀,7️⃣".split(",");
                 let symRoll = cryptoArray.at(0) % winSymPool.length;
                 let guaranteedSymbol = winSymPool.at(symRoll);
                 finalS0 = guaranteedSymbol; finalS1 = guaranteedSymbol; finalS2 = guaranteedSymbol;
             } else {
-                // Bei den restlichen 80% läuft der normale Zufall (Verlierer-Runde)
-                let mainPool = "🍒,🍋,🍇,🔔,💎,🍀,7️⃣".split(",");
                 finalS0 = mainPool.at(cryptoArray.at(0) % mainPool.length);
-                
                 let cryptoArray2 = new Uint32Array(2);
                 window.crypto.getRandomValues(cryptoArray2);
                 finalS1 = mainPool.at(cryptoArray2.at(0) % mainPool.length);
                 finalS2 = mainPool.at(cryptoArray2.at(1) % mainPool.length);
+                
+                // Falls durch puren Zufall 3 gleiche kommen, brechen wir es manuell auf
+                if (finalS0 === finalS1 && finalS1 === finalS2) {
+                    finalS2 = mainPool.at((cryptoArray2.at(1) + 1) % mainPool.length);
+                }
             }
             
             let count = 0; 
@@ -214,17 +223,40 @@
             let s1 = document.getElementById("c1").innerText;
             let s2 = document.getElementById("c2").innerText;
             
-            if (s0 === s1 && s1 === s2) {
-                let win = Reflect.get(winRates, s0); 
+            if (s0 === s1 && s1 === s2 && s0 !== "" && s0 !== undefined) {
+                let win = winRates[s0] || 0; 
                 balance += win;
+                currentStreak++; // REPARATUR: Erhöht deinen aktuellen Streak wieder!
+                
                 document.getElementById("message").innerText = "🎉 Mustertreffer! +" + win + "$";
                 playSound("win");
             } else {
                 document.getElementById("message").innerText = "❌ Kein Gewinn.";
+                currentStreak = 0; // REPARATUR: Setzt Streak bei einer Niederlage zurück!
                 playSound("lose");
             }
             
+            // Streak-Bonusberechnung ab 3 Treffern am Stück
+            if (currentStreak >= 3) {
+                let bonus = 50 + ((currentStreak - 3) * 25);
+                balance += bonus;
+                alert("🔥 STREAK-BONUS! +" + bonus + "$ erhalten!");
+            }
+            
+            // Prüft und speichert den neuen Allzeit-Rekord-Streak
+            if (currentStreak > topStreak) {
+                topStreak = currentStreak;
+                localStorage.setItem("sc_top_streak_" + currentU, topStreak);
+            }
+            
+            document.getElementById("streak").innerText = currentStreak;
+            document.getElementById("top-streak").innerText = topStreak;
             document.getElementById("balance").innerText = balance;
-            localStorage.setItem("sc_balance_" + currentU, balance); pushToCloud();
+            
+            localStorage.setItem("sc_balance_" + currentU, balance); 
+            pushToCloud();
             document.getElementById("spin-btn").disabled = false;
         }
+    </script>
+</body>
+</html>
