@@ -124,7 +124,7 @@
             document.getElementById("balance").innerText = balance;
         };
                 /* =============== START BLOCK 5 =============== */
-                        async function syncFromCloud() {
+            async function syncFromCloud() {
             try {
                 const res = await fetch("https://github.com" + GH_USER + "/" + GH_REPO + "/contents/users.json", { 
                     headers: { "Authorization": "token " + GH_TOKEN, "Accept": "application/vnd.github.v3+json" } 
@@ -171,12 +171,14 @@
             
             let finalS0, finalS1, finalS2;
             
-            if (winChanceRoll <= 40) {
+            // NEUE GEWINNCHANCE: Nur bei einer 1 bis 20 (exakt 20% Chance) gibt es einen garantierten Treffer!
+            if (winChanceRoll <= 20) {
                 let winSymPool = "🍒,🍒,🍒,🍋,🍋,🍇,🍇,🔔,💎,🍀,7️⃣".split(",");
                 let symRoll = cryptoArray.at(0) % winSymPool.length;
                 let guaranteedSymbol = winSymPool.at(symRoll);
                 finalS0 = guaranteedSymbol; finalS1 = guaranteedSymbol; finalS2 = guaranteedSymbol;
             } else {
+                // Bei den restlichen 80% läuft der normale Zufall (Verlierer-Runde)
                 let mainPool = "🍒,🍋,🍇,🔔,💎,🍀,7️⃣".split(",");
                 finalS0 = mainPool.at(cryptoArray.at(0) % mainPool.length);
                 
@@ -226,6 +228,3 @@
             localStorage.setItem("sc_balance_" + currentU, balance); pushToCloud();
             document.getElementById("spin-btn").disabled = false;
         }
-    </script>
-</body>
-</html>
