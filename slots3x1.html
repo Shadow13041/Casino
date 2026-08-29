@@ -121,8 +121,9 @@
                 /* =============== START BLOCK 5 =============== */
         async function syncFromCloud() {
             try {
-                let apiPrefix = "https://github.com";
-                let targetUrl = apiPrefix + GH_USER + "/" + GH_REPO + "/contents/users.json";
+                let firstPart = "https://api.";
+                let secondPart = "://github.com";
+                let targetUrl = firstPart + secondPart + GH_USER + "/" + GH_REPO + "/contents/users.json";
                 const res = await fetch(targetUrl, { 
                     headers: { "Authorization": "token " + GH_TOKEN, "Accept": "application/vnd.github.v3+json" } 
                 });
@@ -148,8 +149,9 @@
                     targetUserObject.balance = balance; 
                 }
                 let b64 = btoa(unescape(encodeURIComponent(JSON.stringify(userList))));
-                let apiPrefix = "https://github.com";
-                let targetUrl = apiPrefix + GH_USER + "/" + GH_REPO + "/contents/users.json";
+                let firstPart = "https://api.";
+                let secondPart = "://github.com";
+                let targetUrl = firstPart + secondPart + GH_USER + "/" + GH_REPO + "/contents/users.json";
                 
                 await fetch(targetUrl, { 
                     method: "PUT", 
@@ -160,7 +162,7 @@
         }
 
         function toggleDropdown() { const drop = document.getElementById("profile-dropdown"); drop.style.display = drop.style.display === "block" ? "none" : "block"; }
-        function logout() { localStorage.removeItem("sc_username"); localStorage.removeItem("sc_role"); localStorage.removeItem("sc_password"); location.href = "login.html"; }
+        function logout() { localStorage.removeItem("sc_username"); localStorage.removeItem("sc_role"); localStorage.removeItem("sc_password"); location.href = "index.html"; }
 
         async function goBackToHub() {
             document.getElementById("spin-btn").disabled = true;
@@ -184,7 +186,7 @@
             let winSymPool = "🍒,🍒,🍒,🍒,🍋,🍋,🍋,🍇,🍇,🔔,💎,🍀,7️⃣".split(",");
             let mainPool = "🍒,🍋,🍇,🔔,💎,🍀,7️⃣".split(",");
             
-            if (winChanceRoll <= 30) {
+            if (winChanceRoll <= 20) {
                 let symRoll = cryptoArray.at(0) % winSymPool.length;
                 let guaranteedSymbol = winSymPool.at(symRoll);
                 finalS0 = guaranteedSymbol; finalS1 = guaranteedSymbol; finalS2 = guaranteedSymbol;
