@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fruit Slots - Shadow Casino</title>
+    <title>Slots 3x1 - Shadow Casino</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -21,8 +21,7 @@
             color: #555566; font-size: 0.95rem; cursor: pointer; text-align: right; position: relative;
         }
         .profile-menu:hover { color: #888899; }
-        /* =============== ENDE BLOCK 1 / HIER BLOCK 2 ANFÜGEN =============== */
-              /* =============== START BLOCK 2 =============== */
+                /* =============== START BLOCK 2 =============== */
         .dropdown-content {
             display: none; background: #161622; border: 1px solid #333344; padding: 10px; border-radius: 10px;
             position: absolute; right: 0; top: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); width: 120px; z-index: 200;
@@ -30,34 +29,29 @@
         .dropdown-content a { color: #ff0055; text-decoration: none; display: block; margin: 5px 0; font-size: 0.85rem; }
         .game-container {
             background: #161622; padding: 25px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            display: inline-block; width: 90%; max-width: 420px; margin-top: 100px; text-align: center;
+            display: inline-block; width: 95%; max-width: 440px; margin-top: 100px; text-align: center;
         }
-        .stats-container {
-            background: #0d0d11; border: 1px solid #222; display: inline-block; padding: 10px 20px; border-radius: 15px; margin-bottom: 20px;
-        }
-        .stats-text { font-size: 1rem; margin: 3px 0; color: #bbb; }
-        .balance-value { color: #00ffcc; font-weight: bold; font-size: 1.2rem; }
-        /* =============== ENDE BLOCK 2 / HIER BLOCK 3 ANFÜGEN =============== */
-              /* =============== START BLOCK 3 =============== */
         .slot-machine {
             background: linear-gradient(145deg, #1e1e2f, #12121f); border: 4px solid #ff0055; border-radius: 25px;
-            padding: 30px 20px; display: inline-block; box-shadow: 0 0 30px rgba(255, 0, 85, 0.25);
-            margin-bottom: 10px; width: 95%; max-width: 380px;
+            padding: 25px 15px; display: inline-block; box-shadow: 0 0 30px rgba(255, 0, 85, 0.25); margin-bottom: 10px; width: 100%; box-sizing: border-box;
         }
-        .slots { display: flex; justify-content: center; gap: 12px; margin-bottom: 25px; }
-        .slot {
-            background: #05050a; width: 85px; height: 110px; line-height: 110px; font-size: 3.5rem;
-            border-radius: 15px; border: 2px solid #333344; box-shadow: inset 0 0 20px rgba(0,0,0,0.9);
+        .slots-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px;
+            background: #05050a; padding: 15px; border-radius: 15px; box-shadow: inset 0 0 20px rgba(0,0,0,0.9);
+        }
+        .slot-cell {
+            background: #11111a; height: 90px; line-height: 90px; font-size: 3rem;
+            border-radius: 12px; border: 1px solid #333344; transition: transform 0.1s;
         }
         button {
-            background: linear-gradient(135deg, #ff0055, #bc003f); color: white; border: none; padding: 12px 30px;
+            background: linear-gradient(135deg, #ff0055, #bc003f); color: white; border: none; padding: 12px 35px;
             font-size: 1.2rem; font-weight: bold; border-radius: 50px; cursor: pointer; box-shadow: 0 5px 15px rgba(255, 0, 85, 0.4);
         }
         button:disabled { background: #444; box-shadow: none; cursor: not-allowed; }
         .message { font-size: 1.1rem; height: 30px; color: #ffcc00; font-weight: bold; margin-top: 15px; }
-        .streak-alert { font-size: 0.95rem; color: #ff9900; height: 20px; margin-top: 5px; font-weight: bold; }
     </style>
 </head>
+<!-- =============== START BLOCK 3 =============== -->
 <body>
     <div class="main-header">
         <div class="nav-logo" onclick="location.href='index.html'">SHADOW CASINO</div>
@@ -70,77 +64,116 @@
             </div>
         </div>
     </div>
-        <!-- =============== ENDE BLOCK 3 / HIER BLOCK 4 ANFÜGEN =============== -->
-  <!-- =============== START BLOCK 4 =============== -->
-    <div class="game-container">
-        <div class="stats-container">
-            <div class="stats-text">Guthaben: <span id="balance" class="balance-value">1000</span> $</div>
-            <div class="stats-text">Aktueller Streak: <span id="streak" style="color:#ff9900;font-weight:bold;">0</span> 🔥</div>
-            <div class="stats-text">Top Streak: <span id="top-streak" style="color:#ffcc00;font-weight:bold;">0</span> 👑</div>
-        </div>
-        <br>
-        <div class="slot-machine">
-            <div class="slots">
-                <div id="slot1" class="slot">🎰</div>
-                <div id="slot2" class="slot">🎰</div>
-                <div id="slot3" class="slot">🎰</div>
-            </div>
-            <button id="spin-btn" onclick="spin()">SPIN (50$)</button>
-        </div>
-        <div id="message" class="message">Klicke auf SPIN um dein Glück zu testen!</div>
-        <div id="streak-alert" class="streak-alert"></div>
-    </div>
 
+    <div class="game-container">
+        <div style="font-size: 0.95rem; color: #aaa; margin-bottom: 15px;">Guthaben: <span id="balance" style="color:#00ffcc; font-weight:bold;">0</span> $</div>
+        
+        <div class="slot-machine">
+            <div class="slots-grid">
+                <div id="c0" class="slot-cell">🎰</div>
+                <div id="c1" class="slot-cell">🎰</div>
+                <div id="c2" class="slot-cell">🎰</div>
+            </div>
+            <button id="spin-btn" onclick="spin()">SPIN (20$)</button>
+        </div>
+        <div id="message" class="message">Triff 3 identische Symbole!</div>
+    </div>
+    <!-- =============== START BLOCK 4 =============== -->
     <script>
-        const symbols = ['🍒', '🍋', '🍇', '🔔', '💎', '🍀', '7️⃣'];
-        const winRates = { '🍒': 100, '🍋': 150, '🍇': 200, '🔔': 350, '💎': 500, '🍀': 750, '7️⃣': 2500 };
-        let balance = 1000; let currentStreak = 0; let topStreak = 0; let currentU = ""; let audioCtx = null;
+        const symbols = "🍒,🍋,🍇,🔔,💎,🍀,7️⃣".split(",");
+        const winRates = { "🍒": 30, "🍋": 50, "🍇": 80, "🔔": 150, "💎": 300, "🍀": 500, "7️⃣": 1000 };
+        let balance = 1000; let currentU = ""; let audioCtx = null;
+
+        // Deine direkt verknüpften GitHub-Cloud-Daten
+        const GH_USER = "Shadow13041"; 
+        const GH_REPO = "Casino";
+        const GH_TOKEN = "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"; 
+        let currentFileSha = "";
+
+        // KORREKTUR: Hochsicherer Krypto-Zufallsgenerator verhindert Verlierer-Schleifen!
+        function getCryptoRandomSymbol() {
+            let cryptoArray = new Uint32Array(1);
+            window.crypto.getRandomValues(cryptoArray);
+            let randomIndex = cryptoArray[0] % symbols.length;
+            return symbols[randomIndex];
+        }
 
         function playSound(type) {
             try {
                 if (!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
                 let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain(); osc.connect(gain); gain.connect(audioCtx.destination);
-                if (type === 'tick') { osc.type = 'triangle'; osc.frequency.setValueAtTime(600, audioCtx.currentTime); gain.gain.setValueAtTime(0.08, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05); osc.start(); osc.stop(audioCtx.currentTime + 0.05); } 
-                else if (type === 'win') { osc.type = 'square'; osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.08); osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.16); gain.gain.setValueAtTime(0.12, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4); osc.start(); osc.stop(audioCtx.currentTime + 0.4); } 
-                else if (type === 'lose') { osc.type = 'sawtooth'; osc.frequency.setValueAtTime(180, audioCtx.currentTime); osc.frequency.linearRampToValueAtTime(90, audioCtx.currentTime + 0.3); gain.gain.setValueAtTime(0.15, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35); osc.start(); osc.stop(audioCtx.currentTime + 0.35); }
+                if (type === 'tick') { osc.type = 'triangle'; osc.frequency.setValueAtTime(500, audioCtx.currentTime); gain.gain.setValueAtTime(0.05, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05); osc.start(); osc.stop(audioCtx.currentTime + 0.05); } 
+                else if (type === 'win') { osc.type = 'square'; osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.08); gain.gain.setValueAtTime(0.1, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35); osc.start(); osc.stop(audioCtx.currentTime + 0.35); } 
+                else if (type === 'lose') { osc.type = 'sawtooth'; osc.frequency.setValueAtTime(160, audioCtx.currentTime); gain.gain.setValueAtTime(0.12, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3); osc.start(); osc.stop(audioCtx.currentTime + 0.3); }
             } catch(e) {}
         }
-        /* =============== ENDE BLOCK 4 / HIER BLOCK 5 ANFÜGEN =============== */
-              /* =============== START BLOCK 5 =============== */
+
         window.onload = function() {
-            currentU = localStorage.getItem('sc_username'); if (!currentU) { location.href = 'index.html'; return; }
-            document.getElementById('menu-username').innerText = currentU;
-            const currentRole = localStorage.getItem('sc_role');
-            if (currentRole === "Owner" || currentRole === "Admin") { document.getElementById('admin-panel-link').style.display = "block"; }
+            currentU = localStorage.getItem("sc_username"); if (!currentU) { location.href = "login.html"; return; }
+            document.getElementById("menu-username").innerText = currentU;
+            const currentRole = localStorage.getItem("sc_role");
+            if (currentRole === "Owner" || currentRole === "Admin") { document.getElementById("admin-panel-link").style.display = "block"; }
             
-            balance = parseInt(localStorage.getItem('sc_balance_' + currentU) || 1000);
-            topStreak = parseInt(localStorage.getItem('sc_top_streak_' + currentU) || 0);
-            document.getElementById('balance').innerText = balance;
-            document.getElementById('top-streak').innerText = topStreak;
+            balance = parseInt(localStorage.getItem("sc_balance_" + currentU) || 1000);
+            document.getElementById("balance").innerText = balance;
         };
+                /* =============== START BLOCK 5 =============== */
+        async function syncFromCloud() {
+            try {
+                const res = await fetch(`https://github.com{GH_USER}/${GH_REPO}/contents/users.json`, { headers: { "Authorization": `token ${GH_TOKEN}`, "Accept": "application/vnd.github.v3+json" } });
+                if(res.ok) { const data = await res.json(); currentFileSha = data.sha; let text = decodeURIComponent(escape(atob(data.content))); localStorage.setItem("sc_global_users", text); }
+            } catch(e) {}
+        }
 
         async function pushToCloud() {
             try {
-                let userList = JSON.parse(localStorage.getItem('sc_global_users') || '[]');
-                userList.forEach(u => { u.balance = parseInt(localStorage.getItem('sc_balance_' + u.username) || 1000); });
-                await fetch(`https://kvdb.io`, { method: 'PUT', body: JSON.stringify(userList) });
+                await syncFromCloud();
+                let userList = JSON.parse(localStorage.getItem("sc_global_users") || "[]");
+                let idx = userList.findIndex(u => u.username === currentU);
+                if(idx !== -1) { userList[idx].balance = balance; }
+                let b64 = btoa(unescape(encodeURIComponent(JSON.stringify(userList))));
+                await fetch(`https://github.com{GH_USER}/${GH_REPO}/contents/users.json`, { method: "PUT", headers: { "Authorization": `token ${GH_TOKEN}`, "Content-Type": "application/json" }, body: JSON.stringify({ message: "Casino-Cloud: Slots3x1-Update", content: b64, sha: currentFileSha }) });
             } catch(e) {}
         }
 
-        function toggleDropdown() { const drop = document.getElementById('profile-dropdown'); drop.style.display = drop.style.display === "block" ? "none" : "block"; }
-        function logout() { localStorage.removeItem('sc_username'); localStorage.removeItem('sc_role'); localStorage.removeItem('sc_password'); location.href = 'index.html'; }
+        function toggleDropdown() { const drop = document.getElementById("profile-dropdown"); drop.style.display = drop.style.display === "block" ? "none" : "block"; }
+        function logout() { localStorage.removeItem("sc_username"); localStorage.removeItem("sc_role"); localStorage.removeItem("sc_password"); location.href = "index.html"; }
 
-        function spin() { if (balance < 50) { alert("Pleite!"); return; } balance -= 50; document.getElementById('balance').innerText = balance; localStorage.setItem('sc_balance_' + currentU, balance); pushToCloud(); document.getElementById('spin-btn').disabled = true; let count = 0; const interval = setInterval(() => { document.getElementById('slot1').innerText = symbols[Math.floor(Math.random() * symbols.length)]; document.getElementById('slot2').innerText = symbols[Math.floor(Math.random() * symbols.length)]; document.getElementById('slot3').innerText = symbols[Math.floor(Math.random() * symbols.length)]; playSound('tick'); count++; if (count > 8) { clearInterval(interval); determineResult(); } }, 120); }
+        function spin() { 
+            if (balance < 20) { alert("Pleite!"); return; } 
+            balance -= 20; document.getElementById("balance").innerText = balance; 
+            localStorage.setItem("sc_balance_" + currentU, balance); pushToCloud(); 
+            document.getElementById("spin-btn").disabled = true;
+            
+            let count = 0; 
+            const interval = setInterval(() => { 
+                // KORREKTUR: Nutzt jetzt beim Drehen echten Krypto-Zufall für jede einzelne Walze!
+                document.getElementById("c0").innerText = getCryptoRandomSymbol();
+                document.getElementById("c1").innerText = getCryptoRandomSymbol();
+                document.getElementById("c2").innerText = getCryptoRandomSymbol();
+                playSound('tick'); count++; 
+                if (count > 8) { clearInterval(interval); determineResult(); } 
+            }, 120); 
+        }
+
         function determineResult() {
-            let s1, s2, s3; let luck = Math.random(); if (luck < 0.12) { s1 = symbols[Math.floor(Math.random() * symbols.length)]; s2 = s1; s3 = s1; } else if (luck < 0.38) { s1 = symbols[Math.floor(Math.random() * symbols.length)]; s2 = s1; do { s3 = symbols[Math.floor(Math.random() * symbols.length)]; } while (s3 === s1); } else { s1 = '🍒'; s2 = '🍋'; s3 = '🍇'; }
-            document.getElementById('slot1').innerText = s1; document.getElementById('slot2').innerText = s2; document.getElementById('slot3').innerText = s3;
-            if (s1 === s2 && s2 === s3) { let win = winRates[s1]; balance += win; currentStreak++; document.getElementById('message').innerText = `🎉 JACKPOT! 3x ${s1}! +${win}$`; } 
-            else if (s1 === s2 || s2 === s3 || s1 === s3) { balance += 75; currentStreak++; document.getElementById('message').innerText = "💵 Gewinn! +75$"; } else { document.getElementById('message').innerText = "❌ Kein Gewinn."; currentStreak = 0; }
-            if (currentStreak >= 3) { let bonus = 50 + ((currentStreak - 3) * 25); balance += bonus; document.getElementById('streak-alert').innerText = `🔥 STREAK-BONUS! +${bonus}$!`; }
-            if (currentStreak > topStreak) { topStreak = currentStreak; localStorage.setItem('sc_top_streak_' + currentU, topStreak); }
-            document.getElementById('streak').innerText = currentStreak; document.getElementById('balance').innerText = balance; localStorage.setItem('sc_balance_' + currentU, balance); pushToCloud(); document.getElementById('spin-btn').disabled = false;
+            let s0 = document.getElementById("c0").innerText;
+            let s1 = document.getElementById("c1").innerText;
+            let s2 = document.getElementById("c2").innerText;
+            
+            if (s0 === s1 && s1 === s2) {
+                let win = winRates[s0]; balance += win;
+                document.getElementById("message").innerText = `🎉 Mustertreffer! +${win}$`;
+                playSound('win');
+            } else {
+                document.getElementById("message").innerText = "❌ Kein Gewinn.";
+                playSound('lose');
+            }
+            
+            document.getElementById("balance").innerText = balance;
+            localStorage.setItem("sc_balance_" + currentU, balance); pushToCloud();
+            document.getElementById("spin-btn").disabled = false;
         }
     </script>
 </body>
 </html>
-
