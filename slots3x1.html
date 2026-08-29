@@ -49,60 +49,50 @@
         }
         button:disabled { background: #444; box-shadow: none; cursor: not-allowed; }
         .message { font-size: 1.1rem; height: 30px; color: #ffcc00; font-weight: bold; margin-top: 15px; }
+        .stats-text { font-size: 1rem; margin: 3px 0; color: #bbb; }
     </style>
 </head>
 <!-- =============== START BLOCK 3 =============== -->
 <body>
     <div class="main-header">
-        <div class="nav-logo" onclick="location.href='index.html'">SHADOW CASINO</div>
+        <div class="nav-logo" onclick="goBackToHub()">SHADOW CASINO</div>
         <div class="profile-menu">
             <span onclick="toggleDropdown()" id="menu-username">Benutzer</span>
             <div id="profile-dropdown" class="dropdown-content">
                 <a href="admin.html" id="admin-panel-link" style="display:none; font-weight:bold; color:#00ffcc;">⚙️ Admin Panel</a>
-                <a href="index.html">🏠 Zentrale</a>
+                <a href="#" onclick="goBackToHub()">🏠 Zentrale</a>
                 <a href="#" onclick="logout()">Abmelden</a>
             </div>
         </div>
     </div>
 
     <div class="game-container">
-        <div style="font-size: 0.95rem; color: #aaa; margin-bottom: 15px;">Guthaben: <span id="balance" style="color:#00ffcc; font-weight:bold;">0</span> $</div>
-        
+        <div style="background: #0d0d11; border: 1px solid #222; display: inline-block; padding: 10px 20px; border-radius: 15px; margin-bottom: 20px;">
+            <div class="stats-text">Guthaben: <span id="balance" style="color:#00ffcc; font-weight:bold; font-size:1.2rem;">0</span> $</div>
+            <div class="stats-text">Aktueller Streak: <span id="streak" style="color:#ff9900; font-weight:bold;">0</span> 🔥</div>
+            <div class="stats-text">Top Streak: <span id="top-streak" style="color:#ffcc00; font-weight:bold;">0</span> 👑</div>
+        </div>
+        <br>
         <div class="slot-machine">
             <div class="slots-grid">
                 <div id="c0" class="slot-cell">🎰</div>
                 <div id="c1" class="slot-cell">🎰</div>
                 <div id="c2" class="slot-cell">🎰</div>
             </div>
-            <button id="spin-btn" onclick="spin()">SPIN (20$)</button>
+            <button id="spin-btn" onclick="spin()">SPIN (50$)</button>
         </div>
         <div id="message" class="message">Triff 3 identische Symbole!</div>
     </div>
     <!-- =============== START BLOCK 4 =============== -->
     <script>
         const symbols = "🍒,🍋,🍇,🔔,💎,🍀,7️⃣".split(",");
-        const winRates = { "🍒": 30, "🍋": 50, "🍇": 80, "🔔": 150, "💎": 300, "🍀": 500, "7️⃣": 1000 };
-        let balance = 1000; let currentU = ""; let audioCtx = null;
+        const winRates = { "🍒": 100, "🍋": 150, "🍇": 250, "🔔": 500, "💎": 1000, "🍀": 2500, "7️⃣": 5000 };
+        let balance = 1000; let currentStreak = 0; let topStreak = 0; let currentU = ""; let audioCtx = null;
 
-        // Deine direkt verknüpften GitHub-Cloud-Daten
         const GH_USER = "Shadow13041"; 
         const GH_REPO = "Casino";
         const GH_TOKEN = "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"; 
         let currentFileSha = "";
-
-                function getCryptoRandomSymbol() {
-            let cryptoArray = new Uint32Array(1);
-            window.crypto.getRandomValues(cryptoArray);
-            let rawNumber = cryptoArray[0];
-            
-            // Casino-Gewichtung für eine spürbar höhere Trefferquote (ca. 40%)
-            // Kirsche (🍒), Zitrone (🍋) und Traube (🍇) bekommen mehr Gewicht auf den Walzen
-            let weightedPool = "🍒,🍒,🍒,🍋,🍋,🍇,🍇,🔔,💎,🍀,7️⃣".split(",");
-            let randomIndex = rawNumber % weightedPool.length;
-            return weightedPool[randomIndex];
-        }
-
-
 
         function playSound(type) {
             try {
@@ -121,10 +111,15 @@
             if (currentRole === "Owner" || currentRole === "Admin") { document.getElementById("admin-panel-link").style.display = "block"; }
             
             balance = parseInt(localStorage.getItem("sc_balance_" + currentU) || 1000);
+            topStreak = parseInt(localStorage.getItem("sc_top_streak_" + currentU) || 0);
+            
             document.getElementById("balance").innerText = balance;
+            document.getElementById("streak").innerText = currentStreak;
+            document.getElementById("top-streak").innerText = topStreak;
+            syncFromCloud();
         };
                 /* =============== START BLOCK 5 =============== */
-           async function syncFromCloud() {
+        async function syncFromCloud() {
             try {
                 let apiPrefix = "https://github.com";
                 let targetUrl = apiPrefix + GH_USER + "/" + GH_REPO + "/contents/users.json";
@@ -142,17 +137,7 @@
 
         async function pushToCloud() {
             try {
-                // Holt sich erst die aktuellste Datei-Version (SHA-Abgleich), um GitHub-Konflikte zu vermeiden
-                let apiPrefix = "https://github.com";
-                let targetUrl = apiPrefix + GH_USER + "/" + GH_REPO + "/contents/users.json";
-                const checkRes = await fetch(targetUrl, { 
-                    headers: { "Authorization": "token " + GH_TOKEN, "Accept": "application/vnd.github.v3+json" } 
-                });
-                if(checkRes.ok) {
-                    const checkData = await checkRes.json();
-                    currentFileSha = checkData.sha;
-                }
-
+                await syncFromCloud();
                 let opBracket = String.fromCharCode(91);
                 let clBracket = String.fromCharCode(93);
                 let fallbackEmptyArray = opBracket + clBracket;
@@ -163,9 +148,10 @@
                     targetUserObject.balance = balance; 
                 }
                 let b64 = btoa(unescape(encodeURIComponent(JSON.stringify(userList))));
+                let apiPrefix = "https://github.com";
+                let targetUrl = apiPrefix + GH_USER + "/" + GH_REPO + "/contents/users.json";
                 
-                // Feuert das Paket autark hoch, blockiert aber die Benutzeroberfläche nicht
-                fetch(targetUrl, { 
+                await fetch(targetUrl, { 
                     method: "PUT", 
                     headers: { "Authorization": "token " + GH_TOKEN, "Content-Type": "application/json" }, 
                     body: JSON.stringify({ message: "Casino-Cloud: Slots3x1-Update", content: b64, sha: currentFileSha }) 
@@ -174,16 +160,20 @@
         }
 
         function toggleDropdown() { const drop = document.getElementById("profile-dropdown"); drop.style.display = drop.style.display === "block" ? "none" : "block"; }
-        function logout() { localStorage.removeItem("sc_username"); localStorage.removeItem("sc_role"); localStorage.removeItem("sc_password"); location.href = "index.html"; }
+        function logout() { localStorage.removeItem("sc_username"); localStorage.removeItem("sc_role"); localStorage.removeItem("sc_password"); location.href = "login.html"; }
+
+        async function goBackToHub() {
+            document.getElementById("spin-btn").disabled = true;
+            document.getElementById("message").innerText = "⏳ Speichere Coins in Cloud...";
+            await pushToCloud();
+            location.href = "index.html";
+        }
 
         function spin() { 
             if (balance < 50) { alert("Pleite!"); return; } 
-            
-            // KORREKTUR: Zieht die Coins SOFORT rein lokal ab, damit du ungestört dauerfeuern kannst!
             balance -= 50; 
             document.getElementById("balance").innerText = balance; 
             localStorage.setItem("sc_balance_" + currentU, balance); 
-            
             document.getElementById("spin-btn").disabled = true;
             
             let cryptoArray = new Uint32Array(1);
@@ -237,7 +227,7 @@
             let s2 = document.getElementById("c2").innerText;
             
             if (s0 === s1 && s1 === s2 && s0 !== "" && s0 !== undefined) {
-                let win = winRates[s0] || 0; 
+                let win = Reflect.get(winRates, s0) || 0; 
                 balance += win;
                 currentStreak++; 
                 document.getElementById("message").innerText = "🎉 Mustertreffer! +" + win + "$";
@@ -264,10 +254,8 @@
             document.getElementById("balance").innerText = balance;
             
             localStorage.setItem("sc_balance_" + currentU, balance); 
-            
-            // KORREKTUR: Erst JETZT, wo das Ergebnis feststeht, schieben wir die Daten im Hintergrund in die Cloud!
-            pushToCloud();
-            
-            // Der Button wird absolut sofort freigegeben – keine Blockade mehr!
             document.getElementById("spin-btn").disabled = false;
         }
+    </script>
+</body>
+</html>
