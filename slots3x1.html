@@ -124,7 +124,7 @@
             document.getElementById("balance").innerText = balance;
         };
                 /* =============== START BLOCK 5 =============== */
-        async function syncFromCloud() {
+                async function syncFromCloud() {
             try {
                 const res = await fetch(`https://github.com{GH_USER}/${GH_REPO}/contents/users.json`, { headers: { "Authorization": `token ${GH_TOKEN}`, "Accept": "application/vnd.github.v3+json" } });
                 if(res.ok) { const data = await res.json(); currentFileSha = data.sha; let text = decodeURIComponent(escape(atob(data.content))); localStorage.setItem("sc_global_users", text); }
@@ -151,14 +151,50 @@
             localStorage.setItem("sc_balance_" + currentU, balance); pushToCloud(); 
             document.getElementById("spin-btn").disabled = true;
             
+            // 60-FPS Krypto-Zufall für die Treffer-Garantie
+            let cryptoArray = new Uint32Array(1);
+            window.crypto.getRandomValues(cryptoArray);
+            let winChanceRoll = (cryptoArray[0] % 100) + 1; // Zahl zwischen 1 und 100
+            
+            let finalS0, finalS1, finalS2;
+            
+            // GARANTIE-ALGORITHMUS: Bei 1 bis 40 wird die Runde ZWINGEND ein Gewinner!
+            if (winChanceRoll <= 40) {
+                let winSymPool = "🍒,🍒,🍒,🍋,🍋,🍇,🍇,🔔,💎,🍀,7️⃣".split(",");
+                let symRoll = cryptoArray[0] % winSymPool.length;
+                let guaranteedSymbol = winSymPool[symRoll];
+                finalS0 = guaranteedSymbol; finalS1 = guaranteedSymbol; finalS2 = guaranteedSymbol;
+            } else {
+                // Regulärer Zufall für die restlichen 60% der Runden (Verlierer oder extrem seltener Zufallstreffer)
+                let mainPool = "🍒,🍋,🍇,🔔,💎,🍀,7️⃣".split(",");
+                finalS0 = mainPool[cryptoArray[0] % mainPool.length];
+                // Neue Krypto-Werte für Walze 2 und 3 holen, damit es unberechenbar bleibt
+                let cryptoArray2 = new Uint32Array(2);
+                window.crypto.getRandomValues(cryptoArray2);
+                finalS1 = mainPool[cryptoArray2[0] % mainPool.length];
+                finalS2 = mainPool[cryptoArray2[1] % mainPool.length];
+            }
+            
             let count = 0; 
             const interval = setInterval(() => { 
-                // KORREKTUR: Nutzt jetzt beim Drehen echten Krypto-Zufall für jede einzelne Walze!
-                document.getElementById("c0").innerText = getCryptoRandomSymbol();
-                document.getElementById("c1").innerText = getCryptoRandomSymbol();
-                document.getElementById("c2").innerText = getCryptoRandomSymbol();
+                // Optisches Drehen mit Symbolen aus dem Hauptpool
+                let animationPool = "🍒,🍋,🍇,🔔,💎,🍀,7️⃣".split(",");
+                let animArray = new Uint32Array(3);
+                window.crypto.getRandomValues(animArray);
+                
+                document.getElementById("c0").innerText = animationPool[animArray[0] % animationPool.length];
+                document.getElementById("c1").innerText = animationPool[animArray[1] % animationPool.length];
+                document.getElementById("c2").innerText = animationPool[animArray[2] % animationPool.length];
                 playSound('tick'); count++; 
-                if (count > 8) { clearInterval(interval); determineResult(); } 
+                
+                if (count > 8) { 
+                    clearInterval(interval); 
+                    // Setzt am Ende exakt die vorberechneten Symbole ein
+                    document.getElementById("c0").innerText = finalS0;
+                    document.getElementById("c1").innerText = finalS1;
+                    document.getElementById("c2").innerText = finalS2;
+                    determineResult(); 
+                } 
             }, 120); 
         }
 
@@ -180,6 +216,3 @@
             localStorage.setItem("sc_balance_" + currentU, balance); pushToCloud();
             document.getElementById("spin-btn").disabled = false;
         }
-    </script>
-</body>
-</html>
