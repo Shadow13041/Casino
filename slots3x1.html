@@ -90,14 +90,18 @@
         const GH_TOKEN = "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"; 
         let currentFileSha = "";
 
-        function getCryptoRandomSymbol() {
-    let cryptoArray = new Uint32Array(1);
-    window.crypto.getRandomValues(cryptoArray);
-    // REPARATUR: Zieht die echte Zahl aus dem Array-Index 0!
-    let rawNumber = cryptoArray[0];
-    let randomIndex = rawNumber % symbols.length;
-    return symbols[randomIndex];
-}
+                function getCryptoRandomSymbol() {
+            let cryptoArray = new Uint32Array(1);
+            window.crypto.getRandomValues(cryptoArray);
+            let rawNumber = cryptoArray[0];
+            
+            // Casino-Gewichtung für eine spürbar höhere Trefferquote (ca. 40%)
+            // Kirsche (🍒), Zitrone (🍋) und Traube (🍇) bekommen mehr Gewicht auf den Walzen
+            let weightedPool = "🍒,🍒,🍒,🍋,🍋,🍇,🍇,🔔,💎,🍀,7️⃣".split(",");
+            let randomIndex = rawNumber % weightedPool.length;
+            return weightedPool[randomIndex];
+        }
+
 
 
         function playSound(type) {
