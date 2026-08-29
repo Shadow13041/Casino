@@ -142,7 +142,6 @@
 
         async function pushToCloud() {
             try {
-                await syncFromCloud();
                 let opBracket = String.fromCharCode(91);
                 let clBracket = String.fromCharCode(93);
                 let fallbackEmptyArray = opBracket + clBracket;
@@ -155,7 +154,9 @@
                 let b64 = btoa(unescape(encodeURIComponent(JSON.stringify(userList))));
                 let apiPrefix = "https://github.com";
                 let targetUrl = apiPrefix + GH_USER + "/" + GH_REPO + "/contents/users.json";
-                await fetch(targetUrl, { 
+                
+                // KORREKTUR: Wir warten nicht mehr blockierend auf die Server-Antwort, sondern schießen die Daten im Hintergrund hoch!
+                fetch(targetUrl, { 
                     method: "PUT", 
                     headers: { "Authorization": "token " + GH_TOKEN, "Content-Type": "application/json" }, 
                     body: JSON.stringify({ message: "Casino-Cloud: Slots3x1-Update", content: b64, sha: currentFileSha }) 
@@ -169,7 +170,10 @@
         function spin() { 
             if (balance < 50) { alert("Pleite!"); return; } 
             balance -= 50; document.getElementById("balance").innerText = balance; 
-            localStorage.setItem("sc_balance_" + currentU, balance); pushToCloud(); 
+            localStorage.setItem("sc_balance_" + currentU, balance); 
+            
+            // Startet das unblockbare Cloud-Backup im Hintergrund
+            pushToCloud(); 
             document.getElementById("spin-btn").disabled = true;
             
             let cryptoArray = new Uint32Array(1);
@@ -191,7 +195,6 @@
                 finalS1 = mainPool.at(cryptoArray2.at(0) % mainPool.length);
                 finalS2 = mainPool.at(cryptoArray2.at(1) % mainPool.length);
                 
-                // Falls durch puren Zufall 3 gleiche kommen, brechen wir es manuell auf
                 if (finalS0 === finalS1 && finalS1 === finalS2) {
                     finalS2 = mainPool.at((cryptoArray2.at(1) + 1) % mainPool.length);
                 }
@@ -226,24 +229,21 @@
             if (s0 === s1 && s1 === s2 && s0 !== "" && s0 !== undefined) {
                 let win = winRates[s0] || 0; 
                 balance += win;
-                currentStreak++; // REPARATUR: Erhöht deinen aktuellen Streak wieder!
-                
+                currentStreak++; 
                 document.getElementById("message").innerText = "🎉 Mustertreffer! +" + win + "$";
                 playSound("win");
             } else {
                 document.getElementById("message").innerText = "❌ Kein Gewinn.";
-                currentStreak = 0; // REPARATUR: Setzt Streak bei einer Niederlage zurück!
+                currentStreak = 0; 
                 playSound("lose");
             }
             
-            // Streak-Bonusberechnung ab 3 Treffern am Stück
             if (currentStreak >= 3) {
                 let bonus = 50 + ((currentStreak - 3) * 25);
                 balance += bonus;
                 alert("🔥 STREAK-BONUS! +" + bonus + "$ erhalten!");
             }
             
-            // Prüft und speichert den neuen Allzeit-Rekord-Streak
             if (currentStreak > topStreak) {
                 topStreak = currentStreak;
                 localStorage.setItem("sc_top_streak_" + currentU, topStreak);
@@ -254,7 +254,8 @@
             document.getElementById("balance").innerText = balance;
             
             localStorage.setItem("sc_balance_" + currentU, balance); 
-            pushToCloud();
+            
+            // KORREKTUR: Schaltet den Button JETZT absolut verlässlich frei, völlig egal ob das Internet hakt!
             document.getElementById("spin-btn").disabled = false;
         }
     </script>
