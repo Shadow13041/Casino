@@ -86,7 +86,7 @@
     <!-- =============== START BLOCK 4 =============== -->
     <script>
         const symbols = "🍒,🍋,🍇,🔔,💎,🍀,7️⃣".split(",");
-        const winRates = { "🍒": 100, "🍋": 150, "🍇": 250, "🔔": 500, "💎": 1000, "🍀": 2500, "7️⃣": 5000 };
+        const winRates = { "🍒": 100, "🍋": 150, "🍇": 200, "🔔": 400, "💎": 800, "🍀": 1500, "7️⃣": 2500 };
         let balance = 1000; let currentStreak = 0; let topStreak = 0; let currentU = ""; let audioCtx = null;
 
         const GH_USER = "Shadow13041"; 
@@ -181,10 +181,10 @@
             let winChanceRoll = (cryptoArray.at(0) % 100) + 1; 
             
             let finalS0, finalS1, finalS2;
-            let winSymPool = "🍒,🍒,🍒,🍋,🍋,🍇,🍇,🔔,💎,🍀,7️⃣".split(",");
+            let winSymPool = "🍒,🍒,🍒,🍒,🍋,🍋,🍋,🍇,🍇,🔔,💎,🍀,7️⃣".split(",");
             let mainPool = "🍒,🍋,🍇,🔔,💎,🍀,7️⃣".split(",");
             
-            if (winChanceRoll <= 20) {
+            if (winChanceRoll <= 30) {
                 let symRoll = cryptoArray.at(0) % winSymPool.length;
                 let guaranteedSymbol = winSymPool.at(symRoll);
                 finalS0 = guaranteedSymbol; finalS1 = guaranteedSymbol; finalS2 = guaranteedSymbol;
