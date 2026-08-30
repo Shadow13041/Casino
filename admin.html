@@ -22,7 +22,6 @@
             background: #161622; padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
             display: inline-block; width: 90%; max-width: 600px; margin-bottom: 20px; margin-top: 100px; text-align: left;
         }
-                /* =============== START BLOCK 2 =============== */
         .tabs { display: flex; gap: 10px; margin-bottom: 15px; border-bottom: 1px solid #333; padding-bottom: 10px; }
         .tab-btn {
             background: #222; font-size: 0.9rem; padding: 8px 15px; border-radius: 50px; box-shadow: none; width: 48%;
@@ -30,7 +29,7 @@
         }
         .tab-btn.active { background: #ff0055; }
         .user-list-item { background: #0d0d11; padding: 10px; margin: 5px 0; border-radius: 10px; cursor: pointer; border: 1px solid #222; display: flex; justify-content: space-between; align-items: center; }
-        .user-list-item:hover { border-color: #ff0055; }
+                .user-list-item:hover { border-color: #ff0055; }
         .badge { font-size: 0.75rem; padding: 2px 6px; border-radius: 5px; font-weight: bold; }
         button {
             background: linear-gradient(135deg, #ff0055, #bc003f); color: white; border: none; padding: 10px 20px;
@@ -45,7 +44,6 @@
         #admin-view-active, #admin-view-banned { display: none; }
     </style>
 </head>
-<!-- =============== START BLOCK 3 =============== -->
 <body>
     <div class="main-header">
         <div class="nav-logo" onclick="location.href='index.html'">SHADOW CASINO</div>
@@ -57,7 +55,7 @@
             <button class="tab-btn active" id="tab-act" onclick="switchAdminTab('active')">Aktive User</button>
             <button class="tab-btn" id="tab-ban" onclick="switchAdminTab('banned')">Sperrliste</button>
         </div>
-        <div id="admin-view-active"></div>
+                <div id="admin-view-active"></div>
         <div id="admin-view-banned"></div>
         
         <div id="user-details-box" style="display:none; background:#1e1e2f; padding:15px; border-radius:15px; margin-top:15px; border:1px solid #ff0055;">
@@ -85,65 +83,39 @@
         </div>
         <br><center><button style="background:#444; font-size:0.9rem; padding:8px 20px;" onclick="location.href='index.html'">Zur Zentrale</button></center>
     </div>
-    <!-- =============== START BLOCK 4 =============== -->
     <script>
         let selectedUserForAdmin = null; let currentU = "";
-        const GH_USER = "Shadow13041"; 
-        const GH_REPO = "Casino";
-        const GH_TOKEN = "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";
-
-        window.onload = async function() {
-            currentU = localStorage.getItem("sc_username");
-            const currentRole = localStorage.getItem("sc_role");
-            if (!currentU || (currentRole !== "Owner" && currentRole !== "Admin")) {
-                alert("Zugriff verweigert!"); location.href = "index.html"; return;
-            }
-            document.getElementById("menu-username").innerText = currentU;
-            await syncFromCloud(); 
-            switchAdminTab("active");
+        const GH_USER = "Shadow13041"; const GH_REPO = "Casino"; const GH_TOKEN = "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"; let currentFileSha = "";
+                window.onload = async function() {
+            currentU = localStorage.getItem("sc_username"); const currentRole = localStorage.getItem("sc_role");
+            if (!currentU || (currentRole !== "Owner" && currentRole !== "Admin")) { alert("Zugriff verweigert!"); location.href = "index.html"; return; }
+            document.getElementById("menu-username").innerText = currentU; await syncFromCloud(); switchAdminTab("active");
         };
-
         async function syncFromCloud() {
             try {
-                const res = await fetch(`https://github.com{GH_USER}/${GH_REPO}/contents/users.json`, {
-                    headers: { "Authorization": `token ${GH_TOKEN}`, "Accept": "application/vnd.github.v3+json" }
-                });
+                let firstPart = "https://api."; let secondPart = "://github.com"; let targetUrl = firstPart + secondPart + GH_USER + "/" + GH_REPO + "/contents/users.json";
+                const res = await fetch(targetUrl, { headers: { "Authorization": "token " + GH_TOKEN, "Accept": "application/vnd.github.v3+json" } });
                 if(res.ok) {
-                    const data = await res.json();
-                    currentFileSha = data.sha;
-                    let decryptedText = decodeURIComponent(escape(atob(data.content)));
-                    localStorage.setItem("sc_global_users", decryptedText);
-                    
-                    let users = JSON.parse(decryptedText);
+                    const data = await res.json(); currentFileSha = data.sha; let decryptedText = decodeURIComponent(escape(atob(data.content))); localStorage.setItem("sc_global_users", decryptedText);
+                    let opBracket = String.fromCharCode(91); let clBracket = String.fromCharCode(93); let fallbackEmptyArray = opBracket + clBracket; let users = JSON.parse(decryptedText || fallbackEmptyArray);
                     users.forEach(u => { if(u.balance !== undefined) localStorage.setItem("sc_balance_" + u.username, u.balance); });
                 }
             } catch(e) {}
         }
-
         async function saveToCloud(userList) {
             try {
                 userList.forEach(u => { u.balance = parseInt(localStorage.getItem("sc_balance_" + u.username) || 1000); });
-                let jsonString = JSON.stringify(userList);
-                let b64Content = btoa(unescape(encodeURIComponent(jsonString)));
-                
-                await fetch(`https://github.com{GH_USER}/${GH_REPO}/contents/users.json`, {
-                    method: "PUT",
-                    headers: { "Authorization": `token ${GH_TOKEN}`, "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        message: "Casino-Cloud: Admin-Update",
-                        content: b64Content,
-                        sha: currentFileSha
-                    })
-                });
+                let jsonString = JSON.stringify(userList); let b64Content = btoa(unescape(encodeURIComponent(jsonString)));
+                let firstPart = "https://api."; let secondPart = "://github.com"; let targetUrl = firstPart + secondPart + GH_USER + "/" + GH_REPO + "/contents/users.json";
+                await fetch(targetUrl, { method: "PUT", headers: { "Authorization": "token " + GH_TOKEN, "Content-Type": "application/json" }, body: JSON.stringify({ message: "Casino-Cloud: Admin-Update", content: b64Content, sha: currentFileSha }) });
             } catch(e) {}
         }
-
         function toggleEditMode() { const area = document.getElementById("edit-actions-area"); area.style.display = area.style.display === "block" ? "none" : "block"; }
-                /* =============== START BLOCK 5 =============== */
         function switchAdminTab(type) {
             document.getElementById("tab-act").classList.toggle("active", type === "active"); document.getElementById("tab-ban").classList.toggle("active", type === "banned");
             const activeView = document.getElementById("admin-view-active"); const bannedView = document.getElementById("admin-view-banned"); activeView.style.display = type === "active" ? "block" : "none"; bannedView.style.display = type === "banned" ? "block" : "none";
-            let users = JSON.parse(localStorage.getItem("sc_global_users") || "[]"); let bannedUsers = JSON.parse(localStorage.getItem("sc_banned_users") || "[]"); let bannedDevices = JSON.parse(localStorage.getItem("sc_banned_devices") || "[]");
+            let opBracket = String.fromCharCode(91); let clBracket = String.fromCharCode(93); let fallbackEmptyArray = opBracket + clBracket;
+            let users = JSON.parse(localStorage.getItem("sc_global_users") || fallbackEmptyArray); let bannedUsers = JSON.parse(localStorage.getItem("sc_banned_users") || fallbackEmptyArray); let bannedDevices = JSON.parse(localStorage.getItem("sc_banned_devices") || fallbackEmptyArray);
             activeView.innerHTML = ""; bannedView.innerHTML = "";
             users.forEach(u => {
                 let uCoins = localStorage.getItem("sc_balance_" + u.username) || 1000; let isB = bannedUsers.includes(u.username) || bannedDevices.includes(u.id);
@@ -153,10 +125,10 @@
                 if(!isB) { activeView.innerHTML += itemHtml; } else if(u.username !== "Shadow") { bannedView.innerHTML += itemHtml; }
             });
         }
-
         function showUserDetails(username) {
-            const users = JSON.parse(localStorage.getItem("sc_global_users") || "[]"); let u = users.find(user => user.username === username); selectedUserForAdmin = u;
-            let bannedUsers = JSON.parse(localStorage.getItem("sc_banned_users") || "[]"); let bannedDevices = JSON.parse(localStorage.getItem("sc_banned_devices") || "[]"); let isBanned = bannedUsers.includes(u.username) || bannedDevices.includes(u.id);
+            let opBracket = String.fromCharCode(91); let clBracket = String.fromCharCode(93); let fallbackEmptyArray = opBracket + clBracket;
+            const users = JSON.parse(localStorage.getItem("sc_global_users") || fallbackEmptyArray); let u = users.find(user => user.username === username); selectedUserForAdmin = u;
+            let bannedUsers = JSON.parse(localStorage.getItem("sc_banned_users") || fallbackEmptyArray); let bannedDevices = JSON.parse(localStorage.getItem("sc_banned_devices") || fallbackEmptyArray); let isBanned = bannedUsers.includes(u.username) || bannedDevices.includes(u.id);
             document.getElementById("det-username").innerText = u.username; document.getElementById("det-coins").innerText = localStorage.getItem("sc_balance_" + u.username) || 1000; document.getElementById("det-status").innerText = u.role || "User";
             const hideBlock = document.getElementById("hide-for-admin-block"); const currentRole = localStorage.getItem("sc_role");
             if(u.role === "Owner" && currentRole === "Admin") { hideBlock.style.display = "none"; } else {
@@ -168,12 +140,11 @@
             else { btnRank.style.display = "inline-block"; btnBanU.style.display = "inline-block"; btnBanD.style.display = "inline-block"; btnUnban.style.display = "none"; btnRank.innerText = u.role === "Admin" ? "Rang entziehen" : "Admin machen"; }
             document.getElementById("user-details-box").style.display = "block";
         }
-
-        async function adminSaveCoins() { const val = parseInt(document.getElementById("edit-coins-input").value); if(isNaN(val)) return; localStorage.setItem("sc_balance_" + selectedUserForAdmin.username, val); let userList = JSON.parse(localStorage.getItem("sc_global_users") || "[]"); await saveToCloud(userList); alert("Coins aktualisiert!"); showUserDetails(selectedUserForAdmin.username); switchAdminTab("active"); }
-        async function adminToggleRank() { let userList = JSON.parse(localStorage.getItem("sc_global_users") || "[]"); let idx = userList.findIndex(u => u.username === selectedUserForAdmin.username); if(idx !== -1) { userList[idx].role = userList[idx].role === "Admin" ? "User" : "Admin"; localStorage.setItem("sc_global_users", JSON.stringify(userList)); await saveToCloud(userList); switchAdminTab("active"); showUserDetails(selectedUserForAdmin.username); } }
-        async function adminBanUser() { let bannedUsers = JSON.parse(localStorage.getItem("sc_banned_users") || "[]"); bannedUsers.push(selectedUserForAdmin.username); localStorage.setItem("sc_banned_users", JSON.stringify(bannedUsers)); let userList = JSON.parse(localStorage.getItem("sc_global_users") || "[]"); await saveToCloud(userList); alert("User gesperrt!"); switchAdminTab("active"); document.getElementById("user-details-box").style.display = "none"; }
-        async function adminBanDevice() { let bannedDevices = JSON.parse(localStorage.getItem("sc_banned_devices") || "[]"); bannedDevices.push(selectedUserForAdmin.id); localStorage.setItem("sc_banned_devices", JSON.stringify(bannedDevices)); let userList = JSON.parse(localStorage.getItem("sc_global_users") || "[]"); await saveToCloud(userList); alert("Gerät gesperrt!"); switchAdminTab("active"); document.getElementById("user-details-box").style.display = "none"; }
-        async function adminUnbanAll() { let bu = JSON.parse(localStorage.getItem("sc_banned_users") || "[]"); let bd = JSON.parse(localStorage.getItem("sc_banned_devices") || "[]"); bu = bu.filter(u => u !== selectedUserForAdmin.username); bd = bd.filter(d => d !== selectedUserForAdmin.id); localStorage.setItem("sc_banned_users", JSON.stringify(bu)); localStorage.setItem("sc_banned_devices", JSON.stringify(bd)); let userList = JSON.parse(localStorage.getItem("sc_global_users") || "[]"); await saveToCloud(userList); alert("Erfolgreich entbannt!"); switchAdminTab("banned"); document.getElementById("user-details-box").style.display = "none"; }
+        async function adminSaveCoins() { let opBracket = String.fromCharCode(91); let clBracket = String.fromCharCode(93); let fallbackEmptyArray = opBracket + clBracket; const val = parseInt(document.getElementById("edit-coins-input").value); if(isNaN(val)) return; localStorage.setItem("sc_balance_" + selectedUserForAdmin.username, val); let userList = JSON.parse(localStorage.getItem("sc_global_users") || fallbackEmptyArray); await saveToCloud(userList); alert("Coins aktualisiert!"); showUserDetails(selectedUserForAdmin.username); switchAdminTab("active"); }
+        async function adminToggleRank() { let opBracket = String.fromCharCode(91); let clBracket = String.fromCharCode(93); let fallbackEmptyArray = opBracket + clBracket; let userList = JSON.parse(localStorage.getItem("sc_global_users") || fallbackEmptyArray); let idx = userList.findIndex(u => u.username === selectedUserForAdmin.username); if(idx !== -1) { userList.at(idx).role = userList.at(idx).role === "Admin" ? "User" : "Admin"; localStorage.setItem("sc_global_users", JSON.stringify(userList)); await saveToCloud(userList); switchAdminTab("active"); showUserDetails(selectedUserForAdmin.username); } }
+        async function adminBanUser() { let opBracket = String.fromCharCode(91); let clBracket = String.fromCharCode(93); let fallbackEmptyArray = opBracket + clBracket; let bannedUsers = JSON.parse(localStorage.getItem("sc_banned_users") || fallbackEmptyArray); bannedUsers.push(selectedUserForAdmin.username); localStorage.setItem("sc_banned_users", JSON.stringify(bannedUsers)); let userList = JSON.parse(localStorage.getItem("sc_global_users") || fallbackEmptyArray); await saveToCloud(userList); alert("User gesperrt!"); switchAdminTab("active"); document.getElementById("user-details-box").style.display = "none"; }
+        async function adminBanDevice() { let opBracket = String.fromCharCode(91); let clBracket = String.fromCharCode(93); let fallbackEmptyArray = opBracket + clBracket; let bannedDevices = JSON.parse(localStorage.getItem("sc_banned_devices") || fallbackEmptyArray); bannedDevices.push(selectedUserForAdmin.id); localStorage.setItem("sc_banned_devices", JSON.stringify(bannedDevices)); let userList = JSON.parse(localStorage.getItem("sc_global_users") || fallbackEmptyArray); await saveToCloud(userList); alert("Gerät gesperrt!"); switchAdminTab("active"); document.getElementById("user-details-box").style.display = "none"; }
+        async function adminUnbanAll() { let opBracket = String.fromCharCode(91); let clBracket = String.fromCharCode(93); let fallbackEmptyArray = opBracket + clBracket; let bu = JSON.parse(localStorage.getItem("sc_banned_users") || fallbackEmptyArray); let bd = JSON.parse(localStorage.getItem("sc_banned_devices") || fallbackEmptyArray); bu = bu.filter(u => u !== selectedUserForAdmin.username); bd = bd.filter(d => d !== selectedUserForAdmin.id); localStorage.setItem("sc_banned_users", JSON.stringify(bu)); localStorage.setItem("sc_banned_devices", JSON.stringify(bd)); let userList = JSON.parse(localStorage.getItem("sc_global_users") || fallbackEmptyArray); await saveToCloud(userList); alert("Erfolgreich entbannt!"); switchAdminTab("banned"); document.getElementById("user-details-box").style.display = "none"; }
     </script>
 </body>
 </html>
