@@ -26,9 +26,9 @@
             position: absolute; right: 0; top: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); width: 120px; z-index: 200;
         }
         .dropdown-content a { color: #ff0055; text-decoration: none; display: block; margin: 5px 0; font-size: 0.85rem; }
-        .hub-container, .auth-container, .transfer-container {
+        .hub-container, .auth-container, .transfer-container, .leaderboard-container {
             background: #161622; padding: 25px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            display: inline-block; width: 90%; max-width: 450px; margin-top: 20px; text-align: center;
+            display: inline-block; width: 90%; max-width: 450px; margin-top: 20px; text-align: center; box-sizing: border-box;
         }
         .auth-container { margin-top: 100px; max-width: 360px; }
         .welcome-back { font-size: 1.1rem; color: #bbb; margin-bottom: 15px; }
@@ -37,7 +37,7 @@
             background: linear-gradient(135deg, #1f142e, #0f0a1c); border: 2px solid #ffcc00; border-radius: 15px;
             padding: 15px; margin-bottom: 25px; box-shadow: 0 0 15px rgba(255, 204, 0, 0.15);
         }
-        .chest-btn {
+                .chest-btn {
             background: linear-gradient(135deg, #ffcc00, #b38f00); color: #0d0d11; border: none;
             padding: 8px 20px; font-size: 0.95rem; font-weight: bold; border-radius: 50px; cursor: pointer;
             box-shadow: 0 4px 10px rgba(255, 204, 0, 0.3); margin-top: 5px;
@@ -57,6 +57,12 @@
             width: 80%; padding: 10px; margin: 8px 0; border-radius: 10px; border: 1px solid #333344;
             background: #05050a; color: white; text-align: center; font-size: 1rem;
         }
+        /* Styles für die Bestenliste */
+        .leaderboard-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9rem; }
+        .leaderboard-table th { color: #ff0055; border-bottom: 2px solid #333344; padding: 8px; font-weight: bold; text-align: left; }
+        .leaderboard-table td { padding: 10px 8px; border-bottom: 1px solid #222233; text-align: left; }
+        .leaderboard-row-self { background: rgba(255, 0, 85, 0.15); border: 1px solid #ff0055; box-shadow: 0 0 8px rgba(255, 0, 85, 0.2); }
+        .rank-badge { font-weight: bold; color: #ffcc00; }
         #hub-area, #account-area, #profile-section { display: none; }
     </style>
 </head>
@@ -72,7 +78,8 @@
             </div>
         </div>
     </div>
-        <div id="account-area" class="auth-container">
+
+    <div id="account-area" class="auth-container">
         <h3 style="margin-top:0; color:#ffcc00;">Passwort verwalten</h3>
         <p style="font-size:0.9rem; color:#888;">Dein Passwort lautet: <span id="current-pass-display" style="color:white; font-family:monospace;"></span></p>
         <input type="password" id="new-password-input" placeholder="Neues Passwort"><br>
@@ -142,7 +149,25 @@
             </div>
         </div>
 
-        <div class="transfer-container" style="margin-top:0; width:93%; padding:15px;">
+        <!-- NEU: Das globale Casino-Leaderboard platziert unter den Spielen -->
+        <div class="leaderboard-container" style="width:100%; margin-bottom:20px; text-align:left; background:#11111a; border:1px solid #333344;">
+            <h3 style="margin-top:0; color:#ffcc00; text-align:center; text-shadow:0 0 5px rgba(255,204,0,0.2);">🏆 GLOBAL LEADERBOARD</h3>
+            <table class="leaderboard-table">
+                <thead>
+                    <tr>
+                        <th>Platz</th>
+                        <th>Spieler</th>
+                        <th>Coins</th>
+                        <th>Top Streak</th>
+                    </tr>
+                </thead>
+                <tbody id="leaderboard-body">
+                    <!-- Wird dynamisch per JavaScript befüllt -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="transfer-container" style="margin-top:0; width:100%; padding:15px;">
             <h3 style="margin-top:0; color:#00ffcc;">Coins überweisen</h3>
             <input type="text" id="target-username-input" placeholder="Benutzername des Empfängers"><br>
             <input type="number" id="transfer-amount-input" placeholder="Anzahl an Coins"><br>
@@ -151,30 +176,21 @@
     </div>
         <script>
         let currentU = "";
-        const GH_USER = "Shadow13041"; 
-        const GH_REPO = "Casino";
-        const GH_TOKEN = "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"; 
-        let currentFileSha = "";
+        const GH_USER = "Shadow13041"; const GH_REPO = "Casino"; const GH_TOKEN = "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"; let currentFileSha = "";
 
         window.onload = async function() {
             currentU = localStorage.getItem("sc_username");
             if (!currentU) { location.href = "login.html"; return; }
-            document.getElementById("profile-section").style.display = "block";
-            document.getElementById("hub-area").style.display = "inline-block";
-            document.getElementById("menu-username").innerText = currentU;
-            document.getElementById("user-display").innerText = currentU;
+            document.getElementById("profile-section").style.display = "block"; document.getElementById("hub-area").style.display = "inline-block";
+            document.getElementById("menu-username").innerText = currentU; document.getElementById("user-display").innerText = currentU;
             const currentRole = localStorage.getItem("sc_role");
-            if (currentRole === "Owner" || currentRole === "Admin") {
-                const adminLink = document.getElementById("admin-panel-link");
-                if(adminLink) adminLink.style.display = "block";
-            }
+            if (currentRole === "Owner" || currentRole === "Admin") { const adminLink = document.getElementById("admin-panel-link"); if(adminLink) adminLink.style.display = "block"; }
             await syncFromCloud(); updateBalanceDisplay(); checkChestStatus(); setInterval(checkChestStatus, 1000);
         };
 
         async function syncFromCloud() {
             try {
-                let firstPart = "https://api."; let secondPart = "://github.com";
-                let targetUrl = firstPart + secondPart + GH_USER + "/" + GH_REPO + "/contents/users.json";
+                let firstPart = "https://api."; let secondPart = "://github.com"; let targetUrl = firstPart + secondPart + GH_USER + "/" + GH_REPO + "/contents/users.json";
                 const res = await fetch(targetUrl, { headers: { "Authorization": "token " + GH_TOKEN, "Accept": "application/vnd.github.v3+json" } });
                 if(res.ok) {
                     const data = await res.json(); currentFileSha = data.sha;
@@ -182,16 +198,32 @@
                     let opBracket = String.fromCharCode(91); let clBracket = String.fromCharCode(93); let fallbackEmptyArray = opBracket + clBracket;
                     let users = JSON.parse(decryptedText || fallbackEmptyArray);
                     users.forEach(u => { if(u.balance !== undefined) localStorage.setItem("sc_balance_" + u.username, u.balance); });
+                    buildLeaderboard(users); // Baut das Ranking live zusammen
                 }
             } catch(e) {}
+        }
+
+        function buildLeaderboard(users) {
+            let body = document.getElementById("leaderboard-body"); if(!body) return; body.innerHTML = "";
+            // Filtert den Admin "Shadow" heraus und sortiert alle echten Spieler nach Kontostand
+            let sorted = users.filter(u => u.username !== "Shadow").sort((a, b) => parseInt(b.balance || 0) - parseInt(a.balance || 0));
+            // Begrenzt die Liste auf maximal die Top 10 Spieler
+            let maxShow = sorted.length < 10 ? sorted.length : 10;
+            for(let i = 0; i < maxShow; i++) {
+                let u = sorted.at(i); let uCoins = localStorage.getItem("sc_balance_" + u.username) || 1000;
+                let uStreak = localStorage.getItem("sc_top_streak_" + u.username) || 0;
+                let isSelf = u.username === currentU;
+                let rowClass = isSelf ? "class='leaderboard-row-self'" : "";
+                let rankText = (i === 0) ? "🥇" : ((i === 1) ? "🥈" : ((i === 2) ? "🥉" : (i + 1)));
+                body.innerHTML += `<tr ${rowClass}><td class="rank-badge">${rankText}</td><td style="font-weight:bold;">${u.username}</td><td style="color:#00ffcc;font-weight:bold;">${uCoins}$</td><td>${uStreak} 🔥</td></tr>`;
+            }
         }
 
         async function saveToCloud(userList) {
             try {
                 userList.forEach(u => { u.balance = parseInt(localStorage.getItem("sc_balance_" + u.username) || 1000); });
                 let jsonString = JSON.stringify(userList); let b64Content = btoa(unescape(encodeURIComponent(jsonString)));
-                let firstPart = "https://api."; let secondPart = "://github.com";
-                let targetUrl = firstPart + secondPart + GH_USER + "/" + GH_REPO + "/contents/users.json";
+                let firstPart = "https://api."; let secondPart = "://github.com"; let targetUrl = firstPart + secondPart + GH_USER + "/" + GH_REPO + "/contents/users.json";
                 await fetch(targetUrl, { method: "PUT", headers: { "Authorization": "token " + GH_TOKEN, "Content-Type": "application/json" }, body: JSON.stringify({ message: "Casino-Cloud: Dashboard-Update", content: b64Content, sha: currentFileSha }) });
             } catch(e) {}
         }
@@ -205,8 +237,7 @@
         async function changePassword() {
             const newP = document.getElementById("new-password-input").value.trim(); if(!newP) return;
             let opBracket = String.fromCharCode(91); let clBracket = String.fromCharCode(93); let fallbackEmptyArray = opBracket + clBracket;
-            let userList = JSON.parse(localStorage.getItem("sc_global_users") || fallbackEmptyArray);
-            let idx = userList.findIndex(u => u.username === currentU);
+            let userList = JSON.parse(localStorage.getItem("sc_global_users") || fallbackEmptyArray); let idx = userList.findIndex(u => u.username === currentU);
             if(idx !== -1) { userList.at(idx).pass = newP; localStorage.setItem("sc_global_users", JSON.stringify(userList)); await saveToCloud(userList); localStorage.setItem("sc_password", newP); alert("Passwort geändert!"); closeAccountPage(); }
         }
 
