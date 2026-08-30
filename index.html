@@ -21,8 +21,6 @@
             color: #555566; font-size: 0.95rem; cursor: pointer; text-align: right; position: relative;
         }
         .profile-menu:hover { color: #888899; }
-        /* =============== ENDE BLOCK 1 / HIER BLOCK 2 ANFÜGEN =============== */
-                /* =============== START BLOCK 2 =============== */
         .dropdown-content {
             display: none; background: #161622; border: 1px solid #333344; padding: 10px; border-radius: 10px;
             position: absolute; right: 0; top: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); width: 120px; z-index: 200;
@@ -39,8 +37,6 @@
             background: linear-gradient(135deg, #1f142e, #0f0a1c); border: 2px solid #ffcc00; border-radius: 15px;
             padding: 15px; margin-bottom: 25px; box-shadow: 0 0 15px rgba(255, 204, 0, 0.15);
         }
-        /* =============== ENDE BLOCK 2 / HIER BLOCK 3 ANFÜGEN =============== */
-                /* =============== START BLOCK 3 =============== */
         .chest-btn {
             background: linear-gradient(135deg, #ffcc00, #b38f00); color: #0d0d11; border: none;
             padding: 8px 20px; font-size: 0.95rem; font-weight: bold; border-radius: 50px; cursor: pointer;
@@ -64,7 +60,6 @@
         #hub-area, #account-area, #profile-section { display: none; }
     </style>
 </head>
-<!-- =============== START BLOCK 4 =============== -->
 <body>
     <div class="main-header">
         <div class="nav-logo" onclick="location.reload()">SHADOW CASINO</div>
@@ -77,16 +72,14 @@
             </div>
         </div>
     </div>
-
-    <div id="account-area" class="auth-container">
+        <div id="account-area" class="auth-container">
         <h3 style="margin-top:0; color:#ffcc00;">Passwort verwalten</h3>
         <p style="font-size:0.9rem; color:#888;">Dein Passwort lautet: <span id="current-pass-display" style="color:white; font-family:monospace;"></span></p>
         <input type="password" id="new-password-input" placeholder="Neues Passwort"><br>
         <button onclick="changePassword()">Passwort aktualisieren</button><br>
         <button style="background:#444; font-size:0.9rem; padding:8px 20px; margin-top:10px;" onclick="closeAccountPage()">Zurück</button>
     </div>
-<!-- =============== ENDE BLOCK 4 / HIER BLOCK 5 ANFÜGEN =============== -->
-    <!-- =============== START BLOCK 5 =============== -->
+
     <div id="hub-area" class="hub-container" style="margin-top:90px;">
         <h2 style="color:#ff0055; margin-top:0; font-size:1.8rem; text-shadow: 0 0 10px rgba(255,0,85,0.3);">DASHBOARD</h2>
         <div class="welcome-back">Willkommen zurück, <span id="user-display" style="color:#ffcc00; font-weight:bold;">...</span>!</div>
@@ -97,8 +90,7 @@
             <p id="chest-status-text" style="margin: 0 0 10px 0; font-size: 0.85rem; color: #ccc;">Hol dir alle 24 Stunden gratis Coins!</p>
             <button id="claim-chest-btn" class="chest-btn" onclick="claimDailyChest()">Kiste öffnen</button>
         </div>
-<!-- =============== ENDE BLOCK 5 / HIER BLOCK 6 ANFÜGEN =============== -->
-        <!-- =============== START BLOCK 6 =============== -->
+
         <div class="game-grid">
             <div class="hub-card" onclick="location.href='slots3x1.html'">
                 <h3 style="margin:0 0 5px 0; color:#00ffcc;">🎰 Slots 3x1</h3>
@@ -149,8 +141,7 @@
                 <p style="margin:0; font-size:0.85rem; color:#aaa;">Setze auf eines von 5 Rennpferden und hol dir den 5x Gewinn!</p>
             </div>
         </div>
-<!-- =============== ENDE BLOCK 6 / HIER BLOCK 7 ANFÜGEN =============== -->
-        <!-- =============== START BLOCK 7 =============== -->
+
         <div class="transfer-container" style="margin-top:0; width:93%; padding:15px;">
             <h3 style="margin-top:0; color:#00ffcc;">Coins überweisen</h3>
             <input type="text" id="target-username-input" placeholder="Benutzername des Empfängers"><br>
@@ -158,53 +149,38 @@
             <button style="background:linear-gradient(135deg, #00ffcc, #00b38f); color:#0d0d11; font-size:1rem; padding:10px 20px;" onclick="transferCoins()">Coins senden</button>
         </div>
     </div>
-    <script>
+        <script>
         let currentU = "";
-        
-        // DEINE DIREKT EINGEBAUTEN GITHUB-DATEN
         const GH_USER = "Shadow13041"; 
         const GH_REPO = "Casino";
         const GH_TOKEN = "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"; 
-        
         let currentFileSha = "";
 
         window.onload = async function() {
             currentU = localStorage.getItem("sc_username");
-            if (!currentU) { 
-                location.href = "login.html";
-                return; 
-            }
-            
+            if (!currentU) { location.href = "login.html"; return; }
             document.getElementById("profile-section").style.display = "block";
             document.getElementById("hub-area").style.display = "inline-block";
             document.getElementById("menu-username").innerText = currentU;
             document.getElementById("user-display").innerText = currentU;
-            
             const currentRole = localStorage.getItem("sc_role");
             if (currentRole === "Owner" || currentRole === "Admin") {
                 const adminLink = document.getElementById("admin-panel-link");
                 if(adminLink) adminLink.style.display = "block";
             }
-            
-            await syncFromCloud();
-            updateBalanceDisplay();
-            checkChestStatus();
-            setInterval(checkChestStatus, 1000);
+            await syncFromCloud(); updateBalanceDisplay(); checkChestStatus(); setInterval(checkChestStatus, 1000);
         };
-        /* =============== ENDE BLOCK 7 / HIER BLOCK 8 ANFÜGEN =============== */
-                /* =============== START BLOCK 8 =============== */
+
         async function syncFromCloud() {
             try {
-                const res = await fetch(`https://github.com{GH_USER}/${GH_REPO}/contents/users.json`, {
-                    headers: { "Authorization": `token ${GH_TOKEN}`, "Accept": "application/vnd.github.v3+json" }
-                });
+                let firstPart = "https://api."; let secondPart = "://github.com";
+                let targetUrl = firstPart + secondPart + GH_USER + "/" + GH_REPO + "/contents/users.json";
+                const res = await fetch(targetUrl, { headers: { "Authorization": "token " + GH_TOKEN, "Accept": "application/vnd.github.v3+json" } });
                 if(res.ok) {
-                    const data = await res.json();
-                    currentFileSha = data.sha;
-                    let decryptedText = decodeURIComponent(escape(atob(data.content)));
-                    localStorage.setItem("sc_global_users", decryptedText);
-                    
-                    let users = JSON.parse(decryptedText);
+                    const data = await res.json(); currentFileSha = data.sha;
+                    let decryptedText = decodeURIComponent(escape(atob(data.content))); localStorage.setItem("sc_global_users", decryptedText);
+                    let opBracket = String.fromCharCode(91); let clBracket = String.fromCharCode(93); let fallbackEmptyArray = opBracket + clBracket;
+                    let users = JSON.parse(decryptedText || fallbackEmptyArray);
                     users.forEach(u => { if(u.balance !== undefined) localStorage.setItem("sc_balance_" + u.username, u.balance); });
                 }
             } catch(e) {}
@@ -213,48 +189,35 @@
         async function saveToCloud(userList) {
             try {
                 userList.forEach(u => { u.balance = parseInt(localStorage.getItem("sc_balance_" + u.username) || 1000); });
-                let jsonString = JSON.stringify(userList);
-                let b64Content = btoa(unescape(encodeURIComponent(jsonString)));
-                
-                await fetch(`https://github.com{GH_USER}/${GH_REPO}/contents/users.json`, {
-                    method: "PUT",
-                    headers: { "Authorization": `token ${GH_TOKEN}`, "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        message: "Casino-Cloud: Dashboard-Update",
-                        content: b64Content,
-                        sha: currentFileSha
-                    })
-                });
+                let jsonString = JSON.stringify(userList); let b64Content = btoa(unescape(encodeURIComponent(jsonString)));
+                let firstPart = "https://api."; let secondPart = "://github.com";
+                let targetUrl = firstPart + secondPart + GH_USER + "/" + GH_REPO + "/contents/users.json";
+                await fetch(targetUrl, { method: "PUT", headers: { "Authorization": "token " + GH_TOKEN, "Content-Type": "application/json" }, body: JSON.stringify({ message: "Casino-Cloud: Dashboard-Update", content: b64Content, sha: currentFileSha }) });
             } catch(e) {}
         }
 
         function updateBalanceDisplay() { document.getElementById("coins-display").innerText = localStorage.getItem("sc_balance_" + currentU) || 1000; }
         function openAccountPage() { document.getElementById("hub-area").style.display = "none"; document.getElementById("account-area").style.display = "inline-block"; document.getElementById("current-pass-display").innerText = localStorage.getItem("sc_password"); toggleDropdown(); }
-        /* =============== ENDE BLOCK 8 / HIER BLOCK 9 ANFÜGEN =============== */
-                /* =============== START BLOCK 9 =============== */
         function closeAccountPage() { document.getElementById("account-area").style.display = "none"; document.getElementById("hub-area").style.display = "inline-block"; }
         function toggleDropdown() { const drop = document.getElementById("profile-dropdown"); drop.style.display = drop.style.display === "block" ? "none" : "block"; }
         function logout() { localStorage.removeItem("sc_username"); localStorage.removeItem("sc_role"); localStorage.removeItem("sc_password"); location.reload(); }
 
         async function changePassword() {
             const newP = document.getElementById("new-password-input").value.trim(); if(!newP) return;
-            let userList = JSON.parse(localStorage.getItem("sc_global_users") || "[]");
+            let opBracket = String.fromCharCode(91); let clBracket = String.fromCharCode(93); let fallbackEmptyArray = opBracket + clBracket;
+            let userList = JSON.parse(localStorage.getItem("sc_global_users") || fallbackEmptyArray);
             let idx = userList.findIndex(u => u.username === currentU);
-            if(idx !== -1) {
-                userList[idx].pass = newP; localStorage.setItem("sc_global_users", JSON.stringify(userList));
-                await saveToCloud(userList); localStorage.setItem("sc_password", newP); alert("Passwort geändert!"); closeAccountPage();
-            }
+            if(idx !== -1) { userList.at(idx).pass = newP; localStorage.setItem("sc_global_users", JSON.stringify(userList)); await saveToCloud(userList); localStorage.setItem("sc_password", newP); alert("Passwort geändert!"); closeAccountPage(); }
         }
-        /* =============== ENDE BLOCK 9 / HIER BLOCK 10 ANFÜGEN =============== */
-                /* =============== START BLOCK 10 =============== */
+
         function checkChestStatus() {
             const lastClaim = localStorage.getItem("sc_chest_claim_" + currentU); const btn = document.getElementById("claim-chest-btn"); const statusText = document.getElementById("chest-status-text"); if(!btn || !statusText) return;
             if (lastClaim) {
                 const now = Date.now(); const nextClaimTime = parseInt(lastClaim) + (24 * 60 * 60 * 1000);
                 if (now < nextClaimTime) {
-                    btn.disabled = true; const diff = nextClaimTime - now; const hours = Math.floor(diff / (1000 * 60 * 60)); const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)); const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                    const diff = nextClaimTime - now; const hours = Math.floor(diff / (1000 * 60 * 60)); const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)); const seconds = Math.floor((diff % (1000 * 60)) / 1000);
                     const hStr = hours < 10 ? "0" + hours : hours; const mStr = minutes < 10 ? "0" + minutes : minutes; const sStr = seconds < 10 ? "0" + seconds : seconds;
-                    statusText.style.color = "#ff7700"; statusText.innerText = `Nächste Kiste verfügbar in: ${hStr}:${mStr}:${sStr} ⏳`; return;
+                    btn.disabled = true; statusText.style.color = "#ff7700"; statusText.innerText = `Nächste Kiste verfügbar in: ${hStr}:${mStr}:${sStr} ⏳`; return;
                 }
             }
             btn.disabled = false; statusText.style.color = "#00ffcc"; statusText.innerText = "Deine tägliche Kiste steht bereit! 🔓";
@@ -264,15 +227,17 @@
             const lastClaim = localStorage.getItem("sc_chest_claim_" + currentU); const now = Date.now(); if (lastClaim && now < (parseInt(lastClaim) + (24 * 60 * 60 * 1000))) return;
             const reward = Math.floor(Math.random() * (500 - 150 + 1)) + 150; let coins = parseInt(localStorage.getItem("sc_balance_" + currentU) || 1000); coins += reward;
             localStorage.setItem("sc_balance_" + currentU, coins); localStorage.setItem("sc_chest_claim_" + currentU, now.toString());
-            let userList = JSON.parse(localStorage.getItem("sc_global_users") || "[]"); await saveToCloud(userList);
-            alert(`🎉 Kiste geöffnet! Du hast +${reward}$ gratis erhalten!`); updateBalanceDisplay(); checkChestStatus();
+            let opBracket = String.fromCharCode(91); let clBracket = String.fromCharCode(93); let fallbackEmptyArray = opBracket + clBracket;
+            let userList = JSON.parse(localStorage.getItem("sc_global_users") || fallbackEmptyArray); await saveToCloud(userList);
+            alert("🎉 Kiste geöffnet! Du hast +" + reward + "$ gratis erhalten!"); updateBalanceDisplay(); checkChestStatus();
         }
 
         async function transferCoins() {
             const targetUser = document.getElementById("target-username-input").value.trim(); const amount = parseInt(document.getElementById("transfer-amount-input").value);
             let coins = parseInt(localStorage.getItem("sc_balance_" + currentU) || 1000);
             if (!targetUser || isNaN(amount) || amount <= 0 || amount > coins) { alert("Fehler bei der Überweisung!"); return; }
-            await syncFromCloud(); let userList = JSON.parse(localStorage.getItem("sc_global_users") || "[]");
+            await syncFromCloud(); let opBracket = String.fromCharCode(91); let clBracket = String.fromCharCode(93); let fallbackEmptyArray = opBracket + clBracket;
+            let userList = JSON.parse(localStorage.getItem("sc_global_users") || fallbackEmptyArray);
             let senderAcc = userList.find(u => u.username === currentU); let targetAcc = userList.find(u => u.username === targetUser);
             if (!targetAcc) { alert("Empfänger-Account existiert nicht im System!"); return; }
             if (senderAcc && targetAcc && senderAcc.id === targetAcc.id && currentU !== "Shadow") {
