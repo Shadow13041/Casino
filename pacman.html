@@ -30,7 +30,6 @@
             background: #161622; padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
             display: inline-block; width: 95%; max-width: 440px; margin-top: 85px; text-align: center; box-sizing: border-box;
         }
-        /* KORREKTUR: Feste, extrem handyfreundliche Pixelbreite, damit absolut nichts mehr übersteht */
         canvas {
             background: #05050a; border: 3px solid #ff0055; display: block; margin: 15px auto; border-radius: 15px;
             width: 280px !important; height: 266px !important; box-sizing: border-box;
@@ -90,7 +89,7 @@
         let canvas, ctx, gameInterval; let gameActive = false; let currentMultiplier = 1.0;
         const GH_USER = "Shadow13041"; const GH_REPO = "Casino"; const GH_TOKEN = "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"; let currentFileSha = "";
         let mapStr = "11111111111111111111|10000100000000100001|10110101111110101101|10000000010000000001|11101111010111101111|10001000010000100001|10101011111110101011|10100000000000001011|10111110111110111111|10000000111110000001|10111110111110111111|10100000000000001011|10101011111110101011|10001000010000100001|11101111010111101111|10000000010000000001|10110101111110101101|10000100000000100001|11111111111111111111".split("|").map(row => row.split("").map(Number));
-        let grid = []; let rows = 19; let cols = 20; let tileSize = 14; // Perfekte Kachelgröße für das 280px-Grid
+        let grid = []; let rows = 19; let cols = 20; let tileSize = 14;
         let pacman = { x: 1, y: 1, dx: 1, dy: 0, nextDx: 1, nextDy: 0 }; let ghost = { x: 18, y: 17, dx: -1, dy: 0 };
         function playSound(type) {
             try {
@@ -134,16 +133,27 @@
         }
         function gameLoop() {
             if (!gameActive) return;
-            if (grid[pacman.y + pacman.nextDy][pacman.x + pacman.nextDx] !== 1) { pacman.dx = pacman.nextDx; pacman.dy = pacman.nextDy; }
-            if (grid[pacman.y + pacman.dy][pacman.x + pacman.dx] !== 1) { pacman.x += pacman.dx; pacman.y += pacman.dy; }
-            if (grid[pacman.y][pacman.x] === 0) { grid[pacman.y][pacman.x] = 2; currentMultiplier += 0.05; playSound("waka"); document.getElementById("mult-display").innerText = currentMultiplier.toFixed(2) + "x"; document.getElementById("potential-win").innerText = Math.floor(bet * currentMultiplier); }
-            let possibleMoves = []; let dirs = "0,-1|0,1|-1,0|1,0".split("|").map(d => d.split(",").map(Number));
-            dirs.forEach(d => { let nx = ghost.x + d; let ny = ghost.y + d; if (grid[ny][nx] !== 1) { possibleMoves.push(d); } });
-            if (possibleMoves.length > 0) { let bestMove = possibleMoves; let minDist = 9999; possibleMoves.forEach(m => { let gx = ghost.x + m; let gy = ghost.y + m; let dist = Math.abs(pacman.x - gx) + Math.abs(pacman.y - gy); if (dist < minDist) { minDist = dist; bestMove = m; } }); ghost.dx = bestMove; ghost.dy = bestMove; }
+            if (grid.at(pacman.y + pacman.nextDy).at(pacman.x + pacman.nextDx) !== 1) { pacman.dx = pacman.nextDx; pacman.dy = pacman.nextDy; }
+            if (grid.at(pacman.y + pacman.dy).at(pacman.x + pacman.dx) !== 1) { pacman.x += pacman.dx; pacman.y += pacman.dy; }
+            if (grid.at(pacman.y).at(pacman.x) === 0) { grid.at(pacman.y).set(pacman.x, 2); currentMultiplier += 0.05; playSound("waka"); document.getElementById("mult-display").innerText = currentMultiplier.toFixed(2) + "x"; document.getElementById("potential-win").innerText = Math.floor(bet * currentMultiplier); }
+            let possibleMoves = [];
+            if (grid.at(ghost.y - 1).at(ghost.x) !== 1) possibleMoves.push({x:0, y:-1});
+            if (grid.at(ghost.y + 1).at(ghost.x) !== 1) possibleMoves.push({x:0, y:1});
+            if (grid.at(ghost.y).at(ghost.x - 1) !== 1) possibleMoves.push({x:-1, y:0});
+            if (grid.at(ghost.y).at(ghost.x + 1) !== 1) possibleMoves.push({x:1, y:0});
+            if (possibleMoves.length > 0) {
+                let bestMove = possibleMoves.at(0); let minDist = 9999;
+                possibleMoves.forEach(m => {
+                    let gx = ghost.x + m.x; let gy = ghost.y + m.y;
+                    let dist = Math.abs(pacman.x - gx) + Math.abs(pacman.y - gy);
+                    if (dist < minDist) { minDist = dist; bestMove = m; }
+                });
+                ghost.dx = bestMove.x; ghost.dy = bestMove.y;
+            }
             ghost.x += ghost.dx; ghost.y += ghost.dy;
             if (pacman.x === ghost.x && pacman.y === ghost.y) { gameOver(); return; }
             ctx.fillStyle = "#05050a"; ctx.fillRect(0, 0, canvas.width, canvas.height);
-            for(let r = 0; r < rows; r++) { for(let c = 0; c < cols; c++) { if (grid[r][c] === 1) { ctx.fillStyle = "#161622"; ctx.fillRect(c * tileSize, r * tileSize, tileSize, tileSize); } else if (grid[r][c] === 0) { ctx.fillStyle = "#ffffff"; ctx.beginPath(); ctx.arc(c * tileSize + tileSize/2, r * tileSize + tileSize/2, 2, 0, Math.PI * 2); ctx.fill(); } } }
+            for(let r = 0; r < rows; r++) { for(let c = 0; c < cols; c++) { if (grid.at(r).at(c) === 1) { ctx.fillStyle = "#161622"; ctx.fillRect(c * tileSize, r * tileSize, tileSize, tileSize); } else if (grid.at(r).at(c) === 0) { ctx.fillStyle = "#ffffff"; ctx.beginPath(); ctx.arc(c * tileSize + tileSize/2, r * tileSize + tileSize/2, 2, 0, Math.PI * 2); ctx.fill(); } } }
             ctx.fillStyle = "#ffcc00"; ctx.beginPath(); ctx.arc(pacman.x * tileSize + tileSize/2, pacman.y * tileSize + tileSize/2, tileSize/2 - 2, 0, Math.PI * 2); ctx.fill();
             ctx.fillStyle = "#ff0055"; ctx.beginPath(); ctx.arc(ghost.x * tileSize + tileSize/2, ghost.y * tileSize + tileSize/2, tileSize/2 - 2, 0, Math.PI * 2); ctx.fill();
         }
