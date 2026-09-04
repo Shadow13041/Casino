@@ -66,7 +66,7 @@
     </div>
     <div class="game-container">
         <h2 style="color:#ff0055; margin-top:0; font-size:1.6rem;">👾 Shadow Pacman</h2>
-        <p style="color:#888; font-size:0.85rem; margin-bottom:5px;">Friss Pillen im Labyrinth für Multiplikatoren, aber entkomme dem Geist!</p>
+        <p style="color:#888; font-size:0.85rem; margin-bottom:5px;">Zwei Geister jagen dich im Team! Teile sie an Kreuzungen geschickt auf.</p>
         <div style="font-size: 0.9rem; color: #aaa; margin-bottom: 10px;">Guthaben: <span id="coins-display" style="color:#00ffcc; font-weight:bold;">0</span> $</div>
         <div id="setup-area">
             <input type="number" id="bet-input" placeholder="Einsatz in $" value="50"><br>
@@ -90,7 +90,10 @@
         const GH_USER = "Shadow13041"; const GH_REPO = "Casino"; const GH_TOKEN = "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"; let currentFileSha = "";
         let mapStr = "11111111111111111111|10000100000000100001|10110101111110101101|10000000010000000001|11101111010111101111|10001000010000100001|10101011111110101011|10100000000000001011|10111110111110111111|10000000111110000001|10111110111110111111|10100000000000001011|10101011111110101011|10001000010000100001|11101111010111101111|10000000010000000001|10110101111110101101|10000100000000100001|11111111111111111111".split("|").map(row => row.split("").map(Number));
         let grid = []; let rows = 19; let cols = 20; let tileSize = 14;
-        let pacman = { x: 1, y: 1, dx: 1, dy: 0, nextDx: 1, nextDy: 0 }; let ghost = { x: 18, y: 17, dx: -1, dy: 0 };
+        let pacman = { x: 1, y: 1, dx: 1, dy: 0, nextDx: 1, nextDy: 0 };
+        let ghost1 = { x: 18, y: 17, dx: -1, dy: 0 };
+        let ghost2 = { x: 1, y: 17, dx: 1, dy: 0 };
+        let recentTurns = [];
         function playSound(type) {
             try {
                 if (!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
@@ -127,47 +130,56 @@
         function startPacman() {
             bet = parseInt(document.getElementById("bet-input").value); let coins = parseInt(localStorage.getItem("sc_balance_" + currentU) || 1000); if (isNaN(bet) || bet <= 0 || bet > coins) { alert("Ungültiger Einsatz!"); return; }
             coins -= bet; localStorage.setItem("sc_balance_" + currentU, coins); updateBalanceDisplay(); pushToCloud();
-            document.getElementById("setup-area").style.display = "none"; document.getElementById("play-area").style.display = "block"; document.getElementById("status-box").style.color = "#ffcc00"; document.getElementById("status-box").innerText = "Weiche dem Geist aus!";
-            grid = JSON.parse(JSON.stringify(mapStr)); pacman = { x: 1, y: 1, dx: 1, dy: 0, nextDx: 1, nextDy: 0 }; ghost = { x: 18, y: 17, dx: -1, dy: 0 }; currentMultiplier = 1.0; gameActive = true;
+            document.getElementById("setup-area").style.display = "none"; document.getElementById("play-area").style.display = "block"; document.getElementById("status-box").style.color = "#ffcc00"; document.getElementById("status-box").innerText = "Weiche den Geistern aus!";
+            grid = JSON.parse(JSON.stringify(mapStr)); pacman = { x: 1, y: 1, dx: 1, dy: 0, nextDx: 1, nextDy: 0 }; ghost1 = { x: 18, y: 17, dx: -1, dy: 0 }; ghost2 = { x: 1, y: 17, dx: 1, dy: 0 }; recentTurns = []; currentMultiplier = 1.0; gameActive = true;
             if(gameInterval) clearInterval(gameInterval); gameInterval = setInterval(gameLoop, 220);
+        }
+        function moveGhost(g, id) {
+            let possibleMoves = [];
+            if (grid.at(g.y - 1).at(g.x) !== 1) possibleMoves.push({x:0, y:-1});
+            if (grid.at(g.y + 1).at(g.x) !== 1) possibleMoves.push({x:0, y:1});
+            if (grid.at(g.y).at(g.x - 1) !== 1) possibleMoves.push({x:-1, y:0});
+            if (grid.at(g.y).at(g.x + 1) !== 1) possibleMoves.push({x:1, y:0});
+            let validMoves = [];
+            possibleMoves.forEach(m => {
+                if (possibleMoves.length > 1 && m.x === -g.dx && m.y === -g.dy) return;
+                validMoves.push(m);
+            });
+            let now = Date.now();
+            recentTurns = recentTurns.filter(t => now - t.time < 5000);
+            if (validMoves.length >= 2) {
+                let filteredMoves = validMoves.filter(m => {
+                    return !recentTurns.some(t => t.id !== id && t.x === g.x && t.y === g.y && t.dx === m.x && t.dy === m.y);
+                });
+                if (filteredMoves.length > 0) validMoves = filteredMoves;
+            }
+                        if (validMoves.length > 0) {
+                let cryptoArray = new Uint32Array(1); window.crypto.getRandomValues(cryptoArray); let aiRoll = (cryptoArray.at(0) % 100) + 1; let chosenMove;
+                if (aiRoll <= 10) { let randIndex = cryptoArray.at(0) % validMoves.length; chosenMove = validMoves.at(randIndex); } else {
+                    chosenMove = validMoves.at(0); let minDist = 9999;
+                    validMoves.forEach(m => { let gx = g.x + m.x; let gy = g.y + m.y; let dist = Math.abs(pacman.x - gx) + Math.abs(pacman.y - gy); if (dist < minDist) { minDist = dist; chosenMove = m; } });
+                }
+                if (g.dx !== chosenMove.x || g.dy !== chosenMove.y) { recentTurns.push({ id: id, x: g.x, y: g.y, dx: chosenMove.x, dy: chosenMove.y, time: now }); }
+                g.dx = chosenMove.x; g.dy = chosenMove.y;
+            } else if (possibleMoves.length > 0) {
+                let fallbackMove = possibleMoves.at(0); g.dx = fallbackMove.x; g.dy = fallbackMove.y;
+            }
+            g.x += g.dx; g.y += g.dy;
         }
         function gameLoop() {
             if (!gameActive) return;
             if (grid.at(pacman.y + pacman.nextDy).at(pacman.x + pacman.nextDx) !== 1) { pacman.dx = pacman.nextDx; pacman.dy = pacman.nextDy; }
             if (grid.at(pacman.y + pacman.dy).at(pacman.x + pacman.dx) !== 1) { pacman.x += pacman.dx; pacman.y += pacman.dy; }
             if (grid.at(pacman.y).at(pacman.x) === 0) { grid.at(pacman.y).splice(pacman.x, 1, 2); currentMultiplier += 0.05; playSound("waka"); document.getElementById("mult-display").innerText = currentMultiplier.toFixed(2) + "x"; document.getElementById("potential-win").innerText = Math.floor(bet * currentMultiplier); }
-            let possibleMoves = [];
-            if (grid.at(ghost.y - 1).at(ghost.x) !== 1) possibleMoves.push({x:0, y:-1});
-            if (grid.at(ghost.y + 1).at(ghost.x) !== 1) possibleMoves.push({x:0, y:1});
-                        if (grid.at(ghost.y).at(ghost.x - 1) !== 1) possibleMoves.push({x:-1, y:0});
-            if (grid.at(ghost.y).at(ghost.x + 1) !== 1) possibleMoves.push({x:1, y:0});
-            let validMoves = [];
-            possibleMoves.forEach(m => {
-                if (possibleMoves.length > 1) {
-                    if (m.x === -ghost.dx && m.y === -ghost.dy) {
-                        return;
-                    }
-                }
-                validMoves.push(m);
-            });
-            if (validMoves.length > 0) {
-                let cryptoArray = new Uint32Array(1); window.crypto.getRandomValues(cryptoArray); let aiRoll = (cryptoArray.at(0) % 100) + 1; let chosenMove;
-                if (aiRoll <= 10) { let randIndex = cryptoArray.at(0) % validMoves.length; chosenMove = validMoves.at(randIndex); } else {
-                    chosenMove = validMoves.at(0); let minDist = 9999;
-                    validMoves.forEach(m => { let gx = ghost.x + m.x; let gy = ghost.y + m.y; let dist = Math.abs(pacman.x - gx) + Math.abs(pacman.y - gy); if (dist < minDist) { minDist = dist; chosenMove = m; } });
-                }
-                ghost.dx = chosenMove.x; ghost.dy = chosenMove.y;
-            } else if (possibleMoves.length > 0) {
-                let fallbackMove = possibleMoves.at(0); ghost.dx = fallbackMove.x; ghost.dy = fallbackMove.y;
-            }
-            ghost.x += ghost.dx; ghost.y += ghost.dy;
-            if (pacman.x === ghost.x && pacman.y === ghost.y) { gameOver(); return; }
+            moveGhost(ghost1, 1); moveGhost(ghost2, 2);
+            if ((pacman.x === ghost1.x && pacman.y === ghost1.y) || (pacman.x === ghost2.x && pacman.y === ghost2.y)) { gameOver(); return; }
             ctx.fillStyle = "#05050a"; ctx.fillRect(0, 0, canvas.width, canvas.height);
             for(let r = 0; r < rows; r++) { for(let c = 0; c < cols; c++) { if (grid.at(r).at(c) === 1) { ctx.fillStyle = "#161622"; ctx.fillRect(c * tileSize, r * tileSize, tileSize, tileSize); } else if (grid.at(r).at(c) === 0) { ctx.fillStyle = "#ffffff"; ctx.beginPath(); ctx.arc(c * tileSize + tileSize/2, r * tileSize + tileSize/2, 2, 0, Math.PI * 2); ctx.fill(); } } }
             ctx.fillStyle = "#ffcc00"; ctx.beginPath(); ctx.arc(pacman.x * tileSize + tileSize/2, pacman.y * tileSize + tileSize/2, tileSize/2 - 2, 0, Math.PI * 2); ctx.fill();
-            ctx.fillStyle = "#ff0055"; ctx.beginPath(); ctx.arc(ghost.x * tileSize + tileSize/2, ghost.y * tileSize + tileSize/2, tileSize/2 - 2, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = "#ff0055"; ctx.beginPath(); ctx.arc(ghost1.x * tileSize + tileSize/2, ghost1.y * tileSize + tileSize/2, tileSize/2 - 2, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = "#00ffcc"; ctx.beginPath(); ctx.arc(ghost2.x * tileSize + tileSize/2, ghost2.y * tileSize + tileSize/2, tileSize/2 - 2, 0, Math.PI * 2); ctx.fill();
         }
-        function gameOver() { gameActive = false; clearInterval(gameInterval); playSound("death"); document.getElementById("status-box").style.color = "#ff0055"; document.getElementById("status-box").innerText = "GEFRESSEN! Der Geist hat dich erwischt."; setTimeout(resetPacman, 3000); }
+        function gameOver() { gameActive = false; clearInterval(gameInterval); playSound("death"); document.getElementById("status-box").style.color = "#ff0055"; document.getElementById("status-box").innerText = "GEFRESSEN! Ein Geist hat dich erwischt."; setTimeout(resetPacman, 3000); }
         function cashoutPacman() { if (!gameActive) return; gameActive = false; clearInterval(gameInterval); let coins = parseInt(localStorage.getItem("sc_balance_" + currentU) || 1000); let totalWin = Math.floor(bet * currentMultiplier); coins += totalWin; localStorage.setItem("sc_balance_" + currentU, coins); playSound("cash"); pushToCloud(); alert("Gewinn erfolgreich gesichert! +" + totalWin + "$ erhalten!"); resetPacman(); }
         function resetPacman() { updateBalanceDisplay(); document.getElementById("setup-area").style.display = "block"; document.getElementById("play-area").style.display = "none"; document.getElementById("status-box").style.color = "#ffcc00"; document.getElementById("status-box").innerText = "Platziere deinen Casino-Einsatz!"; }
     </script>
