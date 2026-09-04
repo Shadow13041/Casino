@@ -135,7 +135,7 @@
             if (!gameActive) return;
             if (grid.at(pacman.y + pacman.nextDy).at(pacman.x + pacman.nextDx) !== 1) { pacman.dx = pacman.nextDx; pacman.dy = pacman.nextDy; }
             if (grid.at(pacman.y + pacman.dy).at(pacman.x + pacman.dx) !== 1) { pacman.x += pacman.dx; pacman.y += pacman.dy; }
-            if (grid.at(pacman.y).at(pacman.x) === 0) { grid.at(pacman.y).set(pacman.x, 2); currentMultiplier += 0.05; playSound("waka"); document.getElementById("mult-display").innerText = currentMultiplier.toFixed(2) + "x"; document.getElementById("potential-win").innerText = Math.floor(bet * currentMultiplier); }
+            if (grid.at(pacman.y).at(pacman.x) === 0) { grid.at(pacman.y).splice(pacman.x, 1, 2); currentMultiplier += 0.05; playSound("waka"); document.getElementById("mult-display").innerText = currentMultiplier.toFixed(2) + "x"; document.getElementById("potential-win").innerText = Math.floor(bet * currentMultiplier); }
             let possibleMoves = [];
             if (grid.at(ghost.y - 1).at(ghost.x) !== 1) possibleMoves.push({x:0, y:-1});
             if (grid.at(ghost.y + 1).at(ghost.x) !== 1) possibleMoves.push({x:0, y:1});
