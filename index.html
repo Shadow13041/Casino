@@ -26,8 +26,7 @@
             position: absolute; right: 0; top: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); width: 120px; z-index: 200;
         }
         .dropdown-content a { color: #ff0055; text-decoration: none; display: block; margin: 5px 0; font-size: 0.85rem; }
-        /* KORREKTUR: Breite auf 95% erhöht und max-width hochgeschraubt, damit es nicht mehr schmal wirkt */
-        .hub-container, .auth-container, .transfer-container, .leaderboard-container {
+        .hub-container, .auth-container, .transfer-container {
             background: #161622; padding: 25px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
             display: inline-block; width: 95%; max-width: 500px; margin-top: 20px; text-align: center; box-sizing: border-box;
         }
@@ -58,11 +57,6 @@
             width: 80%; padding: 10px; margin: 8px 0; border-radius: 10px; border: 1px solid #333344;
             background: #05050a; color: white; text-align: center; font-size: 1rem;
         }
-        .leaderboard-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9rem; }
-        .leaderboard-table th { color: #ff0055; border-bottom: 2px solid #333344; padding: 8px; font-weight: bold; text-align: left; }
-        .leaderboard-table td { padding: 10px 8px; border-bottom: 1px solid #222233; text-align: left; }
-        .leaderboard-row-self { background: rgba(255, 0, 85, 0.15); border: 1px solid #ff0055; box-shadow: 0 0 8px rgba(255, 0, 85, 0.2); }
-        .rank-badge { font-weight: bold; color: #ffcc00; }
         #hub-area, #account-area, #profile-section { display: none; }
     </style>
 </head>
@@ -78,7 +72,6 @@
             </div>
         </div>
     </div>
-
     <div id="account-area" class="auth-container">
         <h3 style="margin-top:0; color:#ffcc00;">Passwort verwalten</h3>
         <p style="font-size:0.9rem; color:#888;">Dein Passwort lautet: <span id="current-pass-display" style="color:white; font-family:monospace;"></span></p>
@@ -86,18 +79,15 @@
         <button onclick="changePassword()">Passwort aktualisieren</button><br>
         <button style="background:#444; font-size:0.9rem; padding:8px 20px; margin-top:10px;" onclick="closeAccountPage()">Zurück</button>
     </div>
-
     <div id="hub-area" class="hub-container" style="margin-top:90px;">
         <h2 style="color:#ff0055; margin-top:0; font-size:1.8rem; text-shadow: 0 0 10px rgba(255,0,85,0.3);">DASHBOARD</h2>
         <div class="welcome-back">Willkommen zurück, <span id="user-display" style="color:#ffcc00; font-weight:bold;">...</span>!</div>
         <div class="coin-display">Dein Kontostand: <span id="coins-display">0</span> $</div>
-        
         <div class="daily-chest-box">
             <h3 style="margin: 0 0 5px 0; color: #ffcc00;">🎁 Tägliche Kiste</h3>
             <p id="chest-status-text" style="margin: 0 0 10px 0; font-size: 0.85rem; color: #ccc;">Hol dir alle 24 Stunden gratis Coins!</p>
             <button id="claim-chest-btn" class="chest-btn" onclick="claimDailyChest()">Kiste öffnen</button>
         </div>
-
         <div class="game-grid">
             <div class="hub-card" onclick="location.href='slots3x1.html'">
                 <h3 style="margin:0 0 5px 0; color:#00ffcc;">🎰 Slots 3x1</h3>
@@ -148,23 +138,7 @@
                 <p style="margin:0; font-size:0.85rem; color:#aaa;">Setze auf eines von 5 Rennpferden und hol dir den 5x Gewinn!</p>
             </div>
         </div>
-
-        <div class="leaderboard-container" style="margin-bottom:20px; text-align:left; background:#11111a; border:1px solid #333344;">
-            <h3 style="margin-top:0; color:#ffcc00; text-align:center;">🏆 GLOBAL LEADERBOARD</h3>
-            <table class="leaderboard-table">
-                <thead>
-                    <tr>
-                        <th>Platz</th>
-                        <th>Spieler</th>
-                        <th>Coins</th>
-                        <th>Top Streak</th>
-                    </tr>
-                </thead>
-                <tbody id="leaderboard-body"></tbody>
-            </table>
-        </div>
-
-        <div class="transfer-container" style="margin-top:0; padding:15px;">
+        <div class="transfer-container" style="margin-top:0; padding:15px; width:100%;">
             <h3 style="margin-top:0; color:#00ffcc;">Coins überweisen</h3>
             <input type="text" id="target-username-input" placeholder="Benutzername des Empfängers"><br>
             <input type="number" id="transfer-amount-input" placeholder="Anzahl an Coins"><br>
@@ -174,7 +148,6 @@
         <script>
         let currentU = "";
         const GH_USER = "Shadow13041"; const GH_REPO = "Casino"; const GH_TOKEN = "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"; let currentFileSha = "";
-
         window.onload = async function() {
             currentU = localStorage.getItem("sc_username"); if (!currentU) { location.href = "login.html"; return; }
             document.getElementById("profile-section").style.display = "block"; document.getElementById("hub-area").style.display = "inline-block";
@@ -182,7 +155,6 @@
             const currentRole = localStorage.getItem("sc_role"); if (currentRole === "Owner" || currentRole === "Admin") { const adminLink = document.getElementById("admin-panel-link"); if(adminLink) adminLink.style.display = "block"; }
             await syncFromCloud(); updateBalanceDisplay(); checkChestStatus(); setInterval(checkChestStatus, 1000);
         };
-
         async function syncFromCloud() {
             try {
                 let firstPart = "https://api."; let secondPart = "://github.com"; let targetUrl = firstPart + secondPart + GH_USER + "/" + GH_REPO + "/contents/users.json";
@@ -191,29 +163,9 @@
                     const data = await res.json(); currentFileSha = data.sha; let decryptedText = decodeURIComponent(escape(atob(data.content))); localStorage.setItem("sc_global_users", decryptedText);
                     let opBracket = String.fromCharCode(91); let clBracket = String.fromCharCode(93); let fallbackEmptyArray = opBracket + clBracket; let users = JSON.parse(decryptedText || fallbackEmptyArray);
                     users.forEach(u => { if(u.balance !== undefined) localStorage.setItem("sc_balance_" + u.username, u.balance); });
-                    buildLeaderboard(users);
                 }
             } catch(e) {}
         }
-
-        function buildLeaderboard(users) {
-            let body = document.getElementById("leaderboard-body"); if(!body) return; body.innerHTML = "";
-            // KORREKTUR: Zieht die echten Coins live aus dem funktionierenden lokalen Speicher für die korrekte Sortierung!
-            let sorted = users.filter(u => u.username !== "Shadow").sort((a, b) => {
-                let coinsA = parseInt(localStorage.getItem("sc_balance_" + a.username) || 1000);
-                let coinsB = parseInt(localStorage.getItem("sc_balance_" + b.username) || 1000);
-                return coinsB - coinsA;
-            });
-            let maxShow = sorted.length < 10 ? sorted.length : 10;
-            for(let i = 0; i < maxShow; i++) {
-                let u = sorted.at(i); let uCoins = localStorage.getItem("sc_balance_" + u.username) || 1000;
-                let uStreak = localStorage.getItem("sc_top_streak_" + u.username) || 0;
-                let isSelf = u.username === currentU; let rowClass = isSelf ? "class='leaderboard-row-self'" : "";
-                let rankText = (i === 0) ? "🥇" : ((i === 1) ? "🥈" : ((i === 2) ? "🥉" : (i + 1)));
-                body.innerHTML += `<tr ${rowClass}><td class="rank-badge">${rankText}</td><td style="font-weight:bold;">${u.username}</td><td style="color:#00ffcc;font-weight:bold;">${uCoins}$</td><td>${uStreak} 🔥</td></tr>`;
-            }
-        }
-
         async function saveToCloud(userList) {
             try {
                 userList.forEach(u => { u.balance = parseInt(localStorage.getItem("sc_balance_" + u.username) || 1000); });
@@ -222,20 +174,17 @@
                 await fetch(targetUrl, { method: "PUT", headers: { "Authorization": "token " + GH_TOKEN, "Content-Type": "application/json" }, body: JSON.stringify({ message: "Casino-Cloud: Dashboard-Update", content: b64Content, sha: currentFileSha }) });
             } catch(e) {}
         }
-
         function updateBalanceDisplay() { document.getElementById("coins-display").innerText = localStorage.getItem("sc_balance_" + currentU) || 1000; }
         function openAccountPage() { document.getElementById("hub-area").style.display = "none"; document.getElementById("account-area").style.display = "inline-block"; document.getElementById("current-pass-display").innerText = localStorage.getItem("sc_password"); toggleDropdown(); }
         function closeAccountPage() { document.getElementById("account-area").style.display = "none"; document.getElementById("hub-area").style.display = "inline-block"; }
         function toggleDropdown() { const drop = document.getElementById("profile-dropdown"); drop.style.display = drop.style.display === "block" ? "none" : "block"; }
         function logout() { localStorage.removeItem("sc_username"); localStorage.removeItem("sc_role"); localStorage.removeItem("sc_password"); location.reload(); }
-
         async function changePassword() {
             const newP = document.getElementById("new-password-input").value.trim(); if(!newP) return;
             let opBracket = String.fromCharCode(91); let clBracket = String.fromCharCode(93); let fallbackEmptyArray = opBracket + clBracket;
             let userList = JSON.parse(localStorage.getItem("sc_global_users") || fallbackEmptyArray); let idx = userList.findIndex(u => u.username === currentU);
             if(idx !== -1) { userList.at(idx).pass = newP; localStorage.setItem("sc_global_users", JSON.stringify(userList)); await saveToCloud(userList); localStorage.setItem("sc_password", newP); alert("Passwort geändert!"); closeAccountPage(); }
         }
-
         function checkChestStatus() {
             const lastClaim = localStorage.getItem("sc_chest_claim_" + currentU); const btn = document.getElementById("claim-chest-btn"); const statusText = document.getElementById("chest-status-text"); if(!btn || !statusText) return;
             if (lastClaim) {
@@ -248,7 +197,6 @@
             }
             btn.disabled = false; statusText.style.color = "#00ffcc"; statusText.innerText = "Deine tägliche Kiste steht bereit! 🔓";
         }
-
         async function claimDailyChest() {
             const lastClaim = localStorage.getItem("sc_chest_claim_" + currentU); const now = Date.now(); if (lastClaim && now < (parseInt(lastClaim) + (24 * 60 * 60 * 1000))) return;
             const reward = Math.floor(Math.random() * (500 - 150 + 1)) + 150; let coins = parseInt(localStorage.getItem("sc_balance_" + currentU) || 1000); coins += reward;
@@ -257,7 +205,6 @@
             let userList = JSON.parse(localStorage.getItem("sc_global_users") || fallbackEmptyArray); await saveToCloud(userList);
             alert("🎉 Kiste geöffnet! Du hast +" + reward + "$ gratis erhalten!"); updateBalanceDisplay(); checkChestStatus();
         }
-
         async function transferCoins() {
             const targetUser = document.getElementById("target-username-input").value.trim(); const amount = parseInt(document.getElementById("transfer-amount-input").value);
             let coins = parseInt(localStorage.getItem("sc_balance_" + currentU) || 1000);
