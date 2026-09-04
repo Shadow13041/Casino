@@ -26,7 +26,6 @@
             position: absolute; right: 0; top: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); width: 120px; z-index: 200;
         }
         .dropdown-content a { color: #ff0055; text-decoration: none; display: block; margin: 5px 0; font-size: 0.85rem; }
-        /* KORREKTUR: max-width drastisch erhöht, damit das Dashboard wieder vollflächig satt auf dem Schirm liegt */
         .hub-container, .auth-container, .transfer-container {
             background: #161622; padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
             display: inline-block; width: 95%; max-width: 600px; margin-top: 20px; text-align: center; box-sizing: border-box;
@@ -80,7 +79,7 @@
         <button onclick="changePassword()">Passwort aktualisieren</button><br>
         <button style="background:#444; font-size:0.9rem; padding:8px 20px; margin-top:10px;" onclick="closeAccountPage()">Zurück</button>
     </div>
-    <div id="hub-area" class="hub-container" style="margin-top:90px;">
+        <div id="hub-area" class="hub-container" style="margin-top:90px;">
         <h2 style="color:#ff0055; margin-top:0; font-size:1.8rem; text-shadow: 0 0 10px rgba(255,0,85,0.3);">DASHBOARD</h2>
         <div class="welcome-back">Willkommen zurück, <span id="user-display" style="color:#ffcc00; font-weight:bold;">...</span>!</div>
         <div class="coin-display">Dein Kontostand: <span id="coins-display">0</span> $</div>
@@ -145,8 +144,8 @@
             <input type="number" id="transfer-amount-input" placeholder="Anzahl an Coins"><br>
             <button style="background:linear-gradient(135deg, #00ffcc, #00b38f); color:#0d0d11; font-size:1rem; padding:10px 20px;" onclick="transferCoins()">Coins senden</button>
         </div>
-    </div>
-        <script>
+        </div>
+            <script>
         let currentU = "";
         const GH_USER = "Shadow13041"; const GH_REPO = "Casino"; const GH_TOKEN = "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"; let currentFileSha = "";
         window.onload = async function() {
@@ -169,7 +168,8 @@
         }
         async function saveToCloud(userList) {
             try {
-                userList.forEach(u => { u.balance = parseInt(localStorage.getItem("sc_balance_" + u.username) || 1000); });
+                let targetIdx = userList.findIndex(u => u.username === currentU);
+                if(targetIdx !== -1) { userList.at(targetIdx).balance = parseInt(localStorage.getItem("sc_balance_" + currentU) || 1000); }
                 let jsonString = JSON.stringify(userList); let b64Content = btoa(unescape(encodeURIComponent(jsonString)));
                 let firstPart = "https://api."; let secondPart = "://github.com"; let targetUrl = firstPart + secondPart + GH_USER + "/" + GH_REPO + "/contents/users.json";
                 await fetch(targetUrl, { method: "PUT", headers: { "Authorization": "token " + GH_TOKEN, "Content-Type": "application/json" }, body: JSON.stringify({ message: "Casino-Cloud: Dashboard-Update", content: b64Content, sha: currentFileSha }) });
@@ -222,6 +222,8 @@
             coins -= amount; localStorage.setItem("sc_balance_" + currentU, coins);
             let targetCoins = parseInt(localStorage.getItem("sc_balance_" + targetAcc.username) || 1000); targetCoins += amount;
             localStorage.setItem("sc_balance_" + targetAcc.username, targetCoins);
+            let senderCloudIdx = userList.findIndex(u => u.username === currentU); if(senderCloudIdx !== -1) userList.at(senderCloudIdx).balance = coins;
+            let targetCloudIdx = userList.findIndex(u => u.username === targetAcc.username); if(targetCloudIdx !== -1) userList.at(targetCloudIdx).balance = targetCoins;
             await saveToCloud(userList); alert(`Erfolgreich ${amount} Coins an ${targetUser} gesendet!`); updateBalanceDisplay();
         }
     </script>
