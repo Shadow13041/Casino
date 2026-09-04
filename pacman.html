@@ -141,13 +141,24 @@
             if (grid.at(ghost.y + 1).at(ghost.x) !== 1) possibleMoves.push({x:0, y:1});
                         if (grid.at(ghost.y).at(ghost.x - 1) !== 1) possibleMoves.push({x:-1, y:0});
             if (grid.at(ghost.y).at(ghost.x + 1) !== 1) possibleMoves.push({x:1, y:0});
-            if (possibleMoves.length > 0) {
+            let validMoves = [];
+            possibleMoves.forEach(m => {
+                if (possibleMoves.length > 1) {
+                    if (m.x === -ghost.dx && m.y === -ghost.dy) {
+                        return;
+                    }
+                }
+                validMoves.push(m);
+            });
+            if (validMoves.length > 0) {
                 let cryptoArray = new Uint32Array(1); window.crypto.getRandomValues(cryptoArray); let aiRoll = (cryptoArray.at(0) % 100) + 1; let chosenMove;
-                if (aiRoll <= 15) { let randIndex = cryptoArray.at(0) % possibleMoves.length; chosenMove = possibleMoves.at(randIndex); } else {
-                    chosenMove = possibleMoves.at(0); let minDist = 9999;
-                    possibleMoves.forEach(m => { let gx = ghost.x + m.x; let gy = ghost.y + m.y; let dist = Math.abs(pacman.x - gx) + Math.abs(pacman.y - gy); if (dist < minDist) { minDist = dist; chosenMove = m; } });
+                if (aiRoll <= 10) { let randIndex = cryptoArray.at(0) % validMoves.length; chosenMove = validMoves.at(randIndex); } else {
+                    chosenMove = validMoves.at(0); let minDist = 9999;
+                    validMoves.forEach(m => { let gx = ghost.x + m.x; let gy = ghost.y + m.y; let dist = Math.abs(pacman.x - gx) + Math.abs(pacman.y - gy); if (dist < minDist) { minDist = dist; chosenMove = m; } });
                 }
                 ghost.dx = chosenMove.x; ghost.dy = chosenMove.y;
+            } else if (possibleMoves.length > 0) {
+                let fallbackMove = possibleMoves.at(0); ghost.dx = fallbackMove.x; ghost.dy = fallbackMove.y;
             }
             ghost.x += ghost.dx; ghost.y += ghost.dy;
             if (pacman.x === ghost.x && pacman.y === ghost.y) { gameOver(); return; }
@@ -162,4 +173,3 @@
     </script>
 </body>
 </html>
-
