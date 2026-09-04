@@ -115,8 +115,8 @@
             let users = JSON.parse(localStorage.getItem("sc_global_users") || fallbackEmptyArray); let bannedUsers = JSON.parse(localStorage.getItem("sc_banned_users") || fallbackEmptyArray); let bannedDevices = JSON.parse(localStorage.getItem("sc_banned_devices") || fallbackEmptyArray);
             activeView.innerHTML = ""; bannedView.innerHTML = "";
             users.forEach(u => {
-                let uCoins = u.balance !== undefined ? u.balance : 1000; let isB = bannedUsers.includes(u.username) || bannedDevices.includes(u.id);
-                if(u.username === "Shadow") isB = false;
+                let uCoins = u.balance !== undefined ? u.balance : 1000;
+                let isB = bannedUsers.includes(u.username) || bannedDevices.includes(u.id);
                 let badge = u.role === "Owner" ? "<span class='badge' style='background:#ffcc00;color:black;'>Owner</span>" : (u.role === "Admin" ? "<span class='badge' style='background:#00ffcc;color:black;'>Admin</span>" : "");
                 let itemHtml = `<div class="user-list-item" onclick="showUserDetails('${u.username}')"><span>${u.username} ${badge}</span><span style='color:#00ffcc;'>${uCoins}$</span></div>`;
                 if(!isB) { activeView.innerHTML += itemHtml; } else if(u.username !== "Shadow") { bannedView.innerHTML += itemHtml; }
@@ -146,4 +146,3 @@
     </script>
 </body>
 </html>
-
