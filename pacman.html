@@ -30,9 +30,10 @@
             background: #161622; padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
             display: inline-block; width: 95%; max-width: 440px; margin-top: 85px; text-align: center; box-sizing: border-box;
         }
-        /* KORREKTUR: Canvas-Größenzwang gelöscht, damit dein Handy den Grafikpuffer exakt so rendert wie berechnet */
+        /* KORREKTUR: Zwingt das Labyrinth elastisch dazu, sich NIEMALS über den Handy-Rand hinaus auszubreiten! */
         canvas {
             background: #05050a; border: 3px solid #ff0055; display: block; margin: 15px auto; border-radius: 15px;
+            max-width: 100%; height: auto; box-sizing: border-box;
         }
         .controls-grid {
             display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 180px; margin: 15px auto;
@@ -74,7 +75,7 @@
         </div>
         <div id="play-area" style="display: none;">
             <div style="font-size:0.9rem; color:#aaa;">Multiplikator: <span id="mult-display" style="color:#00ffcc; font-weight:bold;">1.00x</span> | Gewinn: <span id="potential-win" style="color:#00ffcc; font-weight:bold;">0</span> $</div>
-            <canvas id="pacmanCanvas" width="400" height="400"></canvas>
+            <canvas id="pacmanCanvas"></canvas>
             <div class="controls-grid">
                 <div></div><button class="btn-ctrl" onclick="changeDir(0, -1)">🔼</button><div></div>
                 <button class="btn-ctrl" onclick="changeDir(-1, 0)">◀️</button><div></div><button class="btn-ctrl" onclick="changeDir(1, 0)">▶️</button>
@@ -89,7 +90,7 @@
         let canvas, ctx, gameInterval; let gameActive = false; let currentMultiplier = 1.0;
         const GH_USER = "Shadow13041"; const GH_REPO = "Casino"; const GH_TOKEN = "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"; let currentFileSha = "";
         let mapStr = "11111111111111111111|10000100000000100001|10110101111110101101|10000000010000000001|11101111010111101111|10001000010000100001|10101011111110101011|10100000000000001011|10111110111110111111|10000000111110000001|10111110111110111111|10100000000000001011|10101011111110101011|10001000010000100001|11101111010111101111|10000000010000000001|10110101111110101101|10000100000000100001|11111111111111111111".split("|").map(row => row.split("").map(Number));
-        let grid = []; let rows = 19; let cols = 20; let tileSize = 16; // Auf 16px optimiert für perfekte Smartphone-Skalierung
+        let grid = []; let rows = 19; let cols = 20; let tileSize = 16;
         let pacman = { x: 1, y: 1, dx: 1, dy: 0, nextDx: 1, nextDy: 0 }; let ghost = { x: 18, y: 17, dx: -1, dy: 0 };
         function playSound(type) {
             try {
