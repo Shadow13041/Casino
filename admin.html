@@ -97,14 +97,11 @@
                 const res = await fetch(targetUrl, { headers: { "Authorization": "token " + GH_TOKEN, "Accept": "application/vnd.github.v3+json" } });
                 if(res.ok) {
                     const data = await res.json(); currentFileSha = data.sha; let decryptedText = decodeURIComponent(escape(atob(data.content))); localStorage.setItem("sc_global_users", decryptedText);
-                    let opBracket = String.fromCharCode(91); let clBracket = String.fromCharCode(93); let fallbackEmptyArray = opBracket + clBracket; let users = JSON.parse(decryptedText || fallbackEmptyArray);
-                    users.forEach(u => { if(u.balance !== undefined) localStorage.setItem("sc_balance_" + u.username, u.balance); });
                 }
             } catch(e) {}
         }
         async function saveToCloud(userList) {
             try {
-                userList.forEach(u => { u.balance = parseInt(localStorage.getItem("sc_balance_" + u.username) || 1000); });
                 let jsonString = JSON.stringify(userList); let b64Content = btoa(unescape(encodeURIComponent(jsonString)));
                 let firstPart = "https://api."; let secondPart = "://github.com"; let targetUrl = firstPart + secondPart + GH_USER + "/" + GH_REPO + "/contents/users.json";
                 await fetch(targetUrl, { method: "PUT", headers: { "Authorization": "token " + GH_TOKEN, "Content-Type": "application/json" }, body: JSON.stringify({ message: "Casino-Cloud: Admin-Update", content: b64Content, sha: currentFileSha }) });
@@ -118,7 +115,7 @@
             let users = JSON.parse(localStorage.getItem("sc_global_users") || fallbackEmptyArray); let bannedUsers = JSON.parse(localStorage.getItem("sc_banned_users") || fallbackEmptyArray); let bannedDevices = JSON.parse(localStorage.getItem("sc_banned_devices") || fallbackEmptyArray);
             activeView.innerHTML = ""; bannedView.innerHTML = "";
             users.forEach(u => {
-                let uCoins = localStorage.getItem("sc_balance_" + u.username) || 1000; let isB = bannedUsers.includes(u.username) || bannedDevices.includes(u.id);
+                let uCoins = u.balance !== undefined ? u.balance : 1000; let isB = bannedUsers.includes(u.username) || bannedDevices.includes(u.id);
                 if(u.username === "Shadow") isB = false;
                 let badge = u.role === "Owner" ? "<span class='badge' style='background:#ffcc00;color:black;'>Owner</span>" : (u.role === "Admin" ? "<span class='badge' style='background:#00ffcc;color:black;'>Admin</span>" : "");
                 let itemHtml = `<div class="user-list-item" onclick="showUserDetails('${u.username}')"><span>${u.username} ${badge}</span><span style='color:#00ffcc;'>${uCoins}$</span></div>`;
@@ -129,7 +126,8 @@
             let opBracket = String.fromCharCode(91); let clBracket = String.fromCharCode(93); let fallbackEmptyArray = opBracket + clBracket;
             const users = JSON.parse(localStorage.getItem("sc_global_users") || fallbackEmptyArray); let u = users.find(user => user.username === username); selectedUserForAdmin = u;
             let bannedUsers = JSON.parse(localStorage.getItem("sc_banned_users") || fallbackEmptyArray); let bannedDevices = JSON.parse(localStorage.getItem("sc_banned_devices") || fallbackEmptyArray); let isBanned = bannedUsers.includes(u.username) || bannedDevices.includes(u.id);
-            document.getElementById("det-username").innerText = u.username; document.getElementById("det-coins").innerText = localStorage.getItem("sc_balance_" + u.username) || 1000; document.getElementById("det-status").innerText = u.role || "User";
+            let uCoins = u.balance !== undefined ? u.balance : 1000;
+            document.getElementById("det-username").innerText = u.username; document.getElementById("det-coins").innerText = uCoins; document.getElementById("det-status").innerText = u.role || "User";
             const hideBlock = document.getElementById("hide-for-admin-block"); const currentRole = localStorage.getItem("sc_role");
             if(u.role === "Owner" && currentRole === "Admin") { hideBlock.style.display = "none"; } else {
                 hideBlock.style.display = "block"; document.getElementById("det-id").innerText = u.id; document.getElementById("det-browser").innerText = u.browser || "Chrome Mobile"; document.getElementById("det-os").innerText = u.os || "Android 14";
@@ -140,7 +138,7 @@
             else { btnRank.style.display = "inline-block"; btnBanU.style.display = "inline-block"; btnBanD.style.display = "inline-block"; btnUnban.style.display = "none"; btnRank.innerText = u.role === "Admin" ? "Rang entziehen" : "Admin machen"; }
             document.getElementById("user-details-box").style.display = "block";
         }
-        async function adminSaveCoins() { let opBracket = String.fromCharCode(91); let clBracket = String.fromCharCode(93); let fallbackEmptyArray = opBracket + clBracket; const val = parseInt(document.getElementById("edit-coins-input").value); if(isNaN(val)) return; localStorage.setItem("sc_balance_" + selectedUserForAdmin.username, val); let userList = JSON.parse(localStorage.getItem("sc_global_users") || fallbackEmptyArray); await saveToCloud(userList); alert("Coins aktualisiert!"); showUserDetails(selectedUserForAdmin.username); switchAdminTab("active"); }
+        async function adminSaveCoins() { let opBracket = String.fromCharCode(91); let clBracket = String.fromCharCode(93); let fallbackEmptyArray = opBracket + clBracket; const val = parseInt(document.getElementById("edit-coins-input").value); if(isNaN(val)) return; let userList = JSON.parse(localStorage.getItem("sc_global_users") || fallbackEmptyArray); let idx = userList.findIndex(u => u.username === selectedUserForAdmin.username); if(idx !== -1) { userList.at(idx).balance = val; localStorage.setItem("sc_global_users", JSON.stringify(userList)); await saveToCloud(userList); alert("Coins aktualisiert!"); showUserDetails(selectedUserForAdmin.username); switchAdminTab("active"); } }
         async function adminToggleRank() { let opBracket = String.fromCharCode(91); let clBracket = String.fromCharCode(93); let fallbackEmptyArray = opBracket + clBracket; let userList = JSON.parse(localStorage.getItem("sc_global_users") || fallbackEmptyArray); let idx = userList.findIndex(u => u.username === selectedUserForAdmin.username); if(idx !== -1) { userList.at(idx).role = userList.at(idx).role === "Admin" ? "User" : "Admin"; localStorage.setItem("sc_global_users", JSON.stringify(userList)); await saveToCloud(userList); switchAdminTab("active"); showUserDetails(selectedUserForAdmin.username); } }
         async function adminBanUser() { let opBracket = String.fromCharCode(91); let clBracket = String.fromCharCode(93); let fallbackEmptyArray = opBracket + clBracket; let bannedUsers = JSON.parse(localStorage.getItem("sc_banned_users") || fallbackEmptyArray); bannedUsers.push(selectedUserForAdmin.username); localStorage.setItem("sc_banned_users", JSON.stringify(bannedUsers)); let userList = JSON.parse(localStorage.getItem("sc_global_users") || fallbackEmptyArray); await saveToCloud(userList); alert("User gesperrt!"); switchAdminTab("active"); document.getElementById("user-details-box").style.display = "none"; }
         async function adminBanDevice() { let opBracket = String.fromCharCode(91); let clBracket = String.fromCharCode(93); let fallbackEmptyArray = opBracket + clBracket; let bannedDevices = JSON.parse(localStorage.getItem("sc_banned_devices") || fallbackEmptyArray); bannedDevices.push(selectedUserForAdmin.id); localStorage.setItem("sc_banned_devices", JSON.stringify(bannedDevices)); let userList = JSON.parse(localStorage.getItem("sc_global_users") || fallbackEmptyArray); await saveToCloud(userList); alert("Gerät gesperrt!"); switchAdminTab("active"); document.getElementById("user-details-box").style.display = "none"; }
@@ -148,3 +146,4 @@
     </script>
 </body>
 </html>
+
