@@ -21,19 +21,18 @@
             color: #555566; font-size: 0.95rem; cursor: pointer; text-align: right; position: relative;
         }
         .profile-menu:hover { color: #888899; }
-                /* =============== START BLOCK 2 =============== */
         .dropdown-content {
             display: none; background: #161622; border: 1px solid #333344; padding: 10px; border-radius: 10px;
             position: absolute; right: 0; top: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); width: 120px; z-index: 200;
         }
         .dropdown-content a { color: #ff0055; text-decoration: none; display: block; margin: 5px 0; font-size: 0.85rem; }
-        .game-container {
+                .game-container {
             background: #161622; padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
             display: inline-block; width: 95%; max-width: 440px; margin-top: 85px; text-align: center; box-sizing: border-box;
         }
+        /* KORREKTUR: Canvas-Größenzwang gelöscht, damit dein Handy den Grafikpuffer exakt so rendert wie berechnet */
         canvas {
-            background: #05050a; border: 3px solid #ff0055; display: block; margin: 15px auto;
-            border-radius: 15px; box-shadow: inset 0 0 20px rgba(0,0,0,0.9); width: 100%; max-width: 340px; aspect-ratio: 1;
+            background: #05050a; border: 3px solid #ff0055; display: block; margin: 15px auto; border-radius: 15px;
         }
         .controls-grid {
             display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 180px; margin: 15px auto;
@@ -53,7 +52,6 @@
         .status-text { font-size: 1.1rem; color: #ffcc00; font-weight: bold; margin-top: 10px; height: 25px; }
     </style>
 </head>
-<!-- =============== START BLOCK 3 =============== -->
 <body>
     <div class="main-header">
         <div class="nav-logo" onclick="location.href='index.html'">SHADOW CASINO</div>
@@ -66,21 +64,17 @@
             </div>
         </div>
     </div>
-
     <div class="game-container">
         <h2 style="color:#ff0055; margin-top:0; font-size:1.6rem;">👾 Shadow Pacman</h2>
         <p style="color:#888; font-size:0.85rem; margin-bottom:5px;">Friss Pillen im Labyrinth für Multiplikatoren, aber entkomme dem Geist!</p>
         <div style="font-size: 0.9rem; color: #aaa; margin-bottom: 10px;">Guthaben: <span id="coins-display" style="color:#00ffcc; font-weight:bold;">0</span> $</div>
-        
         <div id="setup-area">
             <input type="number" id="bet-input" placeholder="Einsatz in $" value="50"><br>
             <button onclick="startPacman()">Runde starten</button>
         </div>
-
         <div id="play-area" style="display: none;">
             <div style="font-size:0.9rem; color:#aaa;">Multiplikator: <span id="mult-display" style="color:#00ffcc; font-weight:bold;">1.00x</span> | Gewinn: <span id="potential-win" style="color:#00ffcc; font-weight:bold;">0</span> $</div>
             <canvas id="pacmanCanvas" width="400" height="400"></canvas>
-            
             <div class="controls-grid">
                 <div></div><button class="btn-ctrl" onclick="changeDir(0, -1)">🔼</button><div></div>
                 <button class="btn-ctrl" onclick="changeDir(-1, 0)">◀️</button><div></div><button class="btn-ctrl" onclick="changeDir(1, 0)">▶️</button>
@@ -90,26 +84,13 @@
         </div>
         <div class="status-text" id="status-box">Platziere deinen Casino-Einsatz!</div>
     </div>
-    <!-- =============== START BLOCK 4 =============== -->
-    <script>
+        <script>
         let bet = 0; let currentU = ""; let audioCtx = null;
-        let canvas, ctx, gameInterval; let gameActive = false;
-        let currentMultiplier = 1.0;
-        
-        // Unzerstörbare GitHub-Verbindung direkt integriert
-        const GH_USER = "Shadow13041"; 
-        const GH_REPO = "Casino";
-        const GH_TOKEN = "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"; 
-        let currentFileSha = "";
-
-        // Map-Struktur: 1 = Wand, 0 = Pille
+        let canvas, ctx, gameInterval; let gameActive = false; let currentMultiplier = 1.0;
+        const GH_USER = "Shadow13041"; const GH_REPO = "Casino"; const GH_TOKEN = "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"; let currentFileSha = "";
         let mapStr = "11111111111111111111|10000100000000100001|10110101111110101101|10000000010000000001|11101111010111101111|10001000010000100001|10101011111110101011|10100000000000001011|10111110111110111111|10000000111110000001|10111110111110111111|10100000000000001011|10101011111110101011|10001000010000100001|11101111010111101111|10000000010000000001|10110101111110101101|10000100000000100001|11111111111111111111".split("|").map(row => row.split("").map(Number));
-        let grid = []; 
-        let rows = 19; let cols = 20; let tileSize = 20;
-
-        let pacman = { x: 1, y: 1, dx: 1, dy: 0, nextDx: 1, nextDy: 0 };
-        let ghost = { x: 18, y: 17, dx: -1, dy: 0 };
-
+        let grid = []; let rows = 19; let cols = 20; let tileSize = 16; // Auf 16px optimiert für perfekte Smartphone-Skalierung
+        let pacman = { x: 1, y: 1, dx: 1, dy: 0, nextDx: 1, nextDy: 0 }; let ghost = { x: 18, y: 17, dx: -1, dy: 0 };
         function playSound(type) {
             try {
                 if (!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
@@ -119,143 +100,55 @@
                 else if (type === 'cash') { osc.type = 'sine'; osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.08); gain.gain.setValueAtTime(0.08, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25); osc.start(); osc.stop(audioCtx.currentTime + 0.25); }
             } catch(e) {}
         }
-
         window.onload = function() {
             currentU = localStorage.getItem("sc_username"); if (!currentU) { location.href = "login.html"; return; }
-            document.getElementById("menu-username").innerText = currentU;
-            const currentRole = localStorage.getItem("sc_role");
-            if (currentRole === "Owner" || currentRole === "Admin") { document.getElementById("admin-panel-link").style.display = "block"; }
-            updateBalanceDisplay();
-            canvas = document.getElementById("pacmanCanvas"); ctx = canvas.getContext("2d");
-            canvas.width = cols * tileSize; canvas.height = rows * tileSize;
+            document.getElementById("menu-username").innerText = currentU; const currentRole = localStorage.getItem("sc_role"); if (currentRole === "Owner" || currentRole === "Admin") { document.getElementById("admin-panel-link").style.display = "block"; }
+            updateBalanceDisplay(); canvas = document.getElementById("pacmanCanvas"); ctx = canvas.getContext("2d"); canvas.width = cols * tileSize; canvas.height = rows * tileSize;
         };
-
         function updateBalanceDisplay() { document.getElementById("coins-display").innerText = localStorage.getItem("sc_balance_" + currentU) || 1000; }
         function toggleDropdown() { const drop = document.getElementById("profile-dropdown"); drop.style.display = drop.style.display === "block" ? "none" : "block"; }
         function logout() { localStorage.removeItem("sc_username"); localStorage.removeItem("sc_role"); localStorage.removeItem("sc_password"); location.href = "login.html"; }
-
         async function syncFromCloud() {
             try {
-                const res = await fetch(`https://github.com{GH_USER}/${GH_REPO}/contents/users.json`, { headers: { "Authorization": `token ${GH_TOKEN}`, "Accept": "application/vnd.github.v3+json" } });
+                let firstPart = "https://api."; let secondPart = "://github.com"; let targetUrl = firstPart + secondPart + GH_USER + "/" + GH_REPO + "/contents/users.json";
+                const res = await fetch(targetUrl, { headers: { "Authorization": "token " + GH_TOKEN, "Accept": "application/vnd.github.v3+json" } });
                 if(res.ok) { const data = await res.json(); currentFileSha = data.sha; let text = decodeURIComponent(escape(atob(data.content))); localStorage.setItem("sc_global_users", text); }
             } catch(e) {}
         }
-
         async function pushToCloud() {
             try {
-                await syncFromCloud();
-                let userList = JSON.parse(localStorage.getItem("sc_global_users") || "[]");
-                let idx = userList.findIndex(u => u.username === currentU);
-                if(idx !== -1) { userList[idx].balance = parseInt(localStorage.getItem("sc_balance_" + currentU) || 1000); }
-                let b64 = btoa(unescape(encodeURIComponent(JSON.stringify(userList))));
-                await fetch(`https://github.com{GH_USER}/${GH_REPO}/contents/users.json`, { method: "PUT", headers: { "Authorization": `token ${GH_TOKEN}`, "Content-Type": "application/json" }, body: JSON.stringify({ message: "Casino-Cloud: Pacman-Update", content: b64, sha: currentFileSha }) });
+                await syncFromCloud(); let opBracket = String.fromCharCode(91); let clBracket = String.fromCharCode(93); let fallbackEmptyArray = opBracket + clBracket;
+                let userList = JSON.parse(localStorage.getItem("sc_global_users") || fallbackEmptyArray); let idx = userList.findIndex(u => u.username === currentU); if(idx !== -1) { userList.at(idx).balance = parseInt(localStorage.getItem("sc_balance_" + currentU) || 1000); }
+                let b64 = btoa(unescape(encodeURIComponent(JSON.stringify(userList)))); let firstPart = "https://api."; let secondPart = "://github.com"; let targetUrl = firstPart + secondPart + GH_USER + "/" + GH_REPO + "/contents/users.json";
+                await fetch(targetUrl, { method: "PUT", headers: { "Authorization": "token " + GH_TOKEN, "Content-Type": "application/json" }, body: JSON.stringify({ message: "Casino-Cloud: Pacman-Update", content: b64, sha: currentFileSha }) });
             } catch(e) {}
         }
-
         function changeDir(x, y) { pacman.nextDx = x; pacman.nextDy = y; }
-                /* =============== START BLOCK 5 =============== */
         function startPacman() {
-            bet = parseInt(document.getElementById("bet-input").value);
-            let coins = parseInt(localStorage.getItem("sc_balance_" + currentU) || 1000);
-            if (isNaN(bet) || bet <= 0 || bet > coins) { alert("Ungültiger Einsatz!"); return; }
-
+            bet = parseInt(document.getElementById("bet-input").value); let coins = parseInt(localStorage.getItem("sc_balance_" + currentU) || 1000); if (isNaN(bet) || bet <= 0 || bet > coins) { alert("Ungültiger Einsatz!"); return; }
             coins -= bet; localStorage.setItem("sc_balance_" + currentU, coins); updateBalanceDisplay(); pushToCloud();
-
-            document.getElementById("setup-area").style.display = "none"; document.getElementById("play-area").style.display = "block";
-            document.getElementById("status-box").style.color = "#ffcc00"; document.getElementById("status-box").innerText = "Weiche dem Geist aus!";
-
-            grid = JSON.parse(JSON.stringify(mapStr));
-            pacman = { x: 1, y: 1, dx: 1, dy: 0, nextDx: 1, nextDy: 0 };
-            ghost = { x: 18, y: 17, dx: -1, dy: 0 };
-            currentMultiplier = 1.0; gameActive = true;
-
-            if(gameInterval) clearInterval(gameInterval);
-            gameInterval = setInterval(gameLoop, 220); 
+            document.getElementById("setup-area").style.display = "none"; document.getElementById("play-area").style.display = "block"; document.getElementById("status-box").style.color = "#ffcc00"; document.getElementById("status-box").innerText = "Weiche dem Geist aus!";
+            grid = JSON.parse(JSON.stringify(mapStr)); pacman = { x: 1, y: 1, dx: 1, dy: 0, nextDx: 1, nextDy: 0 }; ghost = { x: 18, y: 17, dx: -1, dy: 0 }; currentMultiplier = 1.0; gameActive = true;
+            if(gameInterval) clearInterval(gameInterval); gameInterval = setInterval(gameLoop, 220);
         }
-
         function gameLoop() {
             if (!gameActive) return;
-
-            // 1. Bewegungs-Logik für Pacman
-            if (grid[pacman.y + pacman.nextDy][pacman.x + pacman.nextDx] !== 1) {
-                pacman.dx = pacman.nextDx; pacman.dy = pacman.nextDy;
-            }
-            if (grid[pacman.y + pacman.dy][pacman.x + pacman.dx] !== 1) {
-                pacman.x += pacman.dx; pacman.y += pacman.dy;
-            }
-
-            // Pille fressen
-            if (grid[pacman.y][pacman.x] === 0) {
-                grid[pacman.y][pacman.x] = 2; 
-                currentMultiplier += 0.05; playSound("waka");
-                document.getElementById("mult-display").innerText = currentMultiplier.toFixed(2) + "x";
-                document.getElementById("potential-win").innerText = Math.floor(bet * currentMultiplier);
-            }
-
-            // 2. Bewegungs-Logik für den jagenden Geist (KI)
-            let possibleMoves = [];
-            let dirs = "0,-1|0,1|-1,0|1,0".split("|").map(d => d.split(",").map(Number));
-            
-            dirs.forEach(d => {
-                let nx = ghost.x + d; let ny = ghost.y + d;
-                if (grid[ny][nx] !== 1) { possibleMoves.push(d); }
-            });
-
-            if (possibleMoves.length > 0) {
-                let bestMove = possibleMoves; let minDist = 9999;
-                possibleMoves.forEach(m => {
-                    let gx = ghost.x + m; let gy = ghost.y + m;
-                    let dist = Math.abs(pacman.x - gx) + Math.abs(pacman.y - gy);
-                    if (dist < minDist) { minDist = dist; bestMove = m; }
-                });
-                ghost.dx = bestMove; ghost.dy = bestMove;
-            }
+            if (grid[pacman.y + pacman.nextDy][pacman.x + pacman.nextDx] !== 1) { pacman.dx = pacman.nextDx; pacman.dy = pacman.nextDy; }
+            if (grid[pacman.y + pacman.dy][pacman.x + pacman.dx] !== 1) { pacman.x += pacman.dx; pacman.y += pacman.dy; }
+            if (grid[pacman.y][pacman.x] === 0) { grid[pacman.y][pacman.x] = 2; currentMultiplier += 0.05; playSound("waka"); document.getElementById("mult-display").innerText = currentMultiplier.toFixed(2) + "x"; document.getElementById("potential-win").innerText = Math.floor(bet * currentMultiplier); }
+            let possibleMoves = []; let dirs = "0,-1|0,1|-1,0|1,0".split("|").map(d => d.split(",").map(Number));
+            dirs.forEach(d => { let nx = ghost.x + d; let ny = ghost.y + d; if (grid[ny][nx] !== 1) { possibleMoves.push(d); } });
+            if (possibleMoves.length > 0) { let bestMove = possibleMoves; let minDist = 9999; possibleMoves.forEach(m => { let gx = ghost.x + m; let gy = ghost.y + m; let dist = Math.abs(pacman.x - gx) + Math.abs(pacman.y - gy); if (dist < minDist) { minDist = dist; bestMove = m; } }); ghost.dx = bestMove; ghost.dy = bestMove; }
             ghost.x += ghost.dx; ghost.y += ghost.dy;
-
-            // Kollisions-Check
             if (pacman.x === ghost.x && pacman.y === ghost.y) { gameOver(); return; }
-
-            // KORREKTUR: Das Echtzeit-Rendersystem zeichnet das komplette Feld bei JEDEM Schritt neu!
             ctx.fillStyle = "#05050a"; ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            for(let r = 0; r < rows; r++) {
-                for(let c = 0; c < cols; c++) {
-                    if (grid[r][c] === 1) {
-                        ctx.fillStyle = "#161622"; // Edle, dunkle Labor-Wände
-                        ctx.fillRect(c * tileSize + 1, r * tileSize + 1, tileSize - 2, tileSize - 2);
-                    } else if (grid[r][c] === 0) {
-                        ctx.fillStyle = "#ffffff"; // Strahlend weiße Casino-Pillen
-                        ctx.beginPath(); ctx.arc(c * tileSize + tileSize/2, r * tileSize + tileSize/2, 3, 0, Math.PI * 2); ctx.fill();
-                    }
-                }
-            }
-
-            // Pacman zeichnen (Helles Casino-Gold)
+            for(let r = 0; r < rows; r++) { for(let c = 0; c < cols; c++) { if (grid[r][c] === 1) { ctx.fillStyle = "#161622"; ctx.fillRect(c * tileSize + 1, r * tileSize + 1, tileSize - 2, tileSize - 2); } else if (grid[r][c] === 0) { ctx.fillStyle = "#ffffff"; ctx.beginPath(); ctx.arc(c * tileSize + tileSize/2, r * tileSize + tileSize/2, 2, 0, Math.PI * 2); ctx.fill(); } } }
             ctx.fillStyle = "#ffcc00"; ctx.beginPath(); ctx.arc(pacman.x * tileSize + tileSize/2, pacman.y * tileSize + tileSize/2, tileSize/2 - 2, 0, Math.PI * 2); ctx.fill();
-            
-            // Jäger-Geist zeichnen (Aggressives Neon-Pink)
             ctx.fillStyle = "#ff0055"; ctx.beginPath(); ctx.arc(ghost.x * tileSize + tileSize/2, ghost.y * tileSize + tileSize/2, tileSize/2 - 2, 0, Math.PI * 2); ctx.fill();
         }
-
-        function gameOver() {
-            gameActive = false; clearInterval(gameInterval); playSound("death");
-            document.getElementById("status-box").style.color = "#ff0055"; document.getElementById("status-box").innerText = "GEFRESSEN! Der Geist hat dich erwischt.";
-            setTimeout(resetPacman, 3000);
-        }
-
-        function cashoutPacman() {
-            if (!gameActive) return; gameActive = false; clearInterval(gameInterval);
-            let coins = parseInt(localStorage.getItem("sc_balance_" + currentU) || 1000);
-            let totalWin = Math.floor(bet * currentMultiplier); coins += totalWin;
-            localStorage.setItem("sc_balance_" + currentU, coins); playSound("cash"); pushToCloud();
-            alert("Gewinn erfolgreich gesichert! +" + totalWin + "$ erhalten!");
-            resetPacman();
-        }
-
-        function resetPacman() {
-            updateBalanceDisplay(); document.getElementById("setup-area").style.display = "block"; document.getElementById("play-area").style.display = "none";
-            document.getElementById("status-box").style.color = "#ffcc00"; document.getElementById("status-box").innerText = "Platziere deinen Casino-Einsatz!";
-        }
+        function gameOver() { gameActive = false; clearInterval(gameInterval); playSound("death"); document.getElementById("status-box").style.color = "#ff0055"; document.getElementById("status-box").innerText = "GEFRESSEN! Der Geist hat dich erwischt."; setTimeout(resetPacman, 3000); }
+        function cashoutPacman() { if (!gameActive) return; gameActive = false; clearInterval(gameInterval); let coins = parseInt(localStorage.getItem("sc_balance_" + currentU) || 1000); let totalWin = Math.floor(bet * currentMultiplier); coins += totalWin; localStorage.setItem("sc_balance_" + currentU, coins); playSound("cash"); pushToCloud(); alert("Gewinn erfolgreich gesichert! +" + totalWin + "$ erhalten!"); resetPacman(); }
+        function resetPacman() { updateBalanceDisplay(); document.getElementById("setup-area").style.display = "block"; document.getElementById("play-area").style.display = "none"; document.getElementById("status-box").style.color = "#ffcc00"; document.getElementById("status-box").innerText = "Platziere deinen Casino-Einsatz!"; }
     </script>
 </body>
 </html>
