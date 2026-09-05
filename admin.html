@@ -84,12 +84,12 @@
         <br><center><button style="background:#444; font-size:0.9rem; padding:8px 20px;" onclick="location.href='index.html'">Zur Zentrale</button></center>
     </div>
     <script>
-        let selectedUserForAdmin = null; let currentU = "";
+        let selectedUserForAdmin = null; let currentU = ""; let cloudUsersList = [];
         const GH_USER = "Shadow13041"; const GH_REPO = "Casino"; const GH_TOKEN = "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"; let currentFileSha = "";
                 window.onload = async function() {
             currentU = localStorage.getItem("sc_username"); const currentRole = localStorage.getItem("sc_role");
             if (!currentU || (currentRole !== "Owner" && currentRole !== "Admin")) { alert("Zugriff verweigert!"); location.href = "index.html"; return; }
-            document.getElementById("menu-username").innerText = currentU; await syncFromCloud(); switchAdminTab("active");
+            document.getElementById("menu-username").innerText = currentU; await syncFromCloud();
         };
         async function syncFromCloud() {
             try {
@@ -97,6 +97,9 @@
                 const res = await fetch(targetUrl, { headers: { "Authorization": "token " + GH_TOKEN, "Accept": "application/vnd.github.v3+json" } });
                 if(res.ok) {
                     const data = await res.json(); currentFileSha = data.sha; let decryptedText = decodeURIComponent(escape(atob(data.content))); localStorage.setItem("sc_global_users", decryptedText);
+                    let opBracket = String.fromCharCode(91); let clBracket = String.fromCharCode(93); let fallbackEmptyArray = opBracket + clBracket;
+                    cloudUsersList = JSON.parse(decryptedText || fallbackEmptyArray);
+                    switchAdminTab("active");
                 }
             } catch(e) {}
         }
@@ -112,9 +115,9 @@
             document.getElementById("tab-act").classList.toggle("active", type === "active"); document.getElementById("tab-ban").classList.toggle("active", type === "banned");
             const activeView = document.getElementById("admin-view-active"); const bannedView = document.getElementById("admin-view-banned"); activeView.style.display = type === "active" ? "block" : "none"; bannedView.style.display = type === "banned" ? "block" : "none";
             let opBracket = String.fromCharCode(91); let clBracket = String.fromCharCode(93); let fallbackEmptyArray = opBracket + clBracket;
-            let users = JSON.parse(localStorage.getItem("sc_global_users") || fallbackEmptyArray); let bannedUsers = JSON.parse(localStorage.getItem("sc_banned_users") || fallbackEmptyArray); let bannedDevices = JSON.parse(localStorage.getItem("sc_banned_devices") || fallbackEmptyArray);
+            let bannedUsers = JSON.parse(localStorage.getItem("sc_banned_users") || fallbackEmptyArray); let bannedDevices = JSON.parse(localStorage.getItem("sc_banned_devices") || fallbackEmptyArray);
             activeView.innerHTML = ""; bannedView.innerHTML = "";
-            users.forEach(u => {
+            cloudUsersList.forEach(u => {
                 let uCoins = u.balance !== undefined ? u.balance : 1000;
                 let isB = bannedUsers.includes(u.username) || bannedDevices.includes(u.id);
                 let badge = u.role === "Owner" ? "<span class='badge' style='background:#ffcc00;color:black;'>Owner</span>" : (u.role === "Admin" ? "<span class='badge' style='background:#00ffcc;color:black;'>Admin</span>" : "");
@@ -123,8 +126,8 @@
             });
         }
         function showUserDetails(username) {
+            let u = cloudUsersList.find(user => user.username === username); selectedUserForAdmin = u;
             let opBracket = String.fromCharCode(91); let clBracket = String.fromCharCode(93); let fallbackEmptyArray = opBracket + clBracket;
-            const users = JSON.parse(localStorage.getItem("sc_global_users") || fallbackEmptyArray); let u = users.find(user => user.username === username); selectedUserForAdmin = u;
             let bannedUsers = JSON.parse(localStorage.getItem("sc_banned_users") || fallbackEmptyArray); let bannedDevices = JSON.parse(localStorage.getItem("sc_banned_devices") || fallbackEmptyArray); let isBanned = bannedUsers.includes(u.username) || bannedDevices.includes(u.id);
             let uCoins = u.balance !== undefined ? u.balance : 1000;
             document.getElementById("det-username").innerText = u.username; document.getElementById("det-coins").innerText = uCoins; document.getElementById("det-status").innerText = u.role || "User";
@@ -138,11 +141,11 @@
             else { btnRank.style.display = "inline-block"; btnBanU.style.display = "inline-block"; btnBanD.style.display = "inline-block"; btnUnban.style.display = "none"; btnRank.innerText = u.role === "Admin" ? "Rang entziehen" : "Admin machen"; }
             document.getElementById("user-details-box").style.display = "block";
         }
-        async function adminSaveCoins() { let opBracket = String.fromCharCode(91); let clBracket = String.fromCharCode(93); let fallbackEmptyArray = opBracket + clBracket; const val = parseInt(document.getElementById("edit-coins-input").value); if(isNaN(val)) return; let userList = JSON.parse(localStorage.getItem("sc_global_users") || fallbackEmptyArray); let idx = userList.findIndex(u => u.username === selectedUserForAdmin.username); if(idx !== -1) { userList.at(idx).balance = val; localStorage.setItem("sc_global_users", JSON.stringify(userList)); await saveToCloud(userList); alert("Coins aktualisiert!"); showUserDetails(selectedUserForAdmin.username); switchAdminTab("active"); } }
-        async function adminToggleRank() { let opBracket = String.fromCharCode(91); let clBracket = String.fromCharCode(93); let fallbackEmptyArray = opBracket + clBracket; let userList = JSON.parse(localStorage.getItem("sc_global_users") || fallbackEmptyArray); let idx = userList.findIndex(u => u.username === selectedUserForAdmin.username); if(idx !== -1) { userList.at(idx).role = userList.at(idx).role === "Admin" ? "User" : "Admin"; localStorage.setItem("sc_global_users", JSON.stringify(userList)); await saveToCloud(userList); switchAdminTab("active"); showUserDetails(selectedUserForAdmin.username); } }
-        async function adminBanUser() { let opBracket = String.fromCharCode(91); let clBracket = String.fromCharCode(93); let fallbackEmptyArray = opBracket + clBracket; let bannedUsers = JSON.parse(localStorage.getItem("sc_banned_users") || fallbackEmptyArray); bannedUsers.push(selectedUserForAdmin.username); localStorage.setItem("sc_banned_users", JSON.stringify(bannedUsers)); let userList = JSON.parse(localStorage.getItem("sc_global_users") || fallbackEmptyArray); await saveToCloud(userList); alert("User gesperrt!"); switchAdminTab("active"); document.getElementById("user-details-box").style.display = "none"; }
-        async function adminBanDevice() { let opBracket = String.fromCharCode(91); let clBracket = String.fromCharCode(93); let fallbackEmptyArray = opBracket + clBracket; let bannedDevices = JSON.parse(localStorage.getItem("sc_banned_devices") || fallbackEmptyArray); bannedDevices.push(selectedUserForAdmin.id); localStorage.setItem("sc_banned_devices", JSON.stringify(bannedDevices)); let userList = JSON.parse(localStorage.getItem("sc_global_users") || fallbackEmptyArray); await saveToCloud(userList); alert("Gerät gesperrt!"); switchAdminTab("active"); document.getElementById("user-details-box").style.display = "none"; }
-        async function adminUnbanAll() { let opBracket = String.fromCharCode(91); let clBracket = String.fromCharCode(93); let fallbackEmptyArray = opBracket + clBracket; let bu = JSON.parse(localStorage.getItem("sc_banned_users") || fallbackEmptyArray); let bd = JSON.parse(localStorage.getItem("sc_banned_devices") || fallbackEmptyArray); bu = bu.filter(u => u !== selectedUserForAdmin.username); bd = bd.filter(d => d !== selectedUserForAdmin.id); localStorage.setItem("sc_banned_users", JSON.stringify(bu)); localStorage.setItem("sc_banned_devices", JSON.stringify(bd)); let userList = JSON.parse(localStorage.getItem("sc_global_users") || fallbackEmptyArray); await saveToCloud(userList); alert("Erfolgreich entbannt!"); switchAdminTab("banned"); document.getElementById("user-details-box").style.display = "none"; }
+        async function adminSaveCoins() { const val = parseInt(document.getElementById("edit-coins-input").value); if(isNaN(val)) return; let idx = cloudUsersList.findIndex(u => u.username === selectedUserForAdmin.username); if(idx !== -1) { cloudUsersList.at(idx).balance = val; await saveToCloud(cloudUsersList); alert("Coins aktualisiert!"); showUserDetails(selectedUserForAdmin.username); switchAdminTab("active"); } }
+        async function adminToggleRank() { let idx = cloudUsersList.findIndex(u => u.username === selectedUserForAdmin.username); if(idx !== -1) { cloudUsersList.at(idx).role = cloudUsersList.at(idx).role === "Admin" ? "User" : "Admin"; await saveToCloud(cloudUsersList); switchAdminTab("active"); showUserDetails(selectedUserForAdmin.username); } }
+        async function adminBanUser() { let opBracket = String.fromCharCode(91); let clBracket = String.fromCharCode(93); let fallbackEmptyArray = opBracket + clBracket; let bannedUsers = JSON.parse(localStorage.getItem("sc_banned_users") || fallbackEmptyArray); bannedUsers.push(selectedUserForAdmin.username); localStorage.setItem("sc_banned_users", JSON.stringify(bannedUsers)); await saveToCloud(cloudUsersList); alert("User gesperrt!"); switchAdminTab("active"); document.getElementById("user-details-box").style.display = "none"; }
+        async function adminBanDevice() { let opBracket = String.fromCharCode(91); let clBracket = String.fromCharCode(93); let fallbackEmptyArray = opBracket + clBracket; let bannedDevices = JSON.parse(localStorage.getItem("sc_banned_devices") || fallbackEmptyArray); bannedDevices.push(selectedUserForAdmin.id); localStorage.setItem("sc_banned_devices", JSON.stringify(bannedDevices)); await saveToCloud(cloudUsersList); alert("Gerät gesperrt!"); switchAdminTab("active"); document.getElementById("user-details-box").style.display = "none"; }
+        async function adminUnbanAll() { let opBracket = String.fromCharCode(91); let clBracket = String.fromCharCode(93); let fallbackEmptyArray = opBracket + clBracket; let bu = JSON.parse(localStorage.getItem("sc_banned_users") || fallbackEmptyArray); let bd = JSON.parse(localStorage.getItem("sc_banned_devices") || fallbackEmptyArray); bu = bu.filter(u => u !== selectedUserForAdmin.username); bd = bd.filter(d => d !== selectedUserForAdmin.id); localStorage.setItem("sc_banned_users", JSON.stringify(bu)); localStorage.setItem("sc_banned_devices", JSON.stringify(bd)); await saveToCloud(cloudUsersList); alert("Erfolgreich entbannt!"); switchAdminTab("banned"); document.getElementById("user-details-box").style.display = "none"; }
     </script>
 </body>
 </html>
