@@ -28,8 +28,8 @@
             border: none; color: white; font-weight: bold; cursor: pointer;
         }
         .tab-btn.active { background: #ff0055; }
-        .user-list-item { background: #0d0d11; padding: 10px; margin: 5px 0; border-radius: 10px; cursor: pointer; border: 1px solid #222; display: flex; justify-content: space-between; align-items: center; }
-                .user-list-item:hover { border-color: #ff0055; }
+                .user-list-item { background: #0d0d11; padding: 10px; margin: 5px 0; border-radius: 10px; cursor: pointer; border: 1px solid #222; display: flex; justify-content: space-between; align-items: center; }
+        .user-list-item:hover { border-color: #ff0055; }
         .badge { font-size: 0.75rem; padding: 2px 6px; border-radius: 5px; font-weight: bold; }
         button {
             background: linear-gradient(135deg, #ff0055, #bc003f); color: white; border: none; padding: 10px 20px;
@@ -49,15 +49,14 @@
         <div class="nav-logo" onclick="location.href='index.html'">SHADOW CASINO</div>
         <div class="profile-menu"><span id="menu-username">...</span></div>
     </div>
-    <div class="admin-box">
+        <div class="admin-box">
         <h2 style="color:#ff0055; margin-top:0; text-align:center;">Shadow Control Panel</h2>
         <div class="tabs">
             <button class="tab-btn active" id="tab-act" onclick="switchAdminTab('active')">Aktive User</button>
             <button class="tab-btn" id="tab-ban" onclick="switchAdminTab('banned')">Sperrliste</button>
         </div>
-                <div id="admin-view-active"></div>
+        <div id="admin-view-active"></div>
         <div id="admin-view-banned"></div>
-        
         <div id="user-details-box" style="display:none; background:#1e1e2f; padding:15px; border-radius:15px; margin-top:15px; border:1px solid #ff0055;">
             <h3 id="det-username" style="color:#ffcc00; margin-top:0;"></h3>
             <div id="hide-for-admin-block">
@@ -67,7 +66,6 @@
             </div>
             <p><strong>Coins Kontostand:</strong> <span id="det-coins" style="color:#00ffcc; font-weight:bold;"></span> $</p>
             <p><strong>Status:</strong> <span id="det-status"></span></p>
-            
             <div id="edit-actions-area" style="display:none; background:#0d0d11; padding:10px; border-radius:10px; margin-bottom:15px; border:1px solid #333;">
                 <p style="margin:0 0 5px 0; font-size:0.85rem; color:#888;">Coins direkt bearbeiten:</p>
                 <input type="number" id="edit-coins-input" placeholder="Neue Anzahl">
@@ -118,7 +116,7 @@
             let bannedUsers = JSON.parse(localStorage.getItem("sc_banned_users") || fallbackEmptyArray); let bannedDevices = JSON.parse(localStorage.getItem("sc_banned_devices") || fallbackEmptyArray);
             activeView.innerHTML = ""; bannedView.innerHTML = "";
             cloudUsersList.forEach(u => {
-                let uCoins = u.balance !== undefined ? u.balance : 1000;
+                let uCoins = typeof u.balance !== "undefined" ? u.balance : 1000;
                 let isB = bannedUsers.includes(u.username) || bannedDevices.includes(u.id);
                 let badge = u.role === "Owner" ? "<span class='badge' style='background:#ffcc00;color:black;'>Owner</span>" : (u.role === "Admin" ? "<span class='badge' style='background:#00ffcc;color:black;'>Admin</span>" : "");
                 let itemHtml = `<div class="user-list-item" onclick="showUserDetails('${u.username}')"><span>${u.username} ${badge}</span><span style='color:#00ffcc;'>${uCoins}$</span></div>`;
@@ -129,7 +127,7 @@
             let u = cloudUsersList.find(user => user.username === username); selectedUserForAdmin = u;
             let opBracket = String.fromCharCode(91); let clBracket = String.fromCharCode(93); let fallbackEmptyArray = opBracket + clBracket;
             let bannedUsers = JSON.parse(localStorage.getItem("sc_banned_users") || fallbackEmptyArray); let bannedDevices = JSON.parse(localStorage.getItem("sc_banned_devices") || fallbackEmptyArray); let isBanned = bannedUsers.includes(u.username) || bannedDevices.includes(u.id);
-            let uCoins = u.balance !== undefined ? u.balance : 1000;
+            let uCoins = typeof u.balance !== "undefined" ? u.balance : 1000;
             document.getElementById("det-username").innerText = u.username; document.getElementById("det-coins").innerText = uCoins; document.getElementById("det-status").innerText = u.role || "User";
             const hideBlock = document.getElementById("hide-for-admin-block"); const currentRole = localStorage.getItem("sc_role");
             if(u.role === "Owner" && currentRole === "Admin") { hideBlock.style.display = "none"; } else {
