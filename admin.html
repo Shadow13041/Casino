@@ -118,7 +118,8 @@
             activeView.innerHTML = ""; bannedView.innerHTML = "";
             if (cloudUsersList && cloudUsersList.length > 0) {
                 for(let i = 0; i < cloudUsersList.length; i++) {
-                    let u = cloudUsersList.at(i); let uCoins = typeof u.balance !== "undefined" ? u.balance : 1000;
+                    let u = cloudUsersList.at(i); 
+                    let uCoins = (typeof u.balance !== "undefined" && u.balance !== null) ? u.balance : 1000;
                     let isB = bannedUsers.includes(u.username) || bannedDevices.includes(u.id);
                     let badge = u.role === "Owner" ? "<span class='badge' style='background:#ffcc00;color:black;'>Owner</span>" : (u.role === "Admin" ? "<span class='badge' style='background:#00ffcc;color:black;'>Admin</span>" : "");
                     let itemHtml = `<div class="user-list-item" onclick="showUserDetails('${u.username}')"><span>${u.username} ${badge}</span><span style='color:#00ffcc;'>${uCoins}$</span></div>`;
@@ -132,7 +133,7 @@
             let bannedUsers = []; let bannedDevices = [];
             try { bannedUsers = JSON.parse(localStorage.getItem("sc_banned_users") || fallbackEmptyArray); bannedDevices = JSON.parse(localStorage.getItem("sc_banned_devices") || fallbackEmptyArray); } catch(err) {}
             let isBanned = bannedUsers.includes(u.username) || bannedDevices.includes(u.id);
-            let uCoins = typeof u.balance !== "undefined" ? u.balance : 1000;
+            let uCoins = (typeof u.balance !== "undefined" && u.balance !== null) ? u.balance : 1000;
             document.getElementById("det-username").innerText = u.username; document.getElementById("det-coins").innerText = uCoins; document.getElementById("det-status").innerText = u.role || "User";
             const hideBlock = document.getElementById("hide-for-admin-block"); const currentRole = localStorage.getItem("sc_role");
             if(u.role === "Owner" && currentRole === "Admin") { hideBlock.style.display = "none"; } else {
