@@ -3,144 +3,105 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shadow Casino - Login</title>
+    <title>Shadow Casino - Einloggen</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #0d0d11; color: #ffffff; text-align: center; padding: 20px; margin: 0;
+            background-color: #0d0d11; color: #ffffff; text-align: center; padding: 15px; margin: 0;
         }
-        .main-header {
-            display: flex; justify-content: center; align-items: center; padding: 15px 20px;
-            position: absolute; top: 0; left: 0; right: 0; z-index: 100; background: rgba(13, 13, 17, 0.9);
-        }
-        .nav-logo {
-            color: #ff0055; text-shadow: 0 0 10px #ff0055; font-size: 1.6rem; font-weight: bold;
-            cursor: pointer; text-decoration: none; margin: 0;
-        }
-                /* =============== START BLOCK 2 =============== */
         .auth-container {
             background: #161622; padding: 25px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            display: inline-block; width: 90%; max-width: 360px; margin-top: 120px; text-align: center;
+            display: inline-block; width: 95%; max-width: 360px; margin-top: 100px; text-align: center; box-sizing: border-box;
+        }
+        h2 { color: #ff0055; margin-top: 0; font-size: 1.8rem; text-shadow: 0 0 10px rgba(255,0,85,0.3); }
+        input {
+            width: 90%; padding: 12px; margin: 10px 0; border-radius: 10px; border: 1px solid #333344;
+            background: #05050a; color: white; text-align: center; font-size: 1rem; box-sizing: border-box;
         }
         button {
             background: linear-gradient(135deg, #ff0055, #bc003f); color: white; border: none; padding: 12px 25px;
             font-size: 1.1rem; font-weight: bold; border-radius: 50px; cursor: pointer; box-shadow: 0 5px 15px rgba(255, 0, 85, 0.4);
-            margin-top: 10px; width: 85%;
+            width: 90%; margin-top: 10px;
         }
-        input {
-            width: 80%; padding: 10px; margin: 8px 0; border-radius: 10px; border: 1px solid #333344;
-            background: #05050a; color: white; text-align: center; font-size: 1rem;
-        }
+        .switch-mode-text { margin-top: 15px; font-size: 0.85rem; color: #aaa; cursor: pointer; }
+        .switch-mode-text span { color: #ff0055; font-weight: bold; }
     </style>
-</head>
-    <!-- =============== START BLOCK 3 =============== -->
+    </head>
 <body>
-    <div class="main-header">
-        <div class="nav-logo" onclick="location.reload()">SHADOW CASINO</div>
+    <div class="auth-container">
+        <h2 id="auth-title">EINLOGGEN</h2>
+        <input type="text" id="username-input" placeholder="Benutzername">
+        <input type="password" id="password-input" placeholder="Passwort">
+        <button id="auth-btn" onclick="processAuth()">Anmelden</button>
+        <div class="switch-mode-text" id="toggle-mode-box" onclick="toggleMode()">Neu hier? <span>Konto erstellen</span></div>
     </div>
-    
-    <div id="auth-box" class="auth-container">
-        <h2 style="color:#ff0055; margin-top:0; font-size:1.8rem; text-shadow: 0 0 10px rgba(255,0,85,0.3);">LOGIN</h2>
-        <h3 style="margin-top:0; color:#aaa; font-size:0.95rem; margin-bottom:15px;">Einloggen oder Registrieren</h3>
-        <input type="text" id="username-input" placeholder="Benutzername" required><br>
-        <input type="password" id="password-input" placeholder="Passwort" required><br>
-        <button onclick="authAction()">Bestätigen</button>
-    </div>
-        <!-- =============== START BLOCK 4 =============== -->
-    <script>
-        let deviceName = "Xiaomi Redmi";
-        
-        // !!! DEINE DIREKT HINTERLEGTEN DATEN !!!
-        const GH_USER = "Shadow13041"; 
-        const GH_REPO = "Casino";
-        const GH_TOKEN = "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"; 
-        
-        let currentFileSha = "";
-
-        async function syncFromCloud() {
+    <script type="module">
+        import { initializeApp } from "https://gstatic.com";
+        import { getDatabase, ref, get, set } from "https://gstatic.com";
+        const firebaseConfig = {
+            apiKey: "AIzaSyAZzQ_oKZ3maWTGgj0eCih0jhSAumH6WQQ",
+            authDomain: "shadow-casino.firebaseapp.com",
+            databaseURL: "https://shadow-casino-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "shadow-casino",
+            storageBucket: "shadow-casino.firebasestorage.app",
+            messagingSenderId: "389676429525",
+            appId: "1:389676429525:web:37ed2f98d0205d6778325c"
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        let isRegisterMode = false;
+        window.toggleMode = function() {
+            isRegisterMode = !isRegisterMode;
+            document.getElementById("auth-title").innerText = isRegisterMode ? "REGISTRIEREN" : "EINLOGGEN";
+            document.getElementById("auth-btn").innerText = isRegisterMode ? "Konto erstellen" : "Anmelden";
+            document.getElementById("toggle-mode-box").innerHTML = isRegisterMode ? "Bereits registriert? <span>Einloggen</span>" : "Neu hier? <span>Konto erstellen</span>";
+        };
+                window.processAuth = async function() {
+            const uInput = document.getElementById("username-input").value.trim();
+            const pInput = document.getElementById("password-input").value.trim();
+            if (!uInput || !pInput) { alert("Bitte fülle alle Felder aus!"); return; }
+            const cleanUserKey = uInput.replace(/[.#$\[\]]/g, "");
+            const userRef = ref(db, "users/" + cleanUserKey);
             try {
-                const res = await fetch(`https://github.com{GH_USER}/${GH_REPO}/contents/users.json`, {
-                    headers: { "Authorization": `token ${GH_TOKEN}`, "Accept": "application/vnd.github.v3+json" }
-                });
-                if(res.ok) {
-                    const data = await res.json();
-                    currentFileSha = data.sha;
-                    let decryptedText = decodeURIComponent(escape(atob(data.content)));
-                    localStorage.setItem("sc_global_users", decryptedText);
-                }
-            } catch(e) {}
-            
-            let userList = JSON.parse(localStorage.getItem("sc_global_users") || "[]");
-            if (!userList.some(u => u.username === "Shadow")) {
-                userList.push({ id: "OWNER-PHONE", username: "Shadow", pass: "shadow-admin", browser: "Chrome Mobile", os: "Android", role: "Owner" });
-                localStorage.setItem("sc_global_users", JSON.stringify(userList));
-            }
-        }
-
-        async function saveToCloud(userList) {
-            try {
-                let jsonString = JSON.stringify(userList);
-                let b64Content = btoa(unescape(encodeURIComponent(jsonString)));
-                
-                await fetch(`https://github.com{GH_USER}/${GH_REPO}/contents/users.json`, {
-                    method: "PUT",
-                    headers: { "Authorization": `token ${GH_TOKEN}`, "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        message: "Casino-Cloud: Konten-Update",
-                        content: b64Content,
-                        sha: currentFileSha
-                    })
-                });
-            } catch(e) {}
-        }
-                /* =============== START BLOCK 5 =============== */
-        async function authAction() {
-            const user = document.getElementById("username-input").value.trim(); 
-            const pass = document.getElementById("password-input").value.trim();
-            if(!user || !pass) { alert("Bitte ausfüllen!"); return; }
-            
-            let bannedUsers = JSON.parse(localStorage.getItem("sc_banned_users") || "[]");
-            if (bannedUsers.includes(user)) { alert("Dieser Account wurde gebannt."); return; }
-            
-            await syncFromCloud();
-            let userList = JSON.parse(localStorage.getItem("sc_global_users") || "[]"); 
-            let foundUser = userList.find(u => u.username.toLowerCase() === user.toLowerCase());
-            
-            if (foundUser) {
-                if (foundUser.pass === pass) {
-                    localStorage.setItem("sc_username", foundUser.username); 
-                    localStorage.setItem("sc_role", foundUser.role || "User"); 
-                    localStorage.setItem("sc_password", foundUser.pass);
-                    if(!localStorage.getItem("sc_balance_" + foundUser.username)) {
-                        localStorage.setItem("sc_balance_" + foundUser.username, 1000);
-                    }
+                const snapshot = await get(userRef);
+                if (isRegisterMode) {
+                    if (snapshot.exists()) { alert("Dieser Benutzername ist bereits vergeben!"); return; }
+                    let cryptoArray = new Uint32Array(1); window.crypto.getRandomValues(cryptoArray);
+                    let deviceId = cryptoArray.at(0).toString(16);
+                    let initialRole = "User";
+                    if (uInput === "Shadow") initialRole = "Owner";
+                    let userObj = {
+                        username: uInput,
+                        pass: pInput,
+                        balance: 1000,
+                        role: initialRole,
+                        id: deviceId,
+                        browser: "Chrome Mobile",
+                        os: "Android 14"
+                    };
+                    await set(userRef, userObj);
+                    alert("🎉 Registrierung erfolgreich! Du kannst dich jetzt einloggen.");
+                    toggleMode();
+                } else {
+                                        if (!snapshot.exists()) { alert("Benutzerkonto existiert nicht!"); return; }
+                    const userData = snapshot.val();
+                    if (userData.pass !== pInput) { alert("Falsches Passwort!"); return; }
+                    let bannedRef = ref(db, "bans/users/" + cleanUserKey);
+                    let bannedSnapshot = await get(bannedRef);
+                    if (bannedSnapshot.exists()) { alert("Dieses Konto wurde gesperrt!"); return; }
+                    let devBannedRef = ref(db, "bans/devices/" + userData.id);
+                    let devBannedSnapshot = await get(devBannedRef);
+                    if (devBannedSnapshot.exists()) { alert("Dein Gerät wurde dauerhaft gesperrt!"); return; }
+                    localStorage.setItem("sc_username", userData.username);
+                    localStorage.setItem("sc_role", userData.role);
+                    localStorage.setItem("sc_password", userData.pass);
+                    localStorage.setItem("sc_balance_" + userData.username, userData.balance);
                     location.href = "index.html";
-                } else { alert("Falsches Passwort!"); }
-            } else {
-                if (user.toLowerCase() === "shadow") { alert("Name reserviert!"); return; }
-                userList.push({ id: deviceName, username: user, pass: pass, browser: "Chrome Mobile", os: "Android", role: "User" });
-                localStorage.setItem("sc_global_users", JSON.stringify(userList)); 
-                await saveToCloud(userList);
-                
-                localStorage.setItem("sc_username", user); 
-                localStorage.setItem("sc_role", "User"); 
-                localStorage.setItem("sc_password", pass);
-                localStorage.setItem("sc_balance_" + user, 1000);
-                location.href = "index.html";
+                }
+            } catch (err) {
+                alert("Fehler bei der Cloud-Verbindung!");
             }
-        }
-
-        window.onload = async function() {
-            if(!navigator.userAgent.includes("Android")) { deviceName = "PC / Desktop"; }
-            let bannedDevices = JSON.parse(localStorage.getItem("sc_banned_devices") || "[]");
-            if (bannedDevices.includes(deviceName)) { 
-                document.body.innerHTML = "<h1 style='color:#ff0055; margin-top:100px;'>GERÄT GEBANNT</h1>"; 
-                return; 
-            }
-            await syncFromCloud();
-            if (localStorage.getItem("sc_username")) { location.href = "index.html"; }
         };
     </script>
 </body>
 </html>
-
