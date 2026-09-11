@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slots 9x9 - Shadow Casino</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0d0d11; color: #ffffff; text-align: center; padding: 10px; margin: 0;
+        }
+        .main-header {
+            display: flex; justify-content: space-between; align-items: center; padding: 15px 20px;
+            position: absolute; top: 0; left: 0; right: 0; z-index: 100; background: rgba(13, 13, 17, 0.9);
+        }
+        .nav-logo {
+            color: #ff0055; text-shadow: 0 0 10px #ff0055; font-size: 1.6rem; font-weight: bold;
+            cursor: pointer; text-decoration: none; margin: 0;
+        }
+        .profile-menu {
+            color: #555566; font-size: 0.95rem; cursor: pointer; text-align: right; position: relative;
+        }
+        .profile-menu:hover { color: #888899; }
+        .dropdown-content {
+            display: none; background: #161622; border: 1px solid #333344; padding: 10px; border-radius: 10px;
+            position: absolute; right: 0; top: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); width: 120px; z-index: 200;
+        }
+        .dropdown-content a { color: #ff0055; text-decoration: none; display: block; margin: 5px 0; font-size: 0.85rem; }
+              .game-container {
+            background: #161622; padding: 15px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            display: inline-block; width: 100%; max-width: 460px; margin-top: 80px; text-align: center; box-sizing: border-box;
+        }
+        .grid-9x9 {
+            display: grid; grid-template-columns: repeat(9, 1fr); gap: 4px; background: #05050a;
+            padding: 8px; border-radius: 15px; border: 3px solid #ff0055; box-shadow: 0 0 20px rgba(255, 0, 85, 0.2);
+            margin: 15px auto; max-width: 100%; box-sizing: border-box;
+        }
+        .slot-cell {
+            background: #11111a; aspect-ratio: 1; border-radius: 6px; display: flex; justify-content: center;
+            align-items: center; font-size: 1.3rem; border: 1px solid #222233; transition: transform 0.15s, background-color 0.2s;
+        }
+        .slot-cell.explode { transform: scale(0.1); background-color: #ff0055; }
+        button.spin-action {
+            background: linear-gradient(135deg, #ff0055, #bc003f); color: white; border: none; padding: 12px 35px;
+            font-size: 1.2rem; font-weight: bold; border-radius: 50px; cursor: pointer; box-shadow: 0 5px 15px rgba(255, 0, 85, 0.4); width: 85%;
+        }
+        button:disabled { background: #444 !important; box-shadow: none !important; cursor: not-allowed; color: #888; }
+        input {
+            width: 85%; padding: 10px; margin: 4px 0; border-radius: 10px; border: 1px solid #333344;
+            background: #05050a; color: white; text-align: center; font-size: 1.1rem; box-sizing: border-box;
+        }
+        .status-text { font-size: 1.1rem; color: #ffcc00; font-weight: bold; margin-top: 10px; height: 25px; }
+    </style>
+</head>
+  <body>
+    <div class="main-header">
+        <div class="nav-logo" onclick="goBackToHub()">SHADOW CASINO</div>
+        <div class="profile-menu">
+            <span onclick="toggleDropdown()" id="menu-username">Benutzer</span>
+            <div id="profile-dropdown" class="dropdown-content">
+                <a href="admin.html" id="admin-panel-link" style="display:none; font-weight:bold; color:#00ffcc;">⚙️ Admin Panel</a>
+                <a href="#" onclick="goBackToHub()">🏠 Zentrale</a>
+                <a href="#" onclick="logout()">Abmelden</a>
+            </div>
+        </div>
+    </div>
+    <div class="game-container">
+        <h2 style="color:#ff0055; margin-top:0; font-size:1.6rem; text-shadow: 0 0 10px #ff0055;">🎰 Slots 9x9 Grid</h2>
+        <div style="font-size: 0.95rem; color: #aaa; margin-bottom: 10px;">Guthaben: <span id="balance-display" style="color:#00ffcc; font-weight:bold;">0</span> $</div>
+        <input type="number" id="bet-input" placeholder="Einsatz in $" value="50">
+        <div class="grid-9x9" id="slot-grid-container"></div>
+        <button id="spin-btn" class="spin-action" onclick="startSpin()">SPIN</button>
+        <div class="status-text" id="status-box">Bilde Cluster ab 5 Symbolen!</div>
+    </div>
+        <script>
+        let balance = 1000; let currentU = ""; let isSpinning = false; let audioCtx = null;
+        const GH_USER = "Shadow13041"; const GH_REPO = "Casino"; const GH_TOKEN = "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"; let currentFileSha = "";
+        let symbols = "💎|🍒|🍋|🍇|🍉|⭐|🔔".split("|");
+        let gridMatrix = [];
+        function playSound(type) {
+            try {
+                if (!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+                let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain(); osc.connect(gain); gain.connect(audioCtx.destination);
+                if (type === 'tick') { osc.type = 'sine'; osc.frequency.setValueAtTime(900, audioCtx.currentTime); gain.gain.setValueAtTime(0.01, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.02); osc.start(); osc.stop(audioCtx.currentTime + 0.02); }
+                else if (type === 'pop') { osc.type = 'sine'; osc.frequency.setValueAtTime(400, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1); gain.gain.setValueAtTime(0.04, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1); osc.start(); osc.stop(audioCtx.currentTime + 0.1); }
+                else if (type === 'win') { osc.type = 'triangle'; osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.08); gain.gain.setValueAtTime(0.05, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.25); osc.start(); osc.stop(audioCtx.currentTime + 0.25); }
+            } catch(e) {}
+        }
+        window.onload = function() {
+            currentU = localStorage.getItem("sc_username"); if (!currentU) { location.href = "login.html"; return; }
+            document.getElementById("menu-username").innerText = currentU; const currentRole = localStorage.getItem("sc_role"); if (currentRole === "Owner" || currentRole === "Admin") { document.getElementById("admin-panel-link").style.display = "block"; }
+            balance = parseInt(localStorage.getItem("sc_balance_" + currentU) || 1000); document.getElementById("balance-display").innerText = balance;
+            buildEmptyGrid(); syncFromCloud();
+        };
+        function toggleDropdown() { const drop = document.getElementById("profile-dropdown"); drop.style.display = drop.style.display === "block" ? "none" : "block"; }
+        function logout() { localStorage.removeItem("sc_username"); localStorage.removeItem("sc_role"); localStorage.removeItem("sc_password"); location.href = "login.html"; }
+        async function syncFromCloud() {
+            try {
+                let firstPart = "https://api."; let secondPart = "://github.com"; let targetUrl = firstPart + secondPart + GH_USER + "/" + GH_REPO + "/contents/users.json";
+                const res = await fetch(targetUrl, { headers: { "Authorization": "token " + GH_TOKEN, "Accept": "application/vnd.github.v3+json" } });
+                if(res.ok) { const data = await res.json(); currentFileSha = data.sha; let text = decodeURIComponent(escape(atob(data.content))); localStorage.setItem("sc_global_users", text); }
+            } catch(e) {}
+        }
+        async function pushToCloud() {
+            try {
+                await syncFromCloud(); let opBracket = String.fromCharCode(91); let clBracket = String.fromCharCode(93); let fallbackEmptyArray = opBracket + clBracket;
+                let userList = JSON.parse(localStorage.getItem("sc_global_users") || fallbackEmptyArray); let idx = userList.findIndex(u => u.username === currentU); if(idx !== -1) { userList.at(idx).balance = balance; }
+                let b64 = btoa(unescape(encodeURIComponent(JSON.stringify(userList)))); let firstPart = "https://api."; let secondPart = "://github.com"; let targetUrl = firstPart + secondPart + GH_USER + "/" + GH_REPO + "/contents/users.json";
+                await fetch(targetUrl, { method: "PUT", headers: { "Authorization": "token " + GH_TOKEN, "Content-Type": "application/json" }, body: JSON.stringify({ message: "Casino-Cloud: Slots9x9-Update", content: b64, sha: currentFileSha }) });
+            } catch(e) {}
+        }
+                  async function goBackToHub() { document.getElementById("spin-btn").disabled = true; document.getElementById("status-box").innerText = "⏳ Speichere Coins..."; await pushToCloud(); location.href = "index.html"; }
+        function buildEmptyGrid() {
+            let container = document.getElementById("slot-grid-container"); container.innerHTML = ""; gridMatrix = [];
+            for(let r=0; r<9; r++) { let row = []; for(let c=0; c<9; c++) { let cell = document.createElement("div"); cell.className = "slot-cell"; cell.innerText = "💎"; container.appendChild(cell); row.push(cell); } gridMatrix.push(row); }
+        }
+        function startSpin() {
+            if (isSpinning) return; let bet = parseInt(document.getElementById("bet-input").value); if (isNaN(bet) || bet <= 0 || bet > balance) { alert("Ungültiger Einsatz!"); return; }
+            isSpinning = true; balance -= bet; document.getElementById("balance-display").innerText = balance; localStorage.setItem("sc_balance_" + currentU, balance);
+            document.getElementById("spin-btn").disabled = true; document.getElementById("status-box").style.color = "#ffcc00"; document.getElementById("status-box").innerText = "Raster wird befüllt...";
+            let ticks = 0;
+            let interval = setInterval(() => {
+                for(let r=0; r<9; r++) { for(let c=0; c<9; c++) { let arr = new Uint32Array(1); window.crypto.getRandomValues(arr); gridMatrix.at(r).at(c).innerText = symbols.at(arr.at(0) % symbols.length); } }
+                playSound("tick"); ticks++;
+                if (ticks > 8) { clearInterval(interval); checkClusters(bet); }
+            }, 80);
+        }
+        function checkClusters(bet) {
+            let visited = Array(9).fill().map(() => Array(9).fill(false)); let totalWin = 0; let explodedAny = false;
+            for(let r=0; r<9; r++) {
+                for(let c=0; c<9; c++) {
+                    if (visited.at(r).at(c)) continue;
+                    let targetSym = gridMatrix.at(r).at(c).innerText; let cluster = []; let queue = [{r: r, c: c}]; visited.at(r).set(c, true);
+                    while(queue.length > 0) {
+                        let curr = queue.shift(); cluster.push(curr);
+                        let adj = [{r:curr.r-1, c:curr.c}, {r:curr.r+1, c:curr.c}, {r:curr.r, c:curr.c-1}, {r:curr.r, c:curr.c+1}];
+                        adj.forEach(a => { if (a.r >= 0 && a.r < 9 && a.c >= 0 && a.c < 9 && !visited.at(a.r).at(a.c) && gridMatrix.at(a.r).at(a.c).innerText === targetSym) { visited.at(a.r).set(a.c, true); queue.push(a); } });
+                    }
+                    if (cluster.length >= 5) {
+                        explodedAny = true; let factor = 0.2 + (cluster.length * 0.15); if (targetSym === "💎" || targetSym === "⭐") factor *= 1.8;
+                        totalWin += Math.floor(bet * factor); cluster.forEach(coord => { gridMatrix.at(curr.r !== undefined ? coord.r : coord.r).at(coord.c).classList.add("explode"); });
+                    }
+                }
+            }
+            if (explodedAny) {
+                playSound("pop"); document.getElementById("status-box").style.color = "#00ffcc"; document.getElementById("status-box").innerText = "💥 CLUSTER TREFFER! +" + totalWin + "$";
+                setTimeout(() => {
+                    for(let r=0; r<9; r++) { for(let c=0; c<9; c++) { if (gridMatrix.at(r).at(c).classList.contains("explode")) { gridMatrix.at(r).at(c).classList.remove("explode"); let arr = new Uint32Array(1); window.crypto.getRandomValues(arr); gridMatrix.at(r).at(c).innerText = symbols.at(arr.at(0) % symbols.length); } } }
+                    balance += totalWin; document.getElementById("balance-display").innerText = balance; localStorage.setItem("sc_balance_" + currentU, balance); playSound("win"); document.getElementById("spin-btn").disabled = false; isSpinning = false;
+                }, 600);
+            } else {
+                document.getElementById("status-box").style.color = "#ff0055"; document.getElementById("status-box").innerText = "Kein Cluster gebildet."; document.getElementById("spin-btn").disabled = false; isSpinning = false;
+            }
+        }
+    </script>
+</body>
+</html>
+
