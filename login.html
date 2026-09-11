@@ -91,7 +91,7 @@
                     if (!snapshot.exists()) { alert("Benutzerkonto existiert nicht!"); return; }
                     const userData = snapshot.val();
                     if (userData.pass !== pInput) { alert("Falsches Passwort!"); return; }
-                            let bannedRef = ref(db, "bans/users/" + cleanUserKey);
+                                        let bannedRef = ref(db, "bans/users/" + cleanUserKey);
                     let bannedSnapshot = await get(bannedRef);
                     if (bannedSnapshot.exists()) { alert("Dieses Konto wurde gesperrt!"); return; }
                     let devBannedRef = ref(db, "bans/devices/" + userData.id);
