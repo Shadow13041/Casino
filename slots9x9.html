@@ -126,23 +126,23 @@
             }, 80);
         }
         function checkClusters(bet) {
-            let visited = Array(9).fill().map(() => Array(9).fill(false)); let totalWin = 0; let explodedAny = false;
+            let visitedCoordinates = []; let totalWin = 0; let explodedAny = false;
             for(let r=0; r<9; r++) {
                 for(let c=0; c<9; c++) {
-                    if (visited.at(r).at(c)) continue;
-                    let targetSym = gridMatrix.at(r).at(c).innerText; let cluster = []; let queue = [{r: r, c: c}]; visited.at(r).set(c, true);
+                    let coordString = r + "," + c; if (visitedCoordinates.includes(coordString)) continue;
+                    let targetSym = gridMatrix.at(r).at(c).innerText; let cluster = []; let queue = [{r: r, c: c}]; visitedCoordinates.push(coordString);
                     while(queue.length > 0) {
                         let curr = queue.shift(); cluster.push(curr);
                         let adj = [{r:curr.r-1, c:curr.c}, {r:curr.r+1, c:curr.c}, {r:curr.r, c:curr.c-1}, {r:curr.r, c:curr.c+1}];
-                        adj.forEach(a => { if (a.r >= 0 && a.r < 9 && a.c >= 0 && a.c < 9 && !visited.at(a.r).at(a.c) && gridMatrix.at(a.r).at(a.c).innerText === targetSym) { visited.at(a.r).set(a.c, true); queue.push(a); } });
+                        adj.forEach(a => {
+                            let adjString = a.r + "," + a.c;
+                            if (a.r >= 0 && a.r < 9 && a.c >= 0 && a.c < 9 && !visitedCoordinates.includes(adjString) && gridMatrix.at(a.r).at(a.c).innerText === targetSym) { visitedCoordinates.push(adjString); queue.push(a); }
+                        });
                     }
                     if (cluster.length >= 5) {
                         explodedAny = true; let factor = 0.2 + (cluster.length * 0.15); if (targetSym === "💎" || targetSym === "⭐") factor *= 1.8;
                         totalWin += Math.floor(bet * factor);
-                        for(let i=0; i<cluster.length; i++) {
-                            let coord = cluster.at(i);
-                            gridMatrix.at(coord.r).at(coord.c).classList.add("explode");
-                        }
+                        for(let i=0; i<cluster.length; i++) { let coord = cluster.at(i); gridMatrix.at(coord.r).at(coord.c).classList.add("explode"); }
                     }
                 }
             }
