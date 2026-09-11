@@ -37,9 +37,9 @@
         }
         .slot-cell {
             background: #11111a; aspect-ratio: 1; border-radius: 6px; display: flex; justify-content: center;
-            align-items: center; font-size: 1.3rem; border: 1px solid #222233; transition: transform 0.15s, background-color 0.2s;
+            align-items: center; font-size: 1.3rem; border: 1px solid #222233; transition: transform 0.15s, background-color 0.2s, border-color 0.2s, box-shadow 0.2s;
         }
-        .slot-cell.explode { transform: scale(0.1); background-color: #ff0055; }
+        .slot-cell.explode { border-color: #00ffcc !important; box-shadow: 0 0 10px #00ffcc; background-color: rgba(0, 255, 204, 0.2); transform: scale(1.05); }
         button.spin-action {
             background: linear-gradient(135deg, #ff0055, #bc003f); color: white; border: none; padding: 12px 35px;
             font-size: 1.2rem; font-weight: bold; border-radius: 50px; cursor: pointer; box-shadow: 0 5px 15px rgba(255, 0, 85, 0.4); width: 85%;
@@ -52,7 +52,7 @@
         .status-text { font-size: 1.1rem; color: #ffcc00; font-weight: bold; margin-top: 10px; height: 25px; }
     </style>
 </head>
-<body>
+    <body>
     <div class="main-header">
         <div class="nav-logo" onclick="goBackToHub()">SHADOW CASINO</div>
         <div class="profile-menu">
@@ -72,7 +72,7 @@
         <button id="spin-btn" class="spin-action" onclick="startSpin()">SPIN</button>
         <div class="status-text" id="status-box">Bilde Cluster ab 5 Symbolen!</div>
     </div>
-        <script>
+            <script>
         let balance = 1000; let currentU = ""; let isSpinning = false; let audioCtx = null;
         const GH_USER = "Shadow13041"; const GH_REPO = "Casino"; const GH_TOKEN = "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"; let currentFileSha = "";
         let symbols = "💎|🍒|🍋|🍇|🍉|⭐|🔔".split("|");
@@ -109,7 +109,7 @@
                 await fetch(targetUrl, { method: "PUT", headers: { "Authorization": "token " + GH_TOKEN, "Content-Type": "application/json" }, body: JSON.stringify({ message: "Casino-Cloud: Slots9x9-Update", content: b64, sha: currentFileSha }) });
             } catch(e) {}
         }
-                    async function goBackToHub() { document.getElementById("spin-btn").disabled = true; document.getElementById("status-box").innerText = "⏳ Speichere Coins..."; await pushToCloud(); location.href = "index.html"; }
+                        async function goBackToHub() { document.getElementById("spin-btn").disabled = true; document.getElementById("status-box").innerText = "⏳ Speichere Coins..."; await pushToCloud(); location.href = "index.html"; }
         function buildEmptyGrid() {
             let container = document.getElementById("slot-grid-container"); container.innerHTML = ""; gridMatrix = [];
             for(let r=0; r<9; r++) { let row = []; for(let c=0; c<9; c++) { let cell = document.createElement("div"); cell.className = "slot-cell"; cell.innerText = "💎"; container.appendChild(cell); row.push(cell); } gridMatrix.push(row); }
@@ -118,6 +118,7 @@
             if (isSpinning) return; let bet = parseInt(document.getElementById("bet-input").value); if (isNaN(bet) || bet <= 0 || bet > balance) { alert("Ungültiger Einsatz!"); return; }
             isSpinning = true; balance -= bet; document.getElementById("balance-display").innerText = balance; localStorage.setItem("sc_balance_" + currentU, balance);
             document.getElementById("spin-btn").disabled = true; document.getElementById("status-box").style.color = "#ffcc00"; document.getElementById("status-box").innerText = "Raster wird befüllt...";
+            for(let r=0; r<9; r++) { for(let c=0; c<9; c++) { gridMatrix.at(r).at(c).className = "slot-cell"; } }
             let ticks = 0;
             let interval = setInterval(() => {
                 for(let r=0; r<9; r++) { for(let c=0; c<9; c++) { let arr = new Uint32Array(1); window.crypto.getRandomValues(arr); gridMatrix.at(r).at(c).innerText = symbols.at(arr.at(0) % symbols.length); } }
@@ -149,9 +150,9 @@
             if (explodedAny) {
                 playSound("pop"); document.getElementById("status-box").style.color = "#00ffcc"; document.getElementById("status-box").innerText = "💥 CLUSTER TREFFER! +" + totalWin + "$";
                 setTimeout(() => {
-                    for(let r=0; r<9; r++) { for(let c=0; c<9; c++) { if (gridMatrix.at(r).at(c).classList.contains("explode")) { gridMatrix.at(r).at(c).classList.remove("explode"); let arr = new Uint32Array(1); window.crypto.getRandomValues(arr); gridMatrix.at(r).at(c).innerText = symbols.at(arr.at(0) % symbols.length); } } }
+                    for(let r=0; r<9; r++) { for(let c=0; c<9; c++) { if (gridMatrix.at(r).at(c).classList.contains("explode")) { gridMatrix.at(r).at(c).className = "slot-cell"; let arr = new Uint32Array(1); window.crypto.getRandomValues(arr); gridMatrix.at(r).at(c).innerText = symbols.at(arr.at(0) % symbols.length); } } }
                     balance += totalWin; document.getElementById("balance-display").innerText = balance; localStorage.setItem("sc_balance_" + currentU, balance); playSound("win"); document.getElementById("spin-btn").disabled = false; isSpinning = false;
-                }, 600);
+                }, 1000);
             } else {
                 document.getElementById("status-box").style.color = "#ff0055"; document.getElementById("status-box").innerText = "Kein Cluster gebildet."; document.getElementById("spin-btn").disabled = false; isSpinning = false;
             }
@@ -159,3 +160,4 @@
     </script>
 </body>
 </html>
+
