@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shadow Dice - Shadow Casino</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0d0d11; color: #ffffff; text-align: center; padding: 15px; margin: 0;
+        }
+        .main-header {
+            display: flex; justify-content: space-between; align-items: center; padding: 15px 20px;
+            position: absolute; top: 0; left: 0; right: 0; z-index: 100; background: rgba(13, 13, 17, 0.9);
+        }
+        .nav-logo {
+            color: #ff0055; text-shadow: 0 0 10px #ff0055; font-size: 1.6rem; font-weight: bold;
+            cursor: pointer; text-decoration: none; margin: 0;
+        }
+        .profile-menu {
+            color: #555566; font-size: 0.95rem; cursor: pointer; text-align: right; position: relative;
+        }
+        .profile-menu:hover { color: #888899; }
+        .dropdown-content {
+            display: none; background: #161622; border: 1px solid #333344; padding: 10px; border-radius: 10px;
+            position: absolute; right: 0; top: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); width: 120px; z-index: 200;
+        }
+        .dropdown-content a { color: #ff0055; text-decoration: none; display: block; margin: 5px 0; font-size: 0.85rem; }
+        .game-container {
+            background: #161622; padding: 25px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            display: inline-block; width: 95%; max-width: 420px; margin-top: 90px; text-align: center; box-sizing: border-box;
+        }
+        .dice-display-box {
+            margin: 20px auto; width: 120px; height: 120px; background: #05050a; border: 3px solid #ff0055;
+            box-shadow: 0 0 20px rgba(255, 0, 85, 0.3); border-radius: 20px; display: flex; justify-content: center;
+            align-items: center; font-size: 3.5rem; font-weight: bold; color: #ff0055; text-shadow: 0 0 10px #ff0055;
+            transition: transform 0.1s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
+        }
+        .dice-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 20px 0; }
+        .num-btn { padding: 12px; font-size: 1.3rem; border-radius: 12px; border: 2px solid #333344; background: #1e1e2f; color: white; cursor: pointer; font-weight: bold; }
+        .num-btn.selected { border-color: #00ffcc; background: rgba(0, 255, 204, 0.15); box-shadow: 0 0 12px rgba(0, 255, 204, 0.3); color: #00ffcc; }
+        button.roll-action {
+            background: linear-gradient(135deg, #ff0055, #bc003f); color: white; border: none; padding: 14px 35px;
+            font-size: 1.2rem; font-weight: bold; border-radius: 50px; cursor: pointer; box-shadow: 0 5px 15px rgba(255, 0, 85, 0.4); width: 85%; margin-top: 10px;
+        }
+        button:disabled { background: #444 !important; box-shadow: none !important; cursor: not-allowed; color: #888; }
+        input {
+            width: 85%; padding: 11px; margin: 6px 0; border-radius: 10px; border: 1px solid #333344;
+            background: #05050a; color: white; text-align: center; font-size: 1.1rem; box-sizing: border-box;
+        }
+        .payout-info { font-size: 1rem; color: #00ffcc; font-weight: bold; margin-bottom: 5px; }
+        .status-text { font-size: 1.1rem; color: #ffcc00; font-weight: bold; margin-top: 15px; height: 25px; }
+    </style>
+</head>
+<body>
+    <div class="main-header">
+        <div class="nav-logo" onclick="goBackToHub()">SHADOW CASINO</div>
+        <div class="profile-menu">
+            <span onclick="toggleDropdown()" id="menu-username">Benutzer</span>
+            <div id="profile-dropdown" class="dropdown-content">
+                <a href="admin.html" id="admin-panel-link" style="display:none; font-weight:bold; color:#00ffcc;">⚙️ Admin Panel</a>
+                <a href="#" onclick="goBackToHub()">🏠 Zentrale</a>
+                <a href="#" onclick="logout()">Abmelden</a>
+            </div>
+        </div>
+    </div>
+    <div class="game-container">
+        <h2 style="color:#ff0055; margin-top:0; font-size:1.7rem;">🎲 Shadow Dice</h2>
+        <div style="font-size: 0.95rem; color: #aaa; margin-bottom: 15px;">Guthaben: <span id="balance-display" style="color:#00ffcc; font-weight:bold;">0</span> $</div>
+        <input type="number" id="bet-input" placeholder="Einsatz in $" value="50">
+        <div class="dice-grid">
+            <button id="btn-1" class="num-btn selected" onclick="selectNumber(1)">1</button>
+            <button id="btn-2" class="num-btn" onclick="selectNumber(2)">2</button>
+            <button id="btn-3" class="num-btn" onclick="selectNumber(3)">3</button>
+            <button id="btn-4" class="num-btn" onclick="selectNumber(4)">4</button>
+            <button id="btn-5" class="num-btn" onclick="selectNumber(5)">5</button>
+            <button id="btn-6" class="num-btn" onclick="selectNumber(6)">6</button>
+        </div>
+        <div class="payout-info">Möglicher Gewinn: 6.00x Payout</div>
+        <div class="dice-display-box" id="dice-box">1</div>
+        <button id="roll-btn" class="roll-action" onclick="startRoll()">WÜRFELN</button>
+        <div class="status-text" id="status-box">Wähle deine Zahl und würfle!</div>
+    </div>
+    <script>
+        let balance = 1000; let currentU = ""; let chosenNumber = 1; let isRolling = false; let audioCtx = null;
+        const GH_USER = "Shadow13041"; const GH_REPO = "Casino"; const GH_TOKEN = "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"; let currentFileSha = "";
+        function playSound(type) {
+            try {
+                if (!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+                let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain(); osc.connect(gain); gain.connect(audioCtx.destination);
+                if (type === 'tick') { osc.type = 'sine'; osc.frequency.setValueAtTime(700, audioCtx.currentTime); gain.gain.setValueAtTime(0.02, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.03); osc.start(); osc.stop(audioCtx.currentTime + 0.03); } 
+                else if (type === 'win') { osc.type = 'triangle'; osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.06); osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.12); gain.gain.setValueAtTime(0.07, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4); osc.start(); osc.stop(audioCtx.currentTime + 0.4); } 
+                else if (type === 'lose') { osc.type = 'sawtooth'; osc.frequency.setValueAtTime(120, audioCtx.currentTime); gain.gain.setValueAtTime(0.09, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3); osc.start(); osc.stop(audioCtx.currentTime + 0.3); }
+            } catch(e) {}
+        }
+        window.onload = function() {
+            currentU = localStorage.getItem("sc_username"); if (!currentU) { location.href = "login.html"; return; }
+            document.getElementById("menu-username").innerText = currentU; const currentRole = localStorage.getItem("sc_role"); if (currentRole === "Owner" || currentRole === "Admin") { document.getElementById("admin-panel-link").style.display = "block"; }
+            balance = parseInt(localStorage.getItem("sc_balance_" + currentU) || 1000); document.getElementById("balance-display").innerText = balance; syncFromCloud();
+        };
+        function toggleDropdown() { const drop = document.getElementById("profile-dropdown"); drop.style.display = drop.style.display === "block" ? "none" : "block"; }
+        function logout() { localStorage.removeItem("sc_username"); localStorage.removeItem("sc_role"); localStorage.removeItem("sc_password"); location.href = "login.html"; }
+        async function syncFromCloud() {
+            try {
+                let firstPart = "https://api."; let secondPart = "://github.com"; let targetUrl = firstPart + secondPart + GH_USER + "/" + GH_REPO + "/contents/users.json";
+                const res = await fetch(targetUrl, { headers: { "Authorization": "token " + GH_TOKEN, "Accept": "application/vnd.github.v3+json" } });
+                if(res.ok) { const data = await res.json(); currentFileSha = data.sha; let text = decodeURIComponent(escape(atob(data.content))); localStorage.setItem("sc_global_users", text); }
+            } catch(e) {}
+        }
+        async function pushToCloud() {
+            try {
+                await syncFromCloud(); let opBracket = String.fromCharCode(91); let clBracket = String.fromCharCode(93); let fallbackEmptyArray = opBracket + clBracket;
+                let userList = JSON.parse(localStorage.getItem("sc_global_users") || fallbackEmptyArray); let idx = userList.findIndex(u => u.username === currentU); if(idx !== -1) { userList.at(idx).balance = balance; }
+                let b64 = btoa(unescape(encodeURIComponent(JSON.stringify(userList)))); let firstPart = "https://api."; let secondPart = "://github.com"; let targetUrl = firstPart + secondPart + GH_USER + "/" + GH_REPO + "/contents/users.json";
+                await fetch(targetUrl, { method: "PUT", headers: { "Authorization": "token " + GH_TOKEN, "Content-Type": "application/json" }, body: JSON.stringify({ message: "Casino-Cloud: Dice-Update", content: b64, sha: currentFileSha }) });
+            } catch(e) {}
+        }
+        async function goBackToHub() { document.getElementById("roll-btn").disabled = true; document.getElementById("status-box").innerText = "⏳ Speichere Coins..."; await pushToCloud(); location.href = "index.html"; }
+        function selectNumber(num) { if (isRolling) return; chosenNumber = num; for (let i = 1; i <= 6; i++) { document.getElementById("btn-" + i).classList.toggle("selected", i === num); } }
+        function startRoll() {
+            if (isRolling) return; let bet = parseInt(document.getElementById("bet-input").value); if (isNaN(bet) || bet <= 0 || bet > balance) { alert("Ungültiger Einsatz!"); return; }
+            isRolling = true; balance -= bet; document.getElementById("balance-display").innerText = balance; localStorage.setItem("sc_balance_" + currentU, balance);
+            document.getElementById("roll-btn").disabled = true; document.getElementById("status-box").style.color = "#ffcc00"; document.getElementById("status-box").innerText = "Würfel rollt...";
+            let cryptoArray = new Uint32Array(1); window.crypto.getRandomValues(cryptoArray); let finalRoll = (cryptoArray.at(0) % 6) + 1;
+            let diceBox = document.getElementById("dice-box"); diceBox.style.borderColor = "#ff0055"; diceBox.style.boxShadow = "0 0 20px rgba(255, 0, 85, 0.3)"; diceBox.style.color = "#ff0055";
+            let ticks = 0;
+            let interval = setInterval(() => {
+                let animArray = new Uint32Array(1); window.crypto.getRandomValues(animArray); diceBox.innerText = (animArray.at(0) % 6) + 1; playSound("tick"); ticks++;
+                if (ticks > 12) {
+                    clearInterval(interval); diceBox.innerText = finalRoll;
+                    if (finalRoll === chosenNumber) {
+                        let totalWin = bet * 6; balance += totalWin;
+                        diceBox.style.borderColor = "#00ffcc"; diceBox.style.boxShadow = "0 0 25px rgba(0, 255, 204, 0.6)"; diceBox.style.color = "#00ffcc";
+                        document.getElementById("status-box").style.color = "#00ffcc"; document.getElementById("status-box").innerText = "🎉 TREFFER! +" + totalWin + "$"; playSound("win");
+                    } else {
+                        diceBox.style.borderColor = "#ff0055"; diceBox.style.boxShadow = "0 0 25px rgba(255, 0, 85, 0.6)"; diceBox.style.color = "#ff0055";
+                        document.getElementById("status-box").style.color = "#ff0055"; document.getElementById("status-box").innerText = "❌ KEIN TREFFER!"; playSound("lose");
+                    }
+                    document.getElementById("balance-display").innerText = balance; localStorage.setItem("sc_balance_" + currentU, balance); document.getElementById("roll-btn").disabled = false; isRolling = false;
+                }
+            }, 90);
+        }
+    </script>
+</body>
+</html>
+
