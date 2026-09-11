@@ -26,8 +26,8 @@
         .switch-mode-text { margin-top: 15px; font-size: 0.85rem; color: #aaa; cursor: pointer; }
         .switch-mode-text span { color: #ff0055; font-weight: bold; }
     </style>
-    </head>
-<body>
+</head>
+    <body>
     <div class="auth-container">
         <h2 id="auth-title">EINLOGGEN</h2>
         <input type="text" id="username-input" placeholder="Benutzername">
@@ -40,8 +40,8 @@
         import { getDatabase, ref, get, set } from "https://gstatic.com";
         const firebaseConfig = {
             apiKey: "AIzaSyAZzQ_oKZ3maWTGgj0eCih0jhSAumH6WQQ",
-            authDomain: "shadow-casino.firebaseapp.com",
-            databaseURL: "https://shadow-casino-default-rtdb.europe-west1.firebasedatabase.app",
+            authDomain: "://firebaseapp.com",
+            databaseURL: "https://firebasedatabase.app",
             projectId: "shadow-casino",
             storageBucket: "shadow-casino.firebasestorage.app",
             messagingSenderId: "389676429525",
@@ -83,13 +83,13 @@
                     alert("🎉 Registrierung erfolgreich! Du kannst dich jetzt einloggen.");
                     toggleMode();
                 } else {
-                                        if (!snapshot.exists()) { alert("Benutzerkonto existiert nicht!"); return; }
+                    if (!snapshot.exists()) { alert("Benutzerkonto existiert nicht!"); return; }
                     const userData = snapshot.val();
                     if (userData.pass !== pInput) { alert("Falsches Passwort!"); return; }
                     let bannedRef = ref(db, "bans/users/" + cleanUserKey);
                     let bannedSnapshot = await get(bannedRef);
                     if (bannedSnapshot.exists()) { alert("Dieses Konto wurde gesperrt!"); return; }
-                    let devBannedRef = ref(db, "bans/devices/" + userData.id);
+                            let devBannedRef = ref(db, "bans/devices/" + userData.id);
                     let devBannedSnapshot = await get(devBannedRef);
                     if (devBannedSnapshot.exists()) { alert("Dein Gerät wurde dauerhaft gesperrt!"); return; }
                     localStorage.setItem("sc_username", userData.username);
@@ -105,3 +105,4 @@
     </script>
 </body>
 </html>
+
