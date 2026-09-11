@@ -52,7 +52,7 @@
         .status-text { font-size: 1.1rem; color: #ffcc00; font-weight: bold; margin-top: 10px; height: 25px; }
     </style>
 </head>
-    <body>
+<body>
     <div class="main-header">
         <div class="nav-logo" onclick="goBackToHub()">SHADOW CASINO</div>
         <div class="profile-menu">
@@ -72,7 +72,7 @@
         <button id="spin-btn" class="spin-action" onclick="startSpin()">SPIN</button>
         <div class="status-text" id="status-box">Bilde Cluster ab 5 Symbolen!</div>
     </div>
-            <script>
+        <script>
         let balance = 1000; let currentU = ""; let isSpinning = false; let audioCtx = null;
         const GH_USER = "Shadow13041"; const GH_REPO = "Casino"; const GH_TOKEN = "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"; let currentFileSha = "";
         let symbols = "💎|🍒|🍋|🍇|🍉|⭐|🔔".split("|");
@@ -109,7 +109,7 @@
                 await fetch(targetUrl, { method: "PUT", headers: { "Authorization": "token " + GH_TOKEN, "Content-Type": "application/json" }, body: JSON.stringify({ message: "Casino-Cloud: Slots9x9-Update", content: b64, sha: currentFileSha }) });
             } catch(e) {}
         }
-                        async function goBackToHub() { document.getElementById("spin-btn").disabled = true; document.getElementById("status-box").innerText = "⏳ Speichere Coins..."; await pushToCloud(); location.href = "index.html"; }
+                    async function goBackToHub() { document.getElementById("spin-btn").disabled = true; document.getElementById("status-box").innerText = "⏳ Speichere Coins..."; await pushToCloud(); location.href = "index.html"; }
         function buildEmptyGrid() {
             let container = document.getElementById("slot-grid-container"); container.innerHTML = ""; gridMatrix = [];
             for(let r=0; r<9; r++) { let row = []; for(let c=0; c<9; c++) { let cell = document.createElement("div"); cell.className = "slot-cell"; cell.innerText = "💎"; container.appendChild(cell); row.push(cell); } gridMatrix.push(row); }
@@ -138,7 +138,11 @@
                     }
                     if (cluster.length >= 5) {
                         explodedAny = true; let factor = 0.2 + (cluster.length * 0.15); if (targetSym === "💎" || targetSym === "⭐") factor *= 1.8;
-                        totalWin += Math.floor(bet * factor); cluster.forEach(coord => { gridMatrix.at(coord.r).at(coord.c).classList.add("explode"); });
+                        totalWin += Math.floor(bet * factor);
+                        for(let i=0; i<cluster.length; i++) {
+                            let coord = cluster.at(i);
+                            gridMatrix.at(coord.r).at(coord.c).classList.add("explode");
+                        }
                     }
                 }
             }
@@ -155,4 +159,3 @@
     </script>
 </body>
 </html>
-
