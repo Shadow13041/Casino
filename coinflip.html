@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shadow Coinflip - Shadow Casino</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0d0d11; color: #ffffff; text-align: center; padding: 15px; margin: 0;
+        }
+        .main-header {
+            display: flex; justify-content: space-between; align-items: center; padding: 15px 20px;
+            position: absolute; top: 0; left: 0; right: 0; z-index: 100; background: rgba(13, 13, 17, 0.9);
+        }
+        .nav-logo {
+            color: #ff0055; text-shadow: 0 0 10px #ff0055; font-size: 1.6rem; font-weight: bold;
+            cursor: pointer; text-decoration: none; margin: 0;
+        }
+        .profile-menu {
+            color: #555566; font-size: 0.95rem; cursor: pointer; text-align: right; position: relative;
+        }
+        .profile-menu:hover { color: #888899; }
+        .dropdown-content {
+            display: none; background: #161622; border: 1px solid #333344; padding: 10px; border-radius: 10px;
+            position: absolute; right: 0; top: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); width: 120px; z-index: 200;
+        }
+        .dropdown-content a { color: #ff0055; text-decoration: none; display: block; margin: 5px 0; font-size: 0.85rem; }
+              .game-container {
+            background: #161622; padding: 25px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            display: inline-block; width: 95%; max-width: 420px; margin-top: 90px; text-align: center; box-sizing: border-box;
+        }
+        .coin-area { margin: 25px auto; width: 120px; height: 120px; position: relative; }
+        .coin {
+            width: 120px; height: 120px; border-radius: 50%; display: flex; justify-content: center; align-items: center;
+            font-size: 2.2rem; font-weight: bold; text-shadow: 0 0 10px rgba(0,0,0,0.5); transition: transform 0.1s;
+        }
+        .coin-heads { background: linear-gradient(135deg, #ff0055, #bc003f); border: 4px solid #ff0055; box-shadow: 0 0 25px rgba(255, 0, 85, 0.6); color: white; }
+        .coin-tails { background: linear-gradient(135deg, #00ffcc, #00b38f); border: 4px solid #00ffcc; box-shadow: 0 0 25px rgba(0, 255, 204, 0.6); color: #0d0d11; }
+        .choice-box { display: flex; justify-content: space-between; gap: 12px; margin: 20px 0; }
+        .choice-btn { flex: 1; padding: 12px; font-size: 1.1rem; border-radius: 15px; border: 2px solid #333344; background: #1e1e2f; color: white; cursor: pointer; font-weight: bold; }
+        .choice-btn.selected-heads { border-color: #ff0055; background: rgba(255, 0, 85, 0.1); box-shadow: 0 0 10px rgba(255, 0, 85, 0.2); }
+        .choice-btn.selected-tails { border-color: #00ffcc; background: rgba(0, 255, 204, 0.1); box-shadow: 0 0 10px rgba(0, 255, 204, 0.2); }
+        button.flip-action {
+            background: linear-gradient(135deg, #ff0055, #bc003f); color: white; border: none; padding: 12px 35px;
+            font-size: 1.2rem; font-weight: bold; border-radius: 50px; cursor: pointer; box-shadow: 0 5px 15px rgba(255, 0, 85, 0.4); width: 85%;
+        }
+        button:disabled { background: #444 !important; box-shadow: none !important; cursor: not-allowed; color: #888; }
+        input {
+            width: 85%; padding: 10px; margin: 6px 0; border-radius: 10px; border: 1px solid #333344;
+            background: #05050a; color: white; text-align: center; font-size: 1.1rem;
+        }
+        .status-text { font-size: 1.1rem; color: #ffcc00; font-weight: bold; margin-top: 15px; height: 25px; }
+    </style>
+</head>
+  <body>
+    <div class="main-header">
+        <div class="nav-logo" onclick="goBackToHub()">SHADOW CASINO</div>
+        <div class="profile-menu">
+            <span onclick="toggleDropdown()" id="menu-username">Benutzer</span>
+            <div id="profile-dropdown" class="dropdown-content">
+                <a href="admin.html" id="admin-panel-link" style="display:none; font-weight:bold; color:#00ffcc;">⚙️ Admin Panel</a>
+                <a href="#" onclick="goBackToHub()">🏠 Zentrale</a>
+                <a href="#" onclick="logout()">Abmelden</a>
+            </div>
+        </div>
+    </div>
+    <div class="game-container">
+        <h2 style="color:#ff0055; margin-top:0; font-size:1.7rem;">🪙 Shadow Coinflip</h2>
+        <div style="font-size: 0.95rem; color: #aaa; margin-bottom: 15px;">Guthaben: <span id="balance-display" style="color:#00ffcc; font-weight:bold;">0</span> $</div>
+        <input type="number" id="bet-input" placeholder="Einsatz in $" value="50">
+        <div class="choice-box">
+            <button id="choose-heads-btn" class="choice-btn selected-heads" onclick="selectSide('heads')">🔴 KOPF</button>
+            <button id="choose-tails-btn" class="choice-btn" onclick="selectSide('tails')">🔵 ZAHL</button>
+        </div>
+        <div class="coin-area">
+            <div id="coin-element" class="coin coin-heads">🔴</div>
+        </div>
+        <button id="flip-btn" class="flip-action" onclick="startFlip()">MÜNZE WERFEN</button>
+        <div class="status-text" id="status-box">Wähle deine Seite und wirf!</div>
+    </div>
+        <script>
+        let balance = 1000; let currentU = ""; let userChoice = "heads"; let isFlipping = false; let audioCtx = null;
+        const GH_USER = "Shadow13041"; const GH_REPO = "Casino"; const GH_TOKEN = "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"; let currentFileSha = "";
+        function playSound(type) {
+            try {
+                if (!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+                let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain(); osc.connect(gain); gain.connect(audioCtx.destination);
+                if (type === 'tick') { osc.type = 'sine'; osc.frequency.setValueAtTime(600, audioCtx.currentTime); gain.gain.setValueAtTime(0.03, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.04); osc.start(); osc.stop(audioCtx.currentTime + 0.04); } 
+                else if (type === 'win') { osc.type = 'triangle'; osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.08); gain.gain.setValueAtTime(0.08, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3); osc.start(); osc.stop(audioCtx.currentTime + 0.3); } 
+                else if (type === 'lose') { osc.type = 'sawtooth'; osc.frequency.setValueAtTime(140, audioCtx.currentTime); gain.gain.setValueAtTime(0.1, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25); osc.start(); osc.stop(audioCtx.currentTime + 0.25); }
+            } catch(e) {}
+        }
+        window.onload = function() {
+            currentU = localStorage.getItem("sc_username"); if (!currentU) { location.href = "login.html"; return; }
+            document.getElementById("menu-username").innerText = currentU; const currentRole = localStorage.getItem("sc_role"); if (currentRole === "Owner" || currentRole === "Admin") { document.getElementById("admin-panel-link").style.display = "block"; }
+            balance = parseInt(localStorage.getItem("sc_balance_" + currentU) || 1000); document.getElementById("balance-display").innerText = balance; syncFromCloud();
+        };
+        function toggleDropdown() { const drop = document.getElementById("profile-dropdown"); drop.style.display = drop.style.display === "block" ? "none" : "block"; }
+        function logout() { localStorage.removeItem("sc_username"); localStorage.removeItem("sc_role"); localStorage.removeItem("sc_password"); location.href = "login.html"; }
+        async function syncFromCloud() {
+            try {
+                let firstPart = "https://api."; let secondPart = "://github.com"; let targetUrl = firstPart + secondPart + GH_USER + "/" + GH_REPO + "/contents/users.json";
+                const res = await fetch(targetUrl, { headers: { "Authorization": "token " + GH_TOKEN, "Accept": "application/vnd.github.v3+json" } });
+                if(res.ok) { const data = await res.json(); currentFileSha = data.sha; let text = decodeURIComponent(escape(atob(data.content))); localStorage.setItem("sc_global_users", text); }
+            } catch(e) {}
+        }
+        async function pushToCloud() {
+            try {
+                await syncFromCloud(); let opBracket = String.fromCharCode(91); let clBracket = String.fromCharCode(93); let fallbackEmptyArray = opBracket + clBracket;
+                let userList = JSON.parse(localStorage.getItem("sc_global_users") || fallbackEmptyArray); let idx = userList.findIndex(u => u.username === currentU); if(idx !== -1) { userList.at(idx).balance = balance; }
+                let b64 = btoa(unescape(encodeURIComponent(JSON.stringify(userList)))); let firstPart = "https://api."; let secondPart = "://github.com"; let targetUrl = firstPart + secondPart + GH_USER + "/" + GH_REPO + "/contents/users.json";
+                await fetch(targetUrl, { method: "PUT", headers: { "Authorization": "token " + GH_TOKEN, "Content-Type": "application/json" }, body: JSON.stringify({ message: "Casino-Cloud: Coinflip-Update", content: b64, sha: currentFileSha }) });
+            } catch(e) {}
+        }
+        async function goBackToHub() { document.getElementById("flip-btn").disabled = true; document.getElementById("status-box").innerText = "⏳ Speichere Coins..."; await pushToCloud(); location.href = "index.html"; }
+        function selectSide(side) { if (isFlipping) return; userChoice = side; document.getElementById("choose-heads-btn").classList.toggle("selected-heads", side === "heads"); document.getElementById("choose-tails-btn").classList.toggle("selected-tails", side === "tails"); }
+        function startFlip() {
+            if (isFlipping) return; let bet = parseInt(document.getElementById("bet-input").value); if (isNaN(bet) || bet <= 0 || bet > balance) { alert("Ungültiger Einsatz!"); return; }
+            isFlipping = true; balance -= bet; document.getElementById("balance-display").innerText = balance; localStorage.setItem("sc_balance_" + currentU, balance);
+            document.getElementById("flip-btn").disabled = true; document.getElementById("status-box").style.color = "#ffcc00"; document.getElementById("status-box").innerText = "Münze fliegt...";
+            let cryptoArray = new Uint32Array(1); window.crypto.getRandomValues(cryptoArray); let finalResult = (cryptoArray.at(0) % 2 === 0) ? "heads" : "tails";
+            let coinEl = document.getElementById("coin-element"); let rotation = 0; let ticks = 0;
+            let interval = setInterval(() => {
+                rotation += 180; coinEl.style.transform = "rotateX(" + rotation + "deg)"; playSound("tick");
+                if (ticks % 2 === 0) { coinEl.className = "coin coin-tails"; coinEl.innerText = "🔵"; } else { coinEl.className = "coin coin-heads"; coinEl.innerText = "🔴"; }
+                ticks++;
+                if (ticks > 12) {
+                    clearInterval(interval); coinEl.style.transform = "rotateX(0deg)";
+                    if (finalResult === "heads") { coinEl.className = "coin coin-heads"; coinEl.innerText = "🔴"; } else { coinEl.className = "coin coin-tails"; coinEl.innerText = "🔵"; }
+                    if (userChoice === finalResult) { balance += (bet * 2); document.getElementById("status-box").style.color = "#00ffcc"; document.getElementById("status-box").innerText = "🎉 GEWONNEN! +" + (bet * 2) + "$"; playSound("win"); } else { document.getElementById("status-box").style.color = "#ff0055"; document.getElementById("status-box").innerText = "❌ VERLOREN!"; playSound("lose"); }
+                    document.getElementById("balance-display").innerText = balance; localStorage.setItem("sc_balance_" + currentU, balance); document.getElementById("flip-btn").disabled = false; isFlipping = false;
+                }
+            }, 100);
+        }
+    </script>
+</body>
+</html>
+
