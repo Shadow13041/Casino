@@ -26,10 +26,8 @@
         .switch-mode-text { margin-top: 15px; font-size: 0.85rem; color: #aaa; cursor: pointer; }
         .switch-mode-text span { color: #ff0055; font-weight: bold; }
     </style>
-    <script src="https://gstatic.com"></script>
-    <script src="https://gstatic.com"></script>
 </head>
-    <body>
+<body>
     <div class="auth-container">
         <h2 id="auth-title">EINLOGGEN</h2>
         <input type="text" id="username-input" placeholder="Benutzername">
@@ -37,72 +35,81 @@
         <button id="auth-btn" onclick="processAuth()">Anmelden</button>
         <div class="switch-mode-text" id="toggle-mode-box" onclick="toggleMode()">Neu hier? <span>Konto erstellen</span></div>
     </div>
+
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyAZzQ_oKZ3maWTGgj0eCih0jhSAumH6WQQ",
-            authDomain: "://firebaseapp.com",
-            databaseURL: "https://firebasedatabase.app",
-            projectId: "shadow-casino",
-            storageBucket: "shadow-casino.firebasestorage.app",
-            messagingSenderId: "389676429525",
-            appId: "1:389676429525:web:37ed2f98d0205d6778325c"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
         let isRegisterMode = false;
+
         function toggleMode() {
             isRegisterMode = !isRegisterMode;
             document.getElementById("auth-title").innerText = isRegisterMode ? "REGISTRIEREN" : "EINLOGGEN";
             document.getElementById("auth-btn").innerText = isRegisterMode ? "Konto erstellen" : "Anmelden";
             document.getElementById("toggle-mode-box").innerHTML = isRegisterMode ? "Bereits registriert? <span>Einloggen</span>" : "Neu hier? <span>Konto erstellen</span>";
         }
-                function processAuth() {
+
+        function processAuth() {
             const uInput = document.getElementById("username-input").value.trim();
             const pInput = document.getElementById("password-input").value.trim();
-            if (!uInput || !pInput) { alert("Bitte fülle alle Felder aus!"); return; }
-            const cleanUserKey = uInput.replace(/[.#$\[\]]/g, "");
-            const userRef = db.ref("users/" + cleanUserKey);
-            userRef.once("value").then((snapshot) => {
-                if (isRegisterMode) {
-                    if (snapshot.exists()) { alert("Dieser Benutzername ist bereits vergeben!"); return; }
-                    let cryptoArray = new Uint32Array(1); window.crypto.getRandomValues(cryptoArray);
-                    let deviceId = cryptoArray.at(0).toString(16);
-                    let initialRole = "User";
-                    if (uInput === "Shadow") initialRole = "Owner";
-                    let userObj = {
-                        username: uInput,
-                        pass: pInput,
-                        balance: 1000,
-                        role: initialRole,
-                        id: deviceId,
-                        browser: "Chrome Mobile",
-                        os: "Android 14"
-                    };
-                    userRef.set(userObj).then(() => {
-                        alert("🎉 Registrierung erfolgreich! Du kannst dich jetzt einloggen.");
-                        toggleMode();
-                    });
-                } else {
-                    if (!snapshot.exists()) { alert("Benutzerkonto existiert nicht!"); return; }
-                    const userData = snapshot.val();
-                    if (userData.pass !== pInput) { alert("Falsches Passwort!"); return; }
-                                        db.ref("bans/users/" + cleanUserKey).once("value").then((bannedSnapshot) => {
-                        if (bannedSnapshot.exists()) { alert("Dieses Konto wurde gesperrt!"); return; }
-                        db.ref("bans/devices/" + userData.id).once("value").then((devBannedSnapshot) => {
-                            if (devBannedSnapshot.exists()) { alert("Dein Gerät wurde dauerhaft gesperrt!"); return; }
-                            localStorage.setItem("sc_username", userData.username);
-                            localStorage.setItem("sc_role", userData.role);
-                            localStorage.setItem("sc_password", userData.pass);
-                            localStorage.setItem("sc_balance_" + userData.username, userData.balance);
-                            location.href = "index.html";
-                        });
-                    });
+            
+            if (!uInput || !pInput) { 
+                alert("Bitte fülle alle Felder aus!"); 
+                return; 
+            }
+
+            // Alle Nutzer werden in einem lokalen JSON-Objekt im localStorage verwaltet
+            let users = JSON.parse(localStorage.getItem("casino_local_users")) || {};
+            const cleanUserKey = uInput.toLowerCase().replace(/[.#$\[\]]/g, "");
+
+            if (isRegisterMode) {
+                // Registrierungs-Logik
+                if (users[cleanUserKey]) { 
+                    alert("Dieser Benutzername ist bereits vergeben!"); 
+                    return; 
                 }
-            }).catch((err) => {
-                alert("Fehler bei der Cloud-Verbindung!");
-            });
+
+                let cryptoArray = new Uint32Array(1); 
+                window.crypto.getRandomValues(cryptoArray);
+                let deviceId = cryptoArray.toString(16);
+                
+                let initialRole = "User";
+                if (uInput === "Shadow") initialRole = "Owner";
+
+                // Neuen Benutzer speichern
+                users[cleanUserKey] = {
+                    username: uInput,
+                    pass: pInput,
+                    balance: 1000,
+                    role: initialRole,
+                    id: deviceId
+                };
+
+                localStorage.setItem("casino_local_users", JSON.stringify(users));
+                alert("🎉 Registrierung erfolgreich! Du kannst dich jetzt einloggen.");
+                toggleMode();
+                
+            } else {
+                // Login-Logik
+                if (!users[cleanUserKey]) { 
+                    alert("Benutzerkonto existiert nicht!"); 
+                    return; 
+                }
+
+                const userData = users[cleanUserKey];
+                
+                if (userData.pass !== pInput) { 
+                    alert("Falsches Passwort!"); 
+                    return; 
+                }
+
+                // Login-Session für das Dashboard (index.html) vorbereiten
+                localStorage.setItem("sc_username", userData.username);
+                localStorage.setItem("sc_role", userData.role);
+                localStorage.setItem("sc_password", userData.pass);
+                localStorage.setItem("sc_balance_" + userData.username, userData.balance);
+                
+                // Weiterleitung zum Dashboard
+                location.href = "index.html";
+            }
         }
     </script>
 </body>
 </html>
-
