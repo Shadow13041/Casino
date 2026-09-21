@@ -37,7 +37,7 @@
             background: linear-gradient(135deg, #1f142e, #0f0a1c); border: 2px solid #ffcc00; border-radius: 15px;
             padding: 15px; margin-bottom: 25px; box-shadow: 0 0 15px rgba(255, 204, 0, 0.15);
         }
-                .chest-btn {
+        .chest-btn {
             background: linear-gradient(135deg, #ffcc00, #b38f00); color: #0d0d11; border: none;
             padding: 8px 20px; font-size: 0.95rem; font-weight: bold; border-radius: 50px; cursor: pointer;
             box-shadow: 0 4px 10px rgba(255, 204, 0, 0.3); margin-top: 5px;
@@ -72,6 +72,7 @@
             </div>
         </div>
     </div>
+    
     <div id="account-area" class="auth-container">
         <h3 style="margin-top:0; color:#ffcc00;">Passwort verwalten</h3>
         <p style="font-size:0.9rem; color:#888;">Dein Passwort lautet: <span id="current-pass-display" style="color:white; font-family:monospace;"></span></p>
@@ -79,7 +80,8 @@
         <button onclick="changePassword()">Passwort aktualisieren</button><br>
         <button style="background:#444; font-size:0.9rem; padding:8px 20px; margin-top:10px;" onclick="closeAccountPage()">Zurück</button>
     </div>
-        <div id="hub-area" class="hub-container" style="margin-top:90px;">
+    
+    <div id="hub-area" class="hub-container" style="margin-top:90px;">
         <h2 style="color:#ff0055; margin-top:0; font-size:1.8rem; text-shadow: 0 0 10px rgba(255,0,85,0.3);">DASHBOARD</h2>
         <div class="welcome-back">Willkommen zurück, <span id="user-display" style="color:#ffcc00; font-weight:bold;">...</span>!</div>
         <div class="coin-display">Dein Kontostand: <span id="coins-display">0</span> $</div>
@@ -88,6 +90,7 @@
             <p id="chest-status-text" style="margin: 0 0 10px 0; font-size: 0.85rem; color: #ccc;">Hol dir alle 24 Stunden gratis Coins!</p>
             <button id="claim-chest-btn" class="chest-btn" onclick="claimDailyChest()">Kiste öffnen</button>
         </div>
+        
         <div class="game-grid">
             <div class="hub-card" onclick="location.href='slots9x9.html'">
                 <h3 style="margin:0 0 5px 0; color:#ff0055;">🎰 Slots 9x9 Grid</h3>
@@ -109,7 +112,7 @@
                 <h3 style="margin:0 0 5px 0; color:#00ffcc;">🎰 Slots 5x3</h3>
                 <p style="margin:0; font-size:0.85rem; color:#aaa;">Das fette 5x3 Raster mit echten, lückenlosen Gewinn-Mustern.</p>
             </div>
-            <div class="hub-card" onclick="location.href='mines.html'">
+                        <div class="hub-card" onclick="location.href='mines.html'">
                 <h3 style="margin:0 0 5px 0; color:#00ffcc;">💎 Diamond Mines</h3>
                 <p style="margin:0; font-size:0.85rem; color:#aaa;">Finde die verdeckten Diamanten im 5x5 Raster und flüchte vor den Bomben!</p>
             </div>
@@ -150,55 +153,59 @@
                 <p style="margin:0; font-size:0.85rem; color:#aaa;">Setze auf eines von 5 Rennpferden und hol dir den 5x Gewinn!</p>
             </div>
         </div>
+        
         <div class="transfer-container" style="margin-top:0; padding:15px; width:100%;">
             <h3 style="margin-top:0; color:#00ffcc;">Coins überweisen</h3>
             <input type="text" id="target-username-input" placeholder="Benutzername des Empfängers"><br>
             <input type="number" id="transfer-amount-input" placeholder="Anzahl an Coins"><br>
             <button style="background:linear-gradient(135deg, #00ffcc, #00b38f); color:#0d0d11; font-size:1rem; padding:10px 20px;" onclick="transferCoins()">Coins senden</button>
         </div>
-        </div>
-        <script type="module">
-        import { initializeApp } from "https://gstatic.com";
-        import { getDatabase, ref, get, set, onValue } from "https://gstatic.com";
-        const firebaseConfig = {
-            apiKey: "AIzaSyAZzQ_oKZ3maWTGgj0eCih0jhSAumH6WQQ",
-            authDomain: "://firebaseapp.com",
-            databaseURL: "https://firebasedatabase.app",
-            projectId: "shadow-casino",
-            storageBucket: "shadow-casino.firebasestorage.app",
-            messagingSenderId: "389676429525",
-            appId: "1:389676429525:web:37ed2f98d0205d6778325c"
-        };
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
+    </div>
+
+    <script>
         let currentU = "";
-        let userBalance = 1000;
+        let userBalance = 0;
+                function getAllUsers() {
+            return JSON.parse(localStorage.getItem("sc_local_users") || "{}");
+        }
+        function saveAllUsers(users) {
+            localStorage.setItem("sc_local_users", JSON.stringify(users));
+        }
+
         window.onload = function() {
-            currentU = localStorage.getItem("sc_username"); if (!currentU) { location.href = "login.html"; return; }
-            document.getElementById("profile-section").style.display = "block"; document.getElementById("hub-area").style.display = "inline-block";
-            document.getElementById("menu-username").innerText = currentU; document.getElementById("user-display").innerText = currentU;
-            const currentRole = localStorage.getItem("sc_role"); if (currentRole === "Owner" || currentRole === "Admin") { const adminLink = document.getElementById("admin-panel-link"); if(adminLink) adminLink.style.display = "block"; }
-            const cleanUserKey = currentU.replace(/[.#$\[\]]/g, "");
-            const userRef = ref(db, "users/" + cleanUserKey);
-            onValue(userRef, (snapshot) => {
-                if (snapshot.exists()) {
-                    const userData = snapshot.val(); userBalance = userData.balance;
-                    document.getElementById("coins-display").innerText = userBalance;
-                    localStorage.setItem("sc_balance_" + currentU, userBalance);
-                }
-            });
+            currentU = localStorage.getItem("sc_username"); 
+            if (!currentU) { location.href = "login.html"; return; }
+            document.getElementById("profile-section").style.display = "block"; 
+            document.getElementById("hub-area").style.display = "inline-block";
+            document.getElementById("menu-username").innerText = currentU; 
+            document.getElementById("user-display").innerText = currentU;
+            const currentRole = localStorage.getItem("sc_role"); 
+            if (currentRole === "Owner" || currentRole === "Admin") { 
+                const adminLink = document.getElementById("admin-panel-link"); 
+                if(adminLink) adminLink.style.display = "block"; 
+            }
+            let users = getAllUsers();
+            if (!users[currentU]) {
+                users[currentU] = { balance: 1000, pass: localStorage.getItem("sc_password") || "1234" };
+                saveAllUsers(users);
+            }
+            userBalance = users[currentU].balance;
+            document.getElementById("coins-display").innerText = userBalance;
             checkChestStatus(); setInterval(checkChestStatus, 1000);
         };
+        
         window.toggleDropdown = function() { const drop = document.getElementById("profile-dropdown"); drop.style.display = drop.style.display === "block" ? "none" : "block"; };
         window.logout = function() { localStorage.removeItem("sc_username"); localStorage.removeItem("sc_role"); localStorage.removeItem("sc_password"); location.href = "login.html"; };
-        window.openAccountPage = function() { document.getElementById("hub-area").style.display = "none"; document.getElementById("account-area").style.display = "inline-block"; document.getElementById("current-pass-display").innerText = localStorage.getItem("sc_password"); toggleDropdown(); };
+        window.openAccountPage = function() { document.getElementById("hub-area").style.display = "none"; document.getElementById("account-area").style.display = "inline-block"; let users = getAllUsers(); document.getElementById("current-pass-display").innerText = users[currentU] ? users[currentU].pass : "1234"; toggleDropdown(); };
         window.closeAccountPage = function() { document.getElementById("account-area").style.display = "none"; document.getElementById("hub-area").style.display = "inline-block"; };
-        window.changePassword = async function() {
+        
+        window.changePassword = function() {
             const newP = document.getElementById("new-password-input").value.trim(); if(!newP) return;
-            const cleanUserKey = currentU.replace(/[.#$\[\]]/g, "");
-            const passRef = ref(db, "users/" + cleanUserKey + "/pass");
-            await set(passRef, newP); localStorage.setItem("sc_password", newP); alert("Passwort geändert!"); window.closeAccountPage();
+            let users = getAllUsers(); if(users[currentU]) { users[currentU].pass = newP; saveAllUsers(users); }
+            localStorage.setItem("sc_password", newP); document.getElementById("current-pass-display").innerText = newP;
+            alert("Passwort geändert!"); window.closeAccountPage();
         };
+        
         window.checkChestStatus = function() {
             const lastClaim = localStorage.getItem("sc_chest_claim_" + currentU); const btn = document.getElementById("claim-chest-btn"); const statusText = document.getElementById("chest-status-text"); if(!btn || !statusText) return;
             if (lastClaim) {
@@ -211,32 +218,28 @@
             }
             btn.disabled = false; statusText.style.color = "#00ffcc"; statusText.innerText = "Deine tägliche Kiste steht bereit! 🔓";
         };
-        window.claimDailyChest = async function() {
+        
+        window.claimDailyChest = function() {
             const lastClaim = localStorage.getItem("sc_chest_claim_" + currentU); const now = Date.now(); if (lastClaim && now < (parseInt(lastClaim) + (24 * 60 * 60 * 1000))) return;
-            const reward = Math.floor(Math.random() * (500 - 150 + 1)) + 150; let newBal = userBalance + reward;
-            const cleanUserKey = currentU.replace(/[.#$\[\]]/g, "");
-            const balRef = ref(db, "users/" + cleanUserKey + "/balance");
-            await set(balRef, newBal); localStorage.setItem("sc_chest_claim_" + currentU, now.toString());
-            alert("🎉 Kiste geöffnet! Du hast +" + reward + "$ gratis erhalten!"); checkChestStatus();
+            const reward = Math.floor(Math.random() * (500 - 150 + 1)) + 150; userBalance += reward;
+            let users = getAllUsers(); if(users[currentU]) { users[currentU].balance = userBalance; saveAllUsers(users); }
+            document.getElementById("coins-display").innerText = userBalance; localStorage.setItem("sc_chest_claim_" + currentU, now.toString());
+            alert("🎉 Kiste geöffnet! Du hast +" + reward + "\$ gratis erhalten!"); checkChestStatus();
         };
-        window.transferCoins = async function() {
-            const targetUser = document.getElementById("target-username-input").value.trim(); const amount = parseInt(document.getElementById("transfer-amount-input").value);
-            if (!targetUser || isNaN(amount) || amount <= 0 || amount > userBalance) { alert("Fehler bei der Überweisung!"); return; }
-            const cleanSenderKey = currentU.replace(/[.#$\[\]]/g, ""); const cleanTargetKey = targetUser.replace(/[.#$\[\]]/g, "");
-            const targetRef = ref(db, "users/" + cleanTargetKey);
-            const targetSnapshot = await get(targetRef);
-            if (!targetSnapshot.exists()) { alert("Empfänger-Account existiert nicht im System!"); return; }
-            const targetData = snapshot.val();
-            if (currentU !== "Shadow" && localStorage.getItem("sc_id") === targetData.id) {
-                alert("Du Cheater! Dafür verlierst du all deine Coins!");
-                await set(ref(db, "users/" + cleanSenderKey + "/balance"), 0); location.reload(); return;
-            }
-            let newSenderBal = userBalance - amount; let newTargetBal = targetData.balance + amount;
-            await set(ref(db, "users/" + cleanSenderKey + "/balance"), newSenderBal);
-            await set(ref(db, "users/" + cleanTargetKey + "/balance"), newTargetBal);
-            alert(`Erfolgreich ${amount} Coins an ${targetUser} gesendet!`);
+        
+        window.transferCoins = function() {
+            const targetUser = document.getElementById("target-username-input").value.trim(); const transferAmount = parseInt(document.getElementById("transfer-amount-input").value);
+            if (!targetUser) { alert("Bitte einen Empfänger angeben."); return; }
+            if (isNaN(transferAmount) || transferAmount <= 0) { alert("Bitte einen gültigen Betrag eingeben."); return; }
+            if (transferAmount > userBalance) { alert("Nicht genügend Coins vorhanden!"); return; }
+            if (targetUser.toLowerCase() === currentU.toLowerCase()) { alert("Du kannst dir nicht selbst Coins senden."); return; }
+            let users = getAllUsers(); if (!users[targetUser]) { alert("Der Empfänger existiert lokal noch nicht (muss sich erst einmal eingeloggt haben)!"); return; }
+            users[currentU].balance -= transferAmount; users[targetUser].balance += transferAmount; saveAllUsers(users);
+            userBalance = users[currentU].balance; document.getElementById("coins-display").innerText = userBalance;
+            alert(`Erfolgreich ${transferAmount} $ an ${targetUser} gesendet!`); document.getElementById("target-username-input").value = ""; document.getElementById("transfer-amount-input").value = "";
         };
+
+        window.onclick = function(event) { if (!event.target.matches('#menu-username')) { const dropdown = document.getElementById('profile-dropdown'); if (dropdown && dropdown.style.display === 'block') { dropdown.style.display = 'none'; } } }
     </script>
 </body>
 </html>
-
