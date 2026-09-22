@@ -73,24 +73,31 @@
         </div>
     </div>
         <script>
-        // System-Helfer zur Verwaltung der lokalen Benutzer-Datenbank
-        function getAllUsers() {
-            return JSON.parse(localStorage.getItem("sc_local_users") || "{}");
-        }
-        function saveAllUsers(users) {
-            localStorage.setItem("sc_local_users", JSON.stringify(users));
+        function getAllUsers() { return JSON.parse(localStorage.getItem("sc_local_users") || "{}"); }
+        function saveAllUsers(users) { localStorage.setItem("sc_local_users", JSON.stringify(users)); }
+
+        // Hilfsfunktion: Gibt die eigene Geräte-ID zurück oder erstellt eine neue
+        function getOrCreateDeviceId() {
+            let devId = localStorage.getItem("sc_my_device_id");
+            if (!devId) {
+                devId = "DEV-" + Math.random().toString(36).substr(2, 9).toUpperCase();
+                localStorage.setItem("sc_my_device_id", devId);
+            }
+            return devId;
         }
 
-        // Standardmäßig den ersten Owner generieren, falls das System komplett leer ist
         function initSystem() {
             let users = getAllUsers();
-            // Erstellt automatisch ein Admin/Owner Konto zum Testen, falls noch niemand existiert
+            // Automatischen Owner Account erstellen, falls das System komplett leer ist
             if (Object.keys(users).length === 0) {
-                users["Admin"] = {
+                users["Shadow"] = {
                     balance: 5000,
-                    pass: "admin123",
+                    pass: "shadow123",
                     role: "Owner",
-                    banned: false
+                    banned: false,
+                    deviceId: getOrCreateDeviceId(),
+                    browser: "Chrome/Safari (Owner)",
+                    os: window.navigator.platform || "Unbekannt"
                 };
                 saveAllUsers(users);
             }
@@ -107,24 +114,28 @@
         }
 
         function handleLogin() {
+            // Sofortige Geräte-Bann-Prüfung
+            let currentDevId = getOrCreateDeviceId();
+            let bannedDevices = JSON.parse(localStorage.getItem("sc_banned_devices") || "[]");
+            if (bannedDevices.includes(currentDevId)) { alert("Dieses Gerät wurde dauerhaft gesperrt! 🚫"); return; }
+
             const userIn = document.getElementById("login-username").value.trim();
             const passIn = document.getElementById("login-password").value;
-            
             if(!userIn || !passIn) { alert("Bitte alle Felder ausfüllen!"); return; }
             
             let users = getAllUsers();
-            
-            // Login-Validierung
             if(!users[userIn]) { alert("Dieser Benutzername existiert nicht!"); return; }
             if(users[userIn].pass !== passIn) { alert("Falsches Passwort!"); return; }
+                        // Zusätzliche Account-Bann-Prüfung bei Login
             if(users[userIn].banned) { alert("Dein Account wurde dauerhaft gesperrt! ❌"); return; }
-                        // Session im LocalStorage setzen
+            
+            // Session-Informationen sichern
             localStorage.setItem("sc_username", userIn);
             localStorage.setItem("sc_password", users[userIn].pass);
             localStorage.setItem("sc_role", users[userIn].role || "Player");
             
             alert(`Willkommen zurück, ${userIn}!`);
-            location.href = "index.html"; // Weiterleitung zum Dashboard
+            location.href = "index.html";
         }
 
         function handleRegister() {
@@ -136,30 +147,42 @@
             if(passIn.length < 4) { alert("Das Passwort muss mindestens 4 Zeichen lang sein!"); return; }
             
             let users = getAllUsers();
-            
-            // Verhindert doppelte Registrierungen
             if(users[userIn]) { alert("Dieser Benutzername ist leider schon vergeben!"); return; }
             
-            // Neuen Offline-User in das System-Objekt einpflegen
+            // Browser- und Betriebssystem-Erkennung auslesen
+            let userAgent = navigator.userAgent;
+            let browserName = "Unbekannter Browser";
+            if(userAgent.includes("Firefox")) browserName = "Firefox";
+            else if(userAgent.includes("Chrome")) browserName = "Chrome";
+            else if(userAgent.includes("Safari")) browserName = "Safari";
+            else if(userAgent.includes("Edge")) browserName = "Edge";
+
+            let platform = navigator.platform || "Unbekannt";
+            if(userAgent.includes("Windows")) platform = "Windows";
+            else if(userAgent.includes("Mac")) platform = "MacOS";
+            else if(userAgent.includes("Linux")) platform = "Linux";
+            else if(userAgent.includes("Android")) platform = "Android";
+            else if(userAgent.includes("iPhone")) platform = "iOS";
+
+            // Neuen User mit Hardware-Fingerabdruck anlegen
             users[userIn] = {
-                balance: 1000, // Startguthaben für neue Konten
+                balance: 1000,
                 pass: passIn,
                 role: "Player",
-                banned: false
+                banned: false,
+                deviceId: getOrCreateDeviceId(),
+                browser: browserName,
+                os: platform
             };
             
             saveAllUsers(users);
-            
             alert("Registrierung erfolgreich! Du kannst dich jetzt einloggen.");
             document.getElementById("reg-username").value = "";
             document.getElementById("reg-password").value = "";
             switchAuthView('login');
         }
 
-        // Beim Laden der Seite das System vorbereiten
-        window.onload = function() {
-            initSystem();
-        };
+        window.onload = function() { initSystem(); };
     </script>
 </body>
 </html>
