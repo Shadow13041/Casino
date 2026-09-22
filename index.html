@@ -165,32 +165,38 @@
     <script>
         let currentU = "";
         let userBalance = 0;
-                function getAllUsers() {
-            return JSON.parse(localStorage.getItem("sc_local_users") || "{}");
-        }
-        function saveAllUsers(users) {
-            localStorage.setItem("sc_local_users", JSON.stringify(users));
-        }
+                function getAllUsers() { return JSON.parse(localStorage.getItem("sc_local_users") || "{}"); }
+        function saveAllUsers(users) { localStorage.setItem("sc_local_users", JSON.stringify(users)); }
 
         window.onload = function() {
+            // Globale Geräte-Bannprüfung
+            let currentDevId = localStorage.getItem("sc_my_device_id");
+            let bannedDevices = JSON.parse(localStorage.getItem("sc_banned_devices") || "[]");
+            if (bannedDevices.includes(currentDevId)) { alert("Dieses Gerät wurde dauerhaft gesperrt! 🚫"); location.href = "login.html"; return; }
+
             currentU = localStorage.getItem("sc_username"); 
             if (!currentU) { location.href = "login.html"; return; }
+            
+            let users = getAllUsers();
+            // Globale Account-Bannprüfung
+            if (!users[currentU] || users[currentU].banned) { alert("Dein Account wurde dauerhaft gesperrt! ❌"); window.logout(); return; }
+            
             document.getElementById("profile-section").style.display = "block"; 
             document.getElementById("hub-area").style.display = "inline-block";
             document.getElementById("menu-username").innerText = currentU; 
             document.getElementById("user-display").innerText = currentU;
-            const currentRole = localStorage.getItem("sc_role"); 
+            
+            // Rollenzuweisung prüfen (Owner/Admin)
+            let currentRole = users[currentU].role || "Player";
+            localStorage.setItem("sc_role", currentRole);
             if (currentRole === "Owner" || currentRole === "Admin") { 
                 const adminLink = document.getElementById("admin-panel-link"); 
                 if(adminLink) adminLink.style.display = "block"; 
             }
-            let users = getAllUsers();
-            if (!users[currentU]) {
-                users[currentU] = { balance: 1000, pass: localStorage.getItem("sc_password") || "1234" };
-                saveAllUsers(users);
-            }
+            
             userBalance = users[currentU].balance;
             document.getElementById("coins-display").innerText = userBalance;
+            
             checkChestStatus(); setInterval(checkChestStatus, 1000);
         };
         
@@ -231,9 +237,9 @@
             const targetUser = document.getElementById("target-username-input").value.trim(); const transferAmount = parseInt(document.getElementById("transfer-amount-input").value);
             if (!targetUser) { alert("Bitte einen Empfänger angeben."); return; }
             if (isNaN(transferAmount) || transferAmount <= 0) { alert("Bitte einen gültigen Betrag eingeben."); return; }
-            if (transferAmount > userBalance) { alert("Nicht genügend Coins vorhanden!"); return; }
+            let users = getAllUsers(); if (transferAmount > users[currentU].balance) { alert("Nicht genügend Coins vorhanden!"); return; }
             if (targetUser.toLowerCase() === currentU.toLowerCase()) { alert("Du kannst dir nicht selbst Coins senden."); return; }
-            let users = getAllUsers(); if (!users[targetUser]) { alert("Der Empfänger existiert lokal noch nicht (muss sich erst einmal eingeloggt haben)!"); return; }
+            if (!users[targetUser]) { alert("Der Empfänger existiert noch nicht!"); return; }
             users[currentU].balance -= transferAmount; users[targetUser].balance += transferAmount; saveAllUsers(users);
             userBalance = users[currentU].balance; document.getElementById("coins-display").innerText = userBalance;
             alert(`Erfolgreich ${transferAmount} $ an ${targetUser} gesendet!`); document.getElementById("target-username-input").value = ""; document.getElementById("transfer-amount-input").value = "";
