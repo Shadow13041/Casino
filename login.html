@@ -42,8 +42,7 @@
     <div class="main-header">
         <div class="nav-logo">SHADOW CASINO</div>
     </div>
-
-    <!-- Login Ansicht -->
+        <!-- Login Ansicht -->
     <div id="login-view" class="auth-box">
         <h2 style="color:#ff0055; margin-top:0; font-size:1.6rem;">Anmelden</h2>
         <p style="color:#888; font-size:0.85rem; margin-top:-5px;">Betrete die Schatten-Zentrale</p>
@@ -54,7 +53,7 @@
         <button onclick="handleLogin()">Einloggen</button>
         
         <div class="toggle-links">
-            Noch kein Konto? <a onclick="switchAuthView('register')">Registrieren</a>
+            Noch kein Konto? <a href="javascript:void(0);" onclick="switchAuthView('register')">Registrieren</a>
         </div>
     </div>
 
@@ -69,14 +68,14 @@
         <button onclick="handleRegister()" style="background: linear-gradient(135deg, #ffcc00, #b38f00); color: #0d0d11;">Konto erstellen</button>
         
         <div class="toggle-links">
-            Bereits registriert? <a onclick="switchAuthView('login')">Hier einloggen</a>
+            Bereits registriert? <a href="javascript:void(0);" onclick="switchAuthView('login')">Hier einloggen</a>
         </div>
     </div>
-        <script>
+
+    <script>
         function getAllUsers() { return JSON.parse(localStorage.getItem("sc_local_users") || "{}"); }
         function saveAllUsers(users) { localStorage.setItem("sc_local_users", JSON.stringify(users)); }
 
-        // Hilfsfunktion: Gibt die eigene Geräte-ID zurück oder erstellt eine neue
         function getOrCreateDeviceId() {
             let devId = localStorage.getItem("sc_my_device_id");
             if (!devId) {
@@ -85,10 +84,8 @@
             }
             return devId;
         }
-
-        function initSystem() {
+                function initSystem() {
             let users = getAllUsers();
-            // Automatischen Owner Account erstellen, falls das System komplett leer ist
             if (Object.keys(users).length === 0) {
                 users["Shadow"] = {
                     balance: 5000,
@@ -114,7 +111,6 @@
         }
 
         function handleLogin() {
-            // Sofortige Geräte-Bann-Prüfung
             let currentDevId = getOrCreateDeviceId();
             let bannedDevices = JSON.parse(localStorage.getItem("sc_banned_devices") || "[]");
             if (bannedDevices.includes(currentDevId)) { alert("Dieses Gerät wurde dauerhaft gesperrt! 🚫"); return; }
@@ -126,10 +122,8 @@
             let users = getAllUsers();
             if(!users[userIn]) { alert("Dieser Benutzername existiert nicht!"); return; }
             if(users[userIn].pass !== passIn) { alert("Falsches Passwort!"); return; }
-                        // Zusätzliche Account-Bann-Prüfung bei Login
             if(users[userIn].banned) { alert("Dein Account wurde dauerhaft gesperrt! ❌"); return; }
             
-            // Session-Informationen sichern
             localStorage.setItem("sc_username", userIn);
             localStorage.setItem("sc_password", users[userIn].pass);
             localStorage.setItem("sc_role", users[userIn].role || "Player");
@@ -137,8 +131,7 @@
             alert(`Willkommen zurück, ${userIn}!`);
             location.href = "index.html";
         }
-
-        function handleRegister() {
+                function handleRegister() {
             const userIn = document.getElementById("reg-username").value.trim();
             const passIn = document.getElementById("reg-password").value;
             
@@ -149,7 +142,6 @@
             let users = getAllUsers();
             if(users[userIn]) { alert("Dieser Benutzername ist leider schon vergeben!"); return; }
             
-            // Browser- und Betriebssystem-Erkennung auslesen
             let userAgent = navigator.userAgent;
             let browserName = "Unbekannter Browser";
             if(userAgent.includes("Firefox")) browserName = "Firefox";
@@ -164,7 +156,6 @@
             else if(userAgent.includes("Android")) platform = "Android";
             else if(userAgent.includes("iPhone")) platform = "iOS";
 
-            // Neuen User mit Hardware-Fingerabdruck anlegen
             users[userIn] = {
                 balance: 1000,
                 pass: passIn,
