@@ -28,12 +28,12 @@
             border: none; color: white; font-weight: bold; cursor: pointer;
         }
         .tab-btn.active { background: #ff0055; }
-                .user-list-item { background: #0d0d11; padding: 10px; margin: 5px 0; border-radius: 10px; cursor: pointer; border: 1px solid #222; display: flex; justify-content: space-between; align-items: center; }
+        .user-list-item { background: #0d0d11; padding: 10px; margin: 5px 0; border-radius: 10px; cursor: pointer; border: 1px solid #222; display: flex; justify-content: space-between; align-items: center; }
         .user-list-item:hover { border-color: #ff0055; }
         .badge { font-size: 0.75rem; padding: 2px 6px; border-radius: 5px; font-weight: bold; }
         button {
             background: linear-gradient(135deg, #ff0055, #bc003f); color: white; border: none; padding: 10px 20px;
-            font-size: 1rem; font-weight: bold; border-radius: 50px; cursor: pointer; box-shadow: 0 4px 12px rgba(255, 0, 85, 0.3);
+            font-size: 1rem; font-weight: bold; border-radius: 50px; cursor: pointer; box-shadow: 0 4px 12 rgba(255, 0, 85, 0.3);
         }
         button:disabled { background: #444; box-shadow: none; cursor: not-allowed; }
         input {
@@ -49,7 +49,7 @@
         <div class="nav-logo" onclick="location.href='index.html'">SHADOW CASINO</div>
         <div class="profile-menu"><span id="menu-username">...</span></div>
     </div>
-        <div class="admin-box">
+    <div class="admin-box">
         <h2 style="color:#ff0055; margin-top:0; text-align:center;">Shadow Control Panel</h2>
         <div class="tabs">
             <button class="tab-btn active" id="tab-act" onclick="switchAdminTab('active')">Aktive User</button>
@@ -60,9 +60,9 @@
         <div id="user-details-box" style="display:none; background:#1e1e2f; padding:15px; border-radius:15px; margin-top:15px; border:1px solid #ff0055;">
             <h3 id="det-username" style="color:#ffcc00; margin-top:0;"></h3>
             <div id="hide-for-admin-block">
-                <p><strong>Registrier-Gerät:</strong> <span id="det-id"></span></p>
-                <p><strong>Browser-Typ:</strong> <span id="det-browser"></span></p>
-                <p><strong>System:</strong> <span id="det-os"></span></p>
+                <p><strong>Registrier-Gerät:</strong> <span id="det-id">Offline-Modus</span></p>
+                <p><strong>Browser-Typ:</strong> <span id="det-browser">Lokale Sandbox</span></p>
+                <p><strong>System:</strong> <span id="det-os">Gespeichert</span></p>
             </div>
             <p><strong>Coins Kontostand:</strong> <span id="det-coins" style="color:#00ffcc; font-weight:bold;"></span> $</p>
             <p><strong>Status:</strong> <span id="det-status"></span></p>
@@ -75,81 +75,100 @@
                 <button id="btn-edit-mode" onclick="toggleEditMode()" style="background:#ffcc00; color:black; font-size:0.85rem; padding:6px 12px; margin:0;">Bearbeiten</button>
                 <button id="btn-toggle-admin" onclick="adminToggleRank()" style="background:#00ffcc; color:#0d0d11; font-size:0.85rem; padding:6px 12px; margin:0;"></button>
                 <button id="btn-ban-user" onclick="adminBanUser()" style="background:#ff0055; font-size:0.85rem; padding:6px 12px; margin:0;">User bannen</button>
-                <button id="btn-ban-device" onclick="adminBanDevice()" style="background:#ff5500; font-size:0.85rem; padding:6px 12px; margin:0;">Gerät bannen</button>
+                <button id="btn-ban-device" onclick="adminBanDevice()" style="background:#ff5500; font-size:0.85rem; padding:6px 12px; margin:0; display:none;">Gerät bannen</button>
                 <button id="btn-unban-actions" onclick="adminUnbanAll()" style="background:#00ffcc; color:black; font-size:0.85rem; padding:6px 12px; display:none; margin:0;">Vollständig Entbannen</button>
             </div>
         </div>
         <br><center><button style="background:#444; font-size:0.9rem; padding:8px 20px;" onclick="location.href='index.html'">Zur Zentrale</button></center>
     </div>
-    <script>
-        let selectedUserForAdmin = null; let currentU = ""; let cloudUsersList = [];
-        const GH_USER = "Shadow13041"; const GH_REPO = "Casino"; const GH_TOKEN = "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"; let currentFileSha = "";
-                window.onload = async function() {
+        <script>
+        let selectedUserForAdmin = null; let currentU = "";
+
+        function getAllUsers() { return JSON.parse(localStorage.getItem("sc_local_users") || "{}"); }
+        function saveAllUsers(users) { localStorage.setItem("sc_local_users", JSON.stringify(users)); }
+
+        window.onload = function() {
             currentU = localStorage.getItem("sc_username"); const currentRole = localStorage.getItem("sc_role");
             if (!currentU || (currentRole !== "Owner" && currentRole !== "Admin")) { alert("Zugriff verweigert!"); location.href = "index.html"; return; }
-            document.getElementById("menu-username").innerText = currentU; await syncFromCloud();
+            document.getElementById("menu-username").innerText = currentU;
+            switchAdminTab("active");
         };
-        async function syncFromCloud() {
-            try {
-                let firstPart = "https://api."; let secondPart = "://github.com"; let targetUrl = firstPart + secondPart + GH_USER + "/" + GH_REPO + "/contents/users.json";
-                const res = await fetch(targetUrl, { headers: { "Authorization": "token " + GH_TOKEN, "Accept": "application/vnd.github.v3+json" } });
-                if(res.ok) {
-                    const data = await res.json(); currentFileSha = data.sha; let decryptedText = decodeURIComponent(escape(atob(data.content))); localStorage.setItem("sc_global_users", decryptedText);
-                    let opBracket = String.fromCharCode(91); let clBracket = String.fromCharCode(93); let fallbackEmptyArray = opBracket + clBracket;
-                    try { cloudUsersList = JSON.parse(decryptedText); } catch(jsonErr) { cloudUsersList = JSON.parse(fallbackEmptyArray); }
-                    switchAdminTab("active");
-                }
-            } catch(e) {}
-        }
-        async function saveToCloud(userList) {
-            try {
-                let jsonString = JSON.stringify(userList); let b64Content = btoa(unescape(encodeURIComponent(jsonString)));
-                let firstPart = "https://api."; let secondPart = "://github.com"; let targetUrl = firstPart + secondPart + GH_USER + "/" + GH_REPO + "/contents/users.json";
-                await fetch(targetUrl, { method: "PUT", headers: { "Authorization": "token " + GH_TOKEN, "Content-Type": "application/json" }, body: JSON.stringify({ message: "Casino-Cloud: Admin-Update", content: b64Content, sha: currentFileSha }) });
-            } catch(e) {}
-        }
-        function toggleEditMode() { const area = document.getElementById("edit-actions-area"); area.style.display = area.style.display === "block" ? "none" : "block"; }
+
         function switchAdminTab(type) {
-            document.getElementById("tab-act").classList.toggle("active", type === "active"); document.getElementById("tab-ban").classList.toggle("active", type === "banned");
-            const activeView = document.getElementById("admin-view-active"); const bannedView = document.getElementById("admin-view-banned"); activeView.style.display = type === "active" ? "block" : "none"; bannedView.style.display = type === "banned" ? "block" : "none";
-            let opBracket = String.fromCharCode(91); let clBracket = String.fromCharCode(93); let fallbackEmptyArray = opBracket + clBracket;
-            let bannedUsers = []; let bannedDevices = [];
-            try { bannedUsers = JSON.parse(localStorage.getItem("sc_banned_users") || fallbackEmptyArray); bannedDevices = JSON.parse(localStorage.getItem("sc_banned_devices") || fallbackEmptyArray); } catch(err) {}
-            activeView.innerHTML = ""; bannedView.innerHTML = "";
-            if (cloudUsersList && cloudUsersList.length > 0) {
-                for(let i = 0; i < cloudUsersList.length; i++) {
-                    let u = cloudUsersList.at(i); 
-                    let uCoins = (typeof u.balance !== "undefined" && u.balance !== null) ? u.balance : 1000;
-                    let isB = bannedUsers.includes(u.username) || bannedDevices.includes(u.id);
-                    let badge = u.role === "Owner" ? "<span class='badge' style='background:#ffcc00;color:black;'>Owner</span>" : (u.role === "Admin" ? "<span class='badge' style='background:#00ffcc;color:black;'>Admin</span>" : "");
-                    let itemHtml = `<div class="user-list-item" onclick="showUserDetails('${u.username}')"><span>${u.username} ${badge}</span><span style='color:#00ffcc;'>${uCoins}$</span></div>`;
-                    if(!isB) { activeView.innerHTML += itemHtml; } else if(u.username !== "Shadow") { bannedView.innerHTML += itemHtml; }
+            document.getElementById("tab-act").classList.toggle("active", type === "active");
+            document.getElementById("tab-ban").classList.toggle("active", type === "banned");
+            const activeArea = document.getElementById("admin-view-active");
+            const bannedArea = document.getElementById("admin-view-banned");
+            activeArea.style.display = type === "active" ? "block" : "none";
+            bannedArea.style.display = type === "banned" ? "block" : "none";
+            
+            activeArea.innerHTML = ""; bannedArea.innerHTML = "";
+            let users = getAllUsers();
+
+            for (let name in users) {
+                let u = users[name];
+                if ((type === "active" && !u.banned) || (type === "banned" && u.banned)) {
+                    let div = document.createElement("div"); div.className = "user-list-item";
+                    let roleBadge = u.role === "Admin" || u.role === "Owner" ? `<span class="badge" style="background:#00ffcc; color:black;">${u.role}</span>` : "";
+                    div.innerHTML = `<span><strong>${name}</strong> - ${u.balance || 0} $ ${roleBadge}</span>`;
+                    div.onclick = () => showUserDetails(name);
+                    if (type === "active") activeArea.appendChild(div); else bannedArea.appendChild(div);
                 }
             }
         }
+
         function showUserDetails(username) {
-            let u = cloudUsersList.find(user => user.username === username); selectedUserForAdmin = u;
-            let opBracket = String.fromCharCode(91); let clBracket = String.fromCharCode(93); let fallbackEmptyArray = opBracket + clBracket;
-            let bannedUsers = []; let bannedDevices = [];
-            try { bannedUsers = JSON.parse(localStorage.getItem("sc_banned_users") || fallbackEmptyArray); bannedDevices = JSON.parse(localStorage.getItem("sc_banned_devices") || fallbackEmptyArray); } catch(err) {}
-            let isBanned = bannedUsers.includes(u.username) || bannedDevices.includes(u.id);
-            let uCoins = (typeof u.balance !== "undefined" && u.balance !== null) ? u.balance : 1000;
-            document.getElementById("det-username").innerText = u.username; document.getElementById("det-coins").innerText = uCoins; document.getElementById("det-status").innerText = u.role || "User";
-            const hideBlock = document.getElementById("hide-for-admin-block"); const currentRole = localStorage.getItem("sc_role");
-            if(u.role === "Owner" && currentRole === "Admin") { hideBlock.style.display = "none"; } else {
-                hideBlock.style.display = "block"; document.getElementById("det-id").innerText = u.id; document.getElementById("det-browser").innerText = u.browser || "Chrome Mobile"; document.getElementById("det-os").innerText = u.os || "Android 14";
-            }
-            document.getElementById("edit-actions-area").style.display = "none";
-            const btnRank = document.getElementById("btn-toggle-admin"); const btnBanU = document.getElementById("btn-ban-user"); const btnBanD = document.getElementById("btn-ban-device"); const btnUnban = document.getElementById("btn-unban-actions");
-            if (u.role === "Owner" || isBanned) { btnRank.style.display = "none"; btnBanU.style.display = "none"; btnBanD.style.display = "none"; if(isBanned){btnUnban.style.display="inline-block";}else{btnUnban.style.display="none";} } 
-            else { btnRank.style.display = "inline-block"; btnBanU.style.display = "inline-block"; btnBanD.style.display = "inline-block"; btnUnban.style.display = "none"; btnRank.innerText = u.role === "Admin" ? "Rang entziehen" : "Admin machen"; }
+            selectedUserForAdmin = username; let users = getAllUsers(); let u = users[username]; if(!u) return;
             document.getElementById("user-details-box").style.display = "block";
+            document.getElementById("det-username").innerText = username;
+            document.getElementById("det-coins").innerText = u.balance || 0;
+            document.getElementById("det-status").innerText = u.banned ? "Gebannt ❌" : "Aktiv  ";
+            
+            const rankBtn = document.getElementById("btn-toggle-admin");
+            rankBtn.innerText = u.role === "Admin" ? "Rang entziehen" : "Admin machen";
+            
+            document.getElementById("btn-ban-user").style.display = u.banned ? "none" : "inline-block";
+            document.getElementById("btn-unban-actions").style.display = u.banned ? "inline-block" : "none";
+            document.getElementById("edit-actions-area").style.display = "none";
         }
-        async function adminSaveCoins() { const val = parseInt(document.getElementById("edit-coins-input").value); if(isNaN(val)) return; let idx = cloudUsersList.findIndex(u => u.username === selectedUserForAdmin.username); if(idx !== -1) { cloudUsersList.at(idx).balance = val; await saveToCloud(cloudUsersList); alert("Coins aktualisiert!"); showUserDetails(selectedUserForAdmin.username); switchAdminTab("active"); } }
-        async function adminToggleRank() { let idx = cloudUsersList.findIndex(u => u.username === selectedUserForAdmin.username); if(idx !== -1) { cloudUsersList.at(idx).role = cloudUsersList.at(idx).role === "Admin" ? "User" : "Admin"; await saveToCloud(cloudUsersList); switchAdminTab("active"); showUserDetails(selectedUserForAdmin.username); } }
-        async function adminBanUser() { let opBracket = String.fromCharCode(91); let clBracket = String.fromCharCode(93); let fallbackEmptyArray = opBracket + clBracket; let bannedUsers = JSON.parse(localStorage.getItem("sc_banned_users") || fallbackEmptyArray); bannedUsers.push(selectedUserForAdmin.username); localStorage.setItem("sc_banned_users", JSON.stringify(bannedUsers)); await saveToCloud(cloudUsersList); alert("User gesperrt!"); switchAdminTab("active"); document.getElementById("user-details-box").style.display = "none"; }
-        async function adminBanDevice() { let opBracket = String.fromCharCode(91); let clBracket = String.fromCharCode(93); let fallbackEmptyArray = opBracket + clBracket; let bannedDevices = JSON.parse(localStorage.getItem("sc_banned_devices") || fallbackEmptyArray); bannedDevices.push(selectedUserForAdmin.id); localStorage.setItem("sc_banned_devices", JSON.stringify(bannedDevices)); await saveToCloud(cloudUsersList); alert("Gerät gesperrt!"); switchAdminTab("active"); document.getElementById("user-details-box").style.display = "none"; }
-        async function adminUnbanAll() { let opBracket = String.fromCharCode(91); let clBracket = String.fromCharCode(93); let fallbackEmptyArray = opBracket + clBracket; let bu = JSON.parse(localStorage.getItem("sc_banned_users") || fallbackEmptyArray); let bd = JSON.parse(localStorage.getItem("sc_banned_devices") || fallbackEmptyArray); bu = bu.filter(u => u !== selectedUserForAdmin.username); bd = bd.filter(d => d !== selectedUserForAdmin.id); localStorage.setItem("sc_banned_users", JSON.stringify(bu)); localStorage.setItem("sc_banned_devices", JSON.stringify(bd)); await saveToCloud(cloudUsersList); alert("Erfolgreich entbannt!"); switchAdminTab("banned"); document.getElementById("user-details-box").style.display = "none"; }
+                    function toggleEditMode() {
+            const area = document.getElementById("edit-actions-area");
+            area.style.display = area.style.display === "block" ? "none" : "block";
+            if (area.style.display === "block") {
+                let users = getAllUsers();
+                document.getElementById("edit-coins-input").value = users[selectedUserForAdmin].balance || 0;
+            }
+        }
+
+        function adminSaveCoins() {
+            let amount = parseInt(document.getElementById("edit-coins-input").value);
+            if (isNaN(amount) || amount < 0) { alert("Ungültige Anzahl!"); return; }
+            let users = getAllUsers(); if (!users[selectedUserForAdmin]) return;
+            users[selectedUserForAdmin].balance = amount; saveAllUsers(users);
+            document.getElementById("det-coins").innerText = amount;
+            alert("Kontostand wurde aktualisiert!"); switchAdminTab(users[selectedUserForAdmin].banned ? "banned" : "active");
+        }
+
+        function adminToggleRank() {
+            let users = getAllUsers(); if (!users[selectedUserForAdmin]) return;
+            if (users[selectedUserForAdmin].role === "Owner") { alert("Der Eigentümer-Rang kann nicht geändert werden!"); return; }
+            users[selectedUserForAdmin].role = users[selectedUserForAdmin].role === "Admin" ? "Player" : "Admin";
+            saveAllUsers(users); alert("Rang erfolgreich aktualisiert!"); showUserDetails(selectedUserForAdmin);
+            switchAdminTab("active");
+        }
+
+        function adminBanUser() {
+            let users = getAllUsers(); if (!users[selectedUserForAdmin]) return;
+            if (users[selectedUserForAdmin].role === "Owner" || users[selectedUserForAdmin].role === "Admin") { alert("Admins/Owner können nicht gebannt werden!"); return; }
+            users[selectedUserForAdmin].banned = true; saveAllUsers(users);
+            alert("Nutzer wurde gesperrt!"); showUserDetails(selectedUserForAdmin); switchAdminTab("active");
+        }
+
+        function adminUnbanAll() {
+            let users = getAllUsers(); if (!users[selectedUserForAdmin]) return;
+            users[selectedUserForAdmin].banned = false; saveAllUsers(users);
+            alert("Nutzer wurde entbannt!"); showUserDetails(selectedUserForAdmin); switchAdminTab("banned");
+        }
     </script>
 </body>
 </html>
