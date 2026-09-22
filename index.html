@@ -169,7 +169,6 @@
         function saveAllUsers(users) { localStorage.setItem("sc_local_users", JSON.stringify(users)); }
 
         window.onload = function() {
-            // Globale Geräte-Bannprüfung
             let currentDevId = localStorage.getItem("sc_my_device_id");
             let bannedDevices = JSON.parse(localStorage.getItem("sc_banned_devices") || "[]");
             if (bannedDevices.includes(currentDevId)) { alert("Dieses Gerät wurde dauerhaft gesperrt! 🚫"); location.href = "login.html"; return; }
@@ -178,7 +177,6 @@
             if (!currentU) { location.href = "login.html"; return; }
             
             let users = getAllUsers();
-            // Globale Account-Bannprüfung
             if (!users[currentU] || users[currentU].banned) { alert("Dein Account wurde dauerhaft gesperrt! ❌"); window.logout(); return; }
             
             document.getElementById("profile-section").style.display = "block"; 
@@ -186,12 +184,12 @@
             document.getElementById("menu-username").innerText = currentU; 
             document.getElementById("user-display").innerText = currentU;
             
-            // Rollenzuweisung prüfen (Owner/Admin)
+            // Zuverlässige Rollen-Abfrage direkt aus der User-Datenbank
             let currentRole = users[currentU].role || "Player";
             localStorage.setItem("sc_role", currentRole);
+            
             if (currentRole === "Owner" || currentRole === "Admin") { 
-                const adminLink = document.getElementById("admin-panel-link"); 
-                if(adminLink) adminLink.style.display = "block"; 
+                document.getElementById("admin-panel-link").style.setProperty("display", "block", "important");
             }
             
             userBalance = users[currentU].balance;
