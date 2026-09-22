@@ -3,113 +3,163 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shadow Casino - Einloggen</title>
+    <title>Shadow Casino - Login</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #0d0d11; color: #ffffff; text-align: center; padding: 15px; margin: 0;
+            background-color: #0d0d11; color: #ffffff; text-align: center; padding: 20px; margin: 0;
         }
-        .auth-container {
-            background: #161622; padding: 25px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            display: inline-block; width: 95%; max-width: 360px; margin-top: 100px; text-align: center; box-sizing: border-box;
+        .main-header {
+            display: flex; justify-content: center; align-items: center; padding: 15px 20px;
+            position: absolute; top: 0; left: 0; right: 0; z-index: 100; background: rgba(13, 13, 17, 0.9);
         }
-        h2 { color: #ff0055; margin-top: 0; font-size: 1.8rem; text-shadow: 0 0 10px rgba(255,0,85,0.3); }
+        .nav-logo {
+            color: #ff0055; text-shadow: 0 0 10px #ff0055; font-size: 1.6rem; font-weight: bold;
+            letter-spacing: 2px;
+        }
+        .auth-box {
+            background: #161622; padding: 30px 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            display: inline-block; width: 90%; max-width: 380px; margin-top: 120px; text-align: center; box-sizing: border-box;
+        }
+        .toggle-links { margin-top: 15px; font-size: 0.9rem; }
+        .toggle-links a { color: #00ffcc; text-decoration: none; font-weight: bold; cursor: pointer; }
+        .toggle-links a:hover { color: #ff0055; }
         input {
-            width: 90%; padding: 12px; margin: 10px 0; border-radius: 10px; border: 1px solid #333344;
-            background: #05050a; color: white; text-align: center; font-size: 1rem; box-sizing: border-box;
+            width: 85%; padding: 12px; margin: 10px 0; border-radius: 10px; border: 1px solid #333344;
+            background: #05050a; color: white; text-align: center; font-size: 1rem; outline: none;
         }
+        input:focus { border-color: #ff0055; box-shadow: 0 0 8px rgba(255, 0, 85, 0.2); }
         button {
-            background: linear-gradient(135deg, #ff0055, #bc003f); color: white; border: none; padding: 12px 25px;
-            font-size: 1.1rem; font-weight: bold; border-radius: 50px; cursor: pointer; box-shadow: 0 5px 15px rgba(255, 0, 85, 0.4);
-            width: 90%; margin-top: 10px;
+            background: linear-gradient(135deg, #ff0055, #bc003f); color: white; border: none; padding: 12px 30px;
+            font-size: 1.1rem; font-weight: bold; border-radius: 50px; cursor: pointer; margin-top: 15px;
+            box-shadow: 0 5px 15px rgba(255, 0, 85, 0.4); width: 85%;
         }
-        .switch-mode-text { margin-top: 15px; font-size: 0.85rem; color: #aaa; cursor: pointer; }
-        .switch-mode-text span { color: #ff0055; font-weight: bold; }
+        button:hover { transform: translateY(-1px); }
+        #register-view { display: none; }
     </style>
 </head>
 <body>
-    <div class="auth-container">
-        <h2 id="auth-title">EINLOGGEN</h2>
-        <input type="text" id="username-input" placeholder="Benutzername">
-        <input type="password" id="password-input" placeholder="Passwort">
-        <button id="auth-btn" onclick="processAuth()">Anmelden</button>
-        <div class="switch-mode-text" id="toggle-mode-box" onclick="toggleMode()">Neu hier? <span>Konto erstellen</span></div>
+    <div class="main-header">
+        <div class="nav-logo">SHADOW CASINO</div>
     </div>
 
-    <script>
-        let isRegisterMode = false;
+    <!-- Login Ansicht -->
+    <div id="login-view" class="auth-box">
+        <h2 style="color:#ff0055; margin-top:0; font-size:1.6rem;">Anmelden</h2>
+        <p style="color:#888; font-size:0.85rem; margin-top:-5px;">Betrete die Schatten-Zentrale</p>
+        
+        <input type="text" id="login-username" placeholder="Benutzername"><br>
+        <input type="password" id="login-password" placeholder="Passwort"><br>
+        
+        <button onclick="handleLogin()">Einloggen</button>
+        
+        <div class="toggle-links">
+            Noch kein Konto? <a onclick="switchAuthView('register')">Registrieren</a>
+        </div>
+    </div>
 
-        function toggleMode() {
-            isRegisterMode = !isRegisterMode;
-            document.getElementById("auth-title").innerText = isRegisterMode ? "REGISTRIEREN" : "EINLOGGEN";
-            document.getElementById("auth-btn").innerText = isRegisterMode ? "Konto erstellen" : "Anmelden";
-            document.getElementById("toggle-mode-box").innerHTML = isRegisterMode ? "Bereits registriert? <span>Einloggen</span>" : "Neu hier? <span>Konto erstellen</span>";
+    <!-- Registrierungs Ansicht -->
+    <div id="register-view" class="auth-box">
+        <h2 style="color:#ffcc00; margin-top:0; font-size:1.6rem;">Registrieren</h2>
+        <p style="color:#888; font-size:0.85rem; margin-top:-5px;">Erstelle dein lokales Spielerkonto</p>
+        
+        <input type="text" id="reg-username" placeholder="Wunsch-Benutzername"><br>
+        <input type="password" id="reg-password" placeholder="Sicheres Passwort"><br>
+        
+        <button onclick="handleRegister()" style="background: linear-gradient(135deg, #ffcc00, #b38f00); color: #0d0d11;">Konto erstellen</button>
+        
+        <div class="toggle-links">
+            Bereits registriert? <a onclick="switchAuthView('login')">Hier einloggen</a>
+        </div>
+    </div>
+        <script>
+        // System-Helfer zur Verwaltung der lokalen Benutzer-Datenbank
+        function getAllUsers() {
+            return JSON.parse(localStorage.getItem("sc_local_users") || "{}");
+        }
+        function saveAllUsers(users) {
+            localStorage.setItem("sc_local_users", JSON.stringify(users));
         }
 
-        function processAuth() {
-            const uInput = document.getElementById("username-input").value.trim();
-            const pInput = document.getElementById("password-input").value.trim();
-            
-            if (!uInput || !pInput) { 
-                alert("Bitte fülle alle Felder aus!"); 
-                return; 
-            }
-
-            // Alle Nutzer werden in einem lokalen JSON-Objekt im localStorage verwaltet
-            let users = JSON.parse(localStorage.getItem("casino_local_users")) || {};
-            const cleanUserKey = uInput.toLowerCase().replace(/[.#$\[\]]/g, "");
-
-            if (isRegisterMode) {
-                // Registrierungs-Logik
-                if (users[cleanUserKey]) { 
-                    alert("Dieser Benutzername ist bereits vergeben!"); 
-                    return; 
-                }
-
-                let cryptoArray = new Uint32Array(1); 
-                window.crypto.getRandomValues(cryptoArray);
-                let deviceId = cryptoArray.toString(16);
-                
-                let initialRole = "User";
-                if (uInput === "Shadow") initialRole = "Owner";
-
-                // Neuen Benutzer speichern
-                users[cleanUserKey] = {
-                    username: uInput,
-                    pass: pInput,
-                    balance: 1000,
-                    role: initialRole,
-                    id: deviceId
+        // Standardmäßig den ersten Owner generieren, falls das System komplett leer ist
+        function initSystem() {
+            let users = getAllUsers();
+            // Erstellt automatisch ein Admin/Owner Konto zum Testen, falls noch niemand existiert
+            if (Object.keys(users).length === 0) {
+                users["Admin"] = {
+                    balance: 5000,
+                    pass: "admin123",
+                    role: "Owner",
+                    banned: false
                 };
-
-                localStorage.setItem("casino_local_users", JSON.stringify(users));
-                alert("🎉 Registrierung erfolgreich! Du kannst dich jetzt einloggen.");
-                toggleMode();
-                
-            } else {
-                // Login-Logik
-                if (!users[cleanUserKey]) { 
-                    alert("Benutzerkonto existiert nicht!"); 
-                    return; 
-                }
-
-                const userData = users[cleanUserKey];
-                
-                if (userData.pass !== pInput) { 
-                    alert("Falsches Passwort!"); 
-                    return; 
-                }
-
-                // Login-Session für das Dashboard (index.html) vorbereiten
-                localStorage.setItem("sc_username", userData.username);
-                localStorage.setItem("sc_role", userData.role);
-                localStorage.setItem("sc_password", userData.pass);
-                localStorage.setItem("sc_balance_" + userData.username, userData.balance);
-                
-                // Weiterleitung zum Dashboard
-                location.href = "index.html";
+                saveAllUsers(users);
             }
         }
+
+        function switchAuthView(view) {
+            if(view === 'register') {
+                document.getElementById("login-view").style.display = "none";
+                document.getElementById("register-view").style.display = "block";
+            } else {
+                document.getElementById("register-view").style.display = "none";
+                document.getElementById("login-view").style.display = "block";
+            }
+        }
+
+        function handleLogin() {
+            const userIn = document.getElementById("login-username").value.trim();
+            const passIn = document.getElementById("login-password").value;
+            
+            if(!userIn || !passIn) { alert("Bitte alle Felder ausfüllen!"); return; }
+            
+            let users = getAllUsers();
+            
+            // Login-Validierung
+            if(!users[userIn]) { alert("Dieser Benutzername existiert nicht!"); return; }
+            if(users[userIn].pass !== passIn) { alert("Falsches Passwort!"); return; }
+            if(users[userIn].banned) { alert("Dein Account wurde dauerhaft gesperrt! ❌"); return; }
+                        // Session im LocalStorage setzen
+            localStorage.setItem("sc_username", userIn);
+            localStorage.setItem("sc_password", users[userIn].pass);
+            localStorage.setItem("sc_role", users[userIn].role || "Player");
+            
+            alert(`Willkommen zurück, ${userIn}!`);
+            location.href = "index.html"; // Weiterleitung zum Dashboard
+        }
+
+        function handleRegister() {
+            const userIn = document.getElementById("reg-username").value.trim();
+            const passIn = document.getElementById("reg-password").value;
+            
+            if(!userIn || !passIn) { alert("Bitte fülle alle Felder aus!"); return; }
+            if(userIn.length < 3) { alert("Der Name muss mindestens 3 Zeichen lang sein!"); return; }
+            if(passIn.length < 4) { alert("Das Passwort muss mindestens 4 Zeichen lang sein!"); return; }
+            
+            let users = getAllUsers();
+            
+            // Verhindert doppelte Registrierungen
+            if(users[userIn]) { alert("Dieser Benutzername ist leider schon vergeben!"); return; }
+            
+            // Neuen Offline-User in das System-Objekt einpflegen
+            users[userIn] = {
+                balance: 1000, // Startguthaben für neue Konten
+                pass: passIn,
+                role: "Player",
+                banned: false
+            };
+            
+            saveAllUsers(users);
+            
+            alert("Registrierung erfolgreich! Du kannst dich jetzt einloggen.");
+            document.getElementById("reg-username").value = "";
+            document.getElementById("reg-password").value = "";
+            switchAuthView('login');
+        }
+
+        // Beim Laden der Seite das System vorbereiten
+        window.onload = function() {
+            initSystem();
+        };
     </script>
 </body>
 </html>
