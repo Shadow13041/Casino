@@ -204,7 +204,7 @@
             localStorage.setItem("sc_role", currentRole);
             
             if (currentRole === "Owner" || currentRole === "Admin") { 
-                document.getElementById("admin-panel-link").style.setProperty("display", "block", "important");
+                document.getElementById("admin-panel-link").style.cssText = "display: block !important; font-weight: bold; color: #00ffcc;";
             }
             
             userBalance = users[currentU].balance;
