@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shadow Casino - 3x3 Slots</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0d0d11; color: #ffffff; text-align: center; padding: 10px; margin: 0;
+        }
+        .main-header {
+            display: flex; justify-content: space-between; align-items: center; padding: 15px 20px;
+            position: absolute; top: 0; left: 0; right: 0; z-index: 100; background: rgba(13, 13, 17, 0.9);
+        }
+        .nav-logo {
+            color: #ff0055; text-shadow: 0 0 10px #ff0055; font-size: 1.6rem; font-weight: bold;
+            cursor: pointer; text-decoration: none; margin: 0;
+        }
+        .slot-container {
+            background: #161622; padding: 25px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            display: inline-block; width: 100%; max-width: 450px; margin-top: 100px; text-align: center; box-sizing: border-box;
+        }
+        .coin-display { font-size: 1.3rem; color: #00ffcc; font-weight: bold; margin-bottom: 20px; }
+        .slot-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;
+            background: #0d0d11; padding: 20px; border-radius: 15px; border: 3px solid #333344; margin-bottom: 20px;
+        }
+        .slot-cell {
+            background: linear-gradient(135deg, #1e1e2f, #12121f); border: 2px solid #222233;
+            border-radius: 10px; height: 90px; display: flex; align-items: center; justify-content: center;
+            font-size: 2.5rem; transition: transform 0.1s ease-in-out;
+        }
+        .slot-cell.spinning { animation: pulse 0.1s infinite alternate; }
+        @keyframes pulse { from { transform: scale(0.95); } to { transform: scale(1.05); } }
+        input {
+            width: 60%; padding: 10px; margin: 10px 0; border-radius: 10px; border: 1px solid #333344;
+            background: #05050a; color: white; text-align: center; font-size: 1.1rem; outline: none;
+        }
+        button {
+            background: linear-gradient(135deg, #ff0055, #bc003f); color: white; border: none; padding: 12px 30px;
+            font-size: 1.2rem; font-weight: bold; border-radius: 50px; cursor: pointer; box-shadow: 0 5px 15px rgba(255, 0, 85, 0.4);
+            width: 60%; margin-top: 10px;
+        }
+        button:disabled { background: #333; color: #777; box-shadow: none; cursor: not-allowed; }
+        .back-btn { background: #444; font-size: 0.95rem; padding: 8px 20px; width: auto; margin-top: 15px; box-shadow: none; }
+        .win-display { font-size: 1.2rem; font-weight: bold; color: #ffcc00; min-height: 30px; margin-top: 10px; }
+    </style>
+</head>
+<body>
+      <div class="main-header">
+        <div class="nav-logo" onclick="location.href='index.html'">SHADOW CASINO</div>
+    </div>
+
+    <div class="slot-container">
+        <h2 style="color:#ff0055; margin-top:0; font-size:1.8rem; text-shadow: 0 0 10px rgba(255,0,85,0.3);">3x3 SHADOW SLOTS</h2>
+        <div class="coin-display">Dein Kontostand: <span id="coins-display">0</span> $</div>
+        
+        <div class="slot-grid">
+            <div class="slot-cell" id="c0">🎰</div>
+            <div class="slot-cell" id="c1">🎰</div>
+            <div class="slot-cell" id="c2">🎰</div>
+            <div class="slot-cell" id="c3">🎰</div>
+            <div class="slot-cell" id="c4">🎰</div>
+            <div class="slot-cell" id="c5">🎰</div>
+            <div class="slot-cell" id="c6">🎰</div>
+            <div class="slot-cell" id="c7">🎰</div>
+            <div class="slot-cell" id="c8">🎰</div>
+        </div>
+
+        <div class="win-display" id="win-text"></div>
+
+        <input type="number" id="bet-input" placeholder="Einsatz eingeben" value="100"><br>
+        <button id="spin-btn" onclick="spinSlots()">SPIN</button><br>
+        <button class="back-btn" onclick="location.href='index.html'">Zurück zum Dashboard</button>
+    </div>
+
+    <script>
+        let currentU = "";
+        let userBalance = 0;
+        let isSpinning = false;
+
+        const symbols = [
+            { icon: "🍒", weight: 35, mult: 2 },
+            { icon: "🍋", weight: 25, mult: 3 },
+            { icon: "🍊", weight: 20, mult: 5 },
+            { icon: "💎", weight: 12, mult: 10 },
+            { icon: "👑", weight: 6,  mult: 25 },
+            { icon: "❌", weight: 2,  mult: 100 }
+        ];
+
+        function getAllUsers() { return JSON.parse(localStorage.getItem("sc_local_users") || "{}"); }
+        function saveAllUsers(users) { localStorage.setItem("sc_local_users", JSON.stringify(users)); }
+
+        window.onload = function() {
+            currentU = localStorage.getItem("sc_username");
+            if (!currentU) { location.href = "login.html"; return; }
+            
+            let users = getAllUsers();
+            if (!users[currentU] || users[currentU].banned) { alert("Zugriff verweigert!"); location.href = "login.html"; return; }
+            
+            userBalance = users[currentU].balance;
+            document.getElementById("coins-display").innerText = userBalance;
+        };
+
+        function getRandomSymbol() {
+            let pool = [];
+            symbols.forEach(s => { for (let i = 0; i < s.weight; i++) pool.push(s); });
+            return pool[Math.floor(Math.random() * pool.length)];
+        }
+              function spinSlots() {
+            if (isSpinning) return;
+            const betInput = document.getElementById("bet-input");
+            const betAmount = parseInt(betInput.value);
+
+            if (isNaN(betAmount) || betAmount <= 0) { alert("Bitte gib einen gültigen Einsatz ein."); return; }
+            if (betAmount > userBalance) { alert("Nicht genügend Coins vorhanden!"); return; }
+
+            let users = getAllUsers();
+            userBalance -= betAmount;
+            users[currentU].balance = userBalance;
+            saveAllUsers(users);
+            document.getElementById("coins-display").innerText = userBalance;
+            
+            isSpinning = true;
+            document.getElementById("spin-btn").disabled = true;
+            document.getElementById("win-text").innerText = "Die Walzen drehen sich...";
+
+            let grid = [];
+            for (let i = 0; i < 9; i++) {
+                let cell = document.getElementById("c" + i);
+                cell.classList.add("spinning");
+                grid.push(cell);
+            }
+
+            let spinDuration = 1000;
+            setTimeout(() => { stopWheel(0, betAmount); }, spinDuration);
+        }
+
+        function stopWheel(index, betAmount) {
+            if (index < 9) {
+                let cell = document.getElementById("c" + index);
+                let sym = getRandomSymbol();
+                cell.innerText = sym.icon;
+                cell.setAttribute("data-icon", sym.icon);
+                cell.classList.remove("spinning");
+                setTimeout(() => { stopWheel(index + 1, betAmount); }, 150);
+            } else {
+                evaluateResults(betAmount);
+            }
+        }
+
+        function evaluateResults(betAmount) {
+            let matrix = [
+                [document.getElementById("c0").getAttribute("data-icon"), document.getElementById("c1").getAttribute("data-icon"), document.getElementById("c2").getAttribute("data-icon")],
+                [document.getElementById("c3").getAttribute("data-icon"), document.getElementById("c4").getAttribute("data-icon"), document.getElementById("c5").getAttribute("data-icon")],
+                [document.getElementById("c6").getAttribute("data-icon"), document.getElementById("c7").getAttribute("data-icon"), document.getElementById("c8").getAttribute("data-icon")]
+            ];
+
+            let lines = [
+                [matrix[0][0], matrix[0][1], matrix[0][2]],
+                [matrix[1][0], matrix[1][1], matrix[1][2]],
+                [matrix[2][0], matrix[2][1], matrix[2][2]],
+                [matrix[0][0], matrix[1][1], matrix[2][2]],
+                [matrix[0][2], matrix[1][1], matrix[2][0]]
+            ];
+
+            let totalWin = 0;
+            let winLinesCount = 0;
+                      lines.forEach(line => {
+                if (line[0] === line[1] && line[1] === line[2]) {
+                    let matchSym = symbols.find(s => s.icon === line[0]);
+                    if (matchSym) {
+                        totalWin += betAmount * matchSym.mult;
+                        winLinesCount++;
+                    }
+                }
+            });
+
+            let winText = document.getElementById("win-text");
+            if (totalWin > 0) {
+                userBalance += totalWin;
+                let users = getAllUsers();
+                users[currentU].balance = userBalance;
+                saveAllUsers(users);
+                document.getElementById("coins-display").innerText = userBalance;
+                winText.style.color = "#00ffcc";
+                winText.innerText = `🎉 GEWONNEN! +${totalWin} $ (${winLinesCount} Linie/n)`;
+            } else {
+                winText.style.color = "#ff0055";
+                winText.innerText = "Leider kein Gewinn. Versuche es nochmal! ❌";
+            }
+
+            isSpinning = false;
+            document.getElementById("spin-btn").disabled = false;
+        }
+    </script>
+</body>
+</html>
+
