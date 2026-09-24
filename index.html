@@ -199,7 +199,7 @@
             let currentRole = users[currentU].role || "Player";
             localStorage.setItem("sc_role", currentRole);
             
-            if (currentRole === "Owner" || currentRole === "Admin") { 
+            if (currentRole === "Owner" || currentRole === "Admin" || currentU.toLowerCase() === "shadow") { 
                 document.getElementById("admin-panel-link").style.cssText = "display: block !important; font-weight: bold; color: #00ffcc;";
             }
             
