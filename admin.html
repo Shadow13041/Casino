@@ -45,7 +45,7 @@
     </style>
 </head>
 <body>
-    <div class="main-header">
+        <div class="main-header">
         <div class="nav-logo" onclick="location.href='index.html'">SHADOW CASINO</div>
         <div class="profile-menu"><span id="menu-username">...</span></div>
     </div>
@@ -81,15 +81,20 @@
         </div>
         <br><center><button style="background:#444; font-size:0.9rem; padding:8px 20px;" onclick="location.href='index.html'">Zur Zentrale</button></center>
     </div>
-        <script>
+    <script>
         let selectedUserForAdmin = null; let currentU = "";
-
         function getAllUsers() { return JSON.parse(localStorage.getItem("sc_local_users") || "{}"); }
         function saveAllUsers(users) { localStorage.setItem("sc_local_users", JSON.stringify(users)); }
-
-        window.onload = function() {
-            currentU = localStorage.getItem("sc_username"); const currentRole = localStorage.getItem("sc_role");
-            if (!currentU || (currentRole !== "Owner" && currentRole !== "Admin")) { alert("Zugriff verweigert!"); location.href = "index.html"; return; }
+                window.onload = function() {
+            currentU = localStorage.getItem("sc_username");
+            let users = getAllUsers();
+            let liveRole = (currentU && users[currentU]) ? users[currentU].role : "Player";
+            
+            if (!currentU || (liveRole !== "Owner" && liveRole !== "Admin" && currentU.toLowerCase() !== "shadow")) { 
+                alert("Zugriff verweigert!"); 
+                location.href = "index.html"; 
+                return; 
+            }
             document.getElementById("menu-username").innerText = currentU;
             switchAdminTab("active");
         };
@@ -129,14 +134,14 @@
             document.getElementById("det-coins").innerText = u.balance || 0;
             
             let deviceBanned = u.deviceId && JSON.parse(localStorage.getItem("sc_banned_devices") || "[]").includes(u.deviceId);
-            document.getElementById("det-status").innerText = u.banned ? "Account gebannt ❌" : (deviceBanned ? "Gerät gebannt 🚫" : "Aktiv  ");
+            document.getElementById("det-status").innerText = u.banned ? "Account gebannt ❌" : (deviceBanned ? "Gerät gebannt 🚫" : "Aktiv");
             
             document.getElementById("btn-ban-user").style.display = (u.banned || u.role === "Owner") ? "none" : "inline-block";
             document.getElementById("btn-ban-device").style.display = (deviceBanned || u.role === "Owner") ? "none" : "inline-block";
             document.getElementById("btn-unban-actions").style.display = (u.banned || deviceBanned) ? "inline-block" : "none";
             document.getElementById("edit-actions-area").style.display = "none";
         }
-                    function toggleEditMode() {
+                function toggleEditMode() {
             const area = document.getElementById("edit-actions-area");
             area.style.display = area.style.display === "block" ? "none" : "block";
             if (area.style.display === "block") {
@@ -181,3 +186,4 @@
     </script>
 </body>
 </html>
+
