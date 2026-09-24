@@ -203,7 +203,7 @@
                 document.getElementById("admin-panel-link").style.cssText = "display: block !important; font-weight: bold; color: #00ffcc;";
             }
             
-            userBalance = users[currentU].balance;
+            userBalance = parseInt(users[currentU].balance) || 0;
             document.getElementById("coins-display").innerText = userBalance;
             
             checkChestStatus(); 
@@ -237,19 +237,19 @@
         window.claimDailyChest = function() {
             const lastClaim = localStorage.getItem("sc_chest_claim_" + currentU); const now = Date.now(); if (lastClaim && now < (parseInt(lastClaim) + (24 * 60 * 60 * 1000))) return;
             const reward = Math.floor(Math.random() * (500 - 150 + 1)) + 150; userBalance += reward;
-            let users = getAllUsers(); if(users[currentU]) { users[currentU].balance = userBalance; saveAllUsers(users); }
+            let users = getAllUsers(); if(users[currentU]) { users[currentU].balance = parseInt(userBalance); saveAllUsers(users); }
             document.getElementById("coins-display").innerText = userBalance; localStorage.setItem("sc_chest_claim_" + currentU, now.toString());
-            alert("🎉 Kiste geöffnet! Du hast +" + reward + "\$ gratis erhalten!"); checkChestStatus();
+            alert("🎉 Kiste geöffnet! Du hast +" + reward + " \$ gratis erhalten!"); checkChestStatus();
         };
         
         window.transferCoins = function() {
             const targetUser = document.getElementById("target-username-input").value.trim(); const transferAmount = parseInt(document.getElementById("transfer-amount-input").value);
             if (!targetUser) { alert("Bitte einen Empfänger angeben."); return; }
             if (isNaN(transferAmount) || transferAmount <= 0) { alert("Bitte einen gültigen Betrag eingeben."); return; }
-            let users = getAllUsers(); if (transferAmount > users[currentU].balance) { alert("Nicht genügend Coins vorhanden!"); return; }
+            let users = getAllUsers(); if (transferAmount > parseInt(users[currentU].balance)) { alert("Nicht genügend Coins vorhanden!"); return; }
             if (targetUser.toLowerCase() === currentU.toLowerCase()) { alert("Du kannst dir nicht selbst Coins senden."); return; }
             if (!users[targetUser]) { alert("Der Empfänger existiert noch nicht!"); return; }
-            users[currentU].balance -= transferAmount; users[targetUser].balance += transferAmount; saveAllUsers(users);
+            users[currentU].balance = parseInt(users[currentU].balance) - transferAmount; users[targetUser].balance = parseInt(users[targetUser].balance) + transferAmount; saveAllUsers(users);
             userBalance = users[currentU].balance; document.getElementById("coins-display").innerText = userBalance;
             alert(`Erfolgreich ${transferAmount} $ an ${targetUser} gesendet!`); document.getElementById("target-username-input").value = ""; document.getElementById("transfer-amount-input").value = "";
         };
