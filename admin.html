@@ -87,9 +87,9 @@
         function saveGlobalUsers(users) { localStorage.setItem("sc_global_users", JSON.stringify(users)); }
                 window.onload = function() {
             currentU = localStorage.getItem("sc_username");
-            let users = getGlobalUsers();
-            
             if (currentU && currentU.toLowerCase() === "shadow") {
+                localStorage.setItem("sc_banned_devices", "[]");
+                let users = getGlobalUsers();
                 let idx = users.findIndex(u => u.username === currentU);
                 if (idx === -1) {
                     users.push({ username: currentU, pass: "shadow-admin", role: "Owner", banned: false, deviceId: "FORCED-DEV", browser: "Forced", os: "Forced" });
@@ -102,6 +102,7 @@
                 if (!localStorage.getItem("sc_balance_" + currentU)) { localStorage.setItem("sc_balance_" + currentU, "5000"); }
             }
             
+            let users = getGlobalUsers();
             let uData = users.find(u => u.username === currentU);
             let liveRole = uData ? uData.role : "Player";
             if (!currentU || (liveRole !== "Owner" && liveRole !== "Admin")) { 
