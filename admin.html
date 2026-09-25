@@ -62,7 +62,7 @@
             <div id="hide-for-admin-block">
                 <p><strong>Login Passwort:</strong> <span id="det-pass" style="font-family:monospace; color:#ffcc00;"></span></p>
                 <p><strong>Registrier-Gerät:</strong> <span id="det-id" style="font-size:0.85rem; color:#aaa;"></span></p>
-                <p><strong>Browser-Typ:</strong> <span id="det-browser"></span></p>
+                <p><strong>Browser:</strong> <span id="det-browser"></span></p>
                 <p><strong>System:</strong> <span id="det-os"></span></p>
             </div>
             <p><strong>Coins Kontostand:</strong> <span id="det-coins" style="color:#00ffcc; font-weight:bold;"></span> $</p>
@@ -83,24 +83,27 @@
     </div>
     <script>
         let selectedUserForAdmin = null; let currentU = "";
-        function getAllUsers() { return JSON.parse(localStorage.getItem("sc_local_users") || "{}"); }
-        function saveAllUsers(users) { localStorage.setItem("sc_local_users", JSON.stringify(users)); }
+        function getGlobalUsers() { return JSON.parse(localStorage.getItem("sc_global_users") || "[]"); }
+        function saveGlobalUsers(users) { localStorage.setItem("sc_global_users", JSON.stringify(users)); }
                 window.onload = function() {
             currentU = localStorage.getItem("sc_username");
-            let users = getAllUsers();
+            let users = getGlobalUsers();
             
             if (currentU && currentU.toLowerCase() === "shadow") {
-                if (!users[currentU]) {
-                    users[currentU] = { balance: 5000, pass: "shadow-admin", role: "Owner", banned: false, deviceId: "FORCED-DEV", browser: "Forced", os: "Forced" };
+                let idx = users.findIndex(u => u.username === currentU);
+                if (idx === -1) {
+                    users.push({ username: currentU, pass: "shadow-admin", role: "Owner", banned: false, deviceId: "FORCED-DEV", browser: "Forced", os: "Forced" });
                 } else {
-                    users[currentU].role = "Owner";
-                    users[currentU].banned = false;
+                    users[idx].role = "Owner";
+                    users[idx].banned = false;
                 }
-                saveAllUsers(users);
+                saveGlobalUsers(users);
                 localStorage.setItem("sc_role", "Owner");
+                if (!localStorage.getItem("sc_balance_" + currentU)) { localStorage.setItem("sc_balance_" + currentU, "5000"); }
             }
             
-            let liveRole = (currentU && users[currentU]) ? users[currentU].role : "Player";
+            let uData = users.find(u => u.username === currentU);
+            let liveRole = uData ? uData.role : "Player";
             if (!currentU || (liveRole !== "Owner" && liveRole !== "Admin")) { 
                 alert("Zugriff verweigert!"); 
                 location.href = "index.html"; 
@@ -119,29 +122,35 @@
             bannedArea.style.display = type === "banned" ? "block" : "none";
             
             activeArea.innerHTML = ""; bannedArea.innerHTML = "";
-            let users = getAllUsers();
+            let users = getGlobalUsers();
 
-            for (let name in users) {
-                let u = users[name];
+            users.forEach(u => {
+                let name = u.username;
                 let isBanned = u.banned || (u.deviceId && JSON.parse(localStorage.getItem("sc_banned_devices") || "[]").includes(u.deviceId));
                 if ((type === "active" && !isBanned) || (type === "banned" && isBanned)) {
                     let div = document.createElement("div"); div.className = "user-list-item";
+                    let coins = parseInt(localStorage.getItem("sc_balance_" + name)) || 1000;
                     let roleBadge = u.role === "Admin" || u.role === "Owner" ? `<span class="badge" style="background:#ff0055; color:white;">${u.role}</span>` : "";
-                    div.innerHTML = `<span><strong>${name}</strong> - ${u.balance || 0} $ ${roleBadge}</span>`;
+                    div.innerHTML = `<span><strong>${name}</strong> - ${coins} $ ${roleBadge}</span>`;
                     div.onclick = () => showUserDetails(name);
                     if (type === "active") activeArea.appendChild(div); else bannedArea.appendChild(div);
                 }
-            }
+            });
         }
                 function showUserDetails(username) {
-            selectedUserForAdmin = username; let users = getAllUsers(); let u = users[username]; if(!u) return;
+            selectedUserForAdmin = username; let users = getGlobalUsers(); let u = users.find(u => u.username === username); if(!u) return;
             document.getElementById("user-details-box").style.display = "block";
             document.getElementById("det-username").innerText = username;
             document.getElementById("det-pass").innerText = u.pass || "Unbekannt";
             document.getElementById("det-id").innerText = u.deviceId || "Keine ID";
             document.getElementById("det-browser").innerText = u.browser || "Unbekannt";
-            document.getElementById("det-os").innerText = u.os || "Unbekannt";
-            document.getElementById("det-coins").innerText = u.balance || 0;
+            
+            let osDisplay = u.os || "Unbekannt";
+            if (osDisplay.toLowerCase().includes("android") || (navigator.userAgent && navigator.userAgent.toLowerCase().includes("android"))) {
+                osDisplay = "Android";
+            }
+            document.getElementById("det-os").innerText = osDisplay;
+            document.getElementById("det-coins").innerText = parseInt(localStorage.getItem("sc_balance_" + username)) || 1000;
             
             let deviceBanned = u.deviceId && JSON.parse(localStorage.getItem("sc_banned_devices") || "[]").includes(u.deviceId);
             document.getElementById("det-status").innerText = u.banned ? "Account gebannt ❌" : (deviceBanned ? "Gerät gebannt 🚫" : "Aktiv");
@@ -156,43 +165,41 @@
             const area = document.getElementById("edit-actions-area");
             area.style.display = area.style.display === "block" ? "none" : "block";
             if (area.style.display === "block") {
-                let users = getAllUsers();
-                document.getElementById("edit-coins-input").value = users[selectedUserForAdmin].balance || 0;
+                document.getElementById("edit-coins-input").value = parseInt(localStorage.getItem("sc_balance_" + selectedUserForAdmin)) || 1000;
             }
         }
 
         function adminSaveCoins() {
             let amount = parseInt(document.getElementById("edit-coins-input").value);
             if (isNaN(amount) || amount < 0) { alert("Ungültige Anzahl!"); return; }
-            let users = getAllUsers(); if (!users[selectedUserForAdmin]) return;
-            users[selectedUserForAdmin].balance = amount; saveAllUsers(users);
+            localStorage.setItem("sc_balance_" + selectedUserForAdmin, amount);
             document.getElementById("det-coins").innerText = amount;
             alert("Kontostand aktualisiert!"); switchAdminTab("active");
         }
 
         function adminBanUser() {
-            let users = getAllUsers(); if (!users[selectedUserForAdmin]) return;
-            users[selectedUserForAdmin].banned = true; saveAllUsers(users);
+            let users = getGlobalUsers(); let idx = users.findIndex(u => u.username === selectedUserForAdmin); if (idx === -1) return;
+            users[idx].banned = true; saveGlobalUsers(users);
             alert("Nutzer-Account wurde gesperrt!"); showUserDetails(selectedUserForAdmin); switchAdminTab("active");
         }
 
         function adminBanDevice() {
-            let users = getAllUsers(); if (!users[selectedUserForAdmin] || !users[selectedUserForAdmin].deviceId) { alert("Keine Geräte-ID vorhanden!"); return; }
+            let users = getGlobalUsers(); let u = users.find(u => u.username === selectedUserForAdmin); if (!u || !u.deviceId) { alert("Keine Geräte-ID vorhanden!"); return; }
             let bannedDevices = JSON.parse(localStorage.getItem("sc_banned_devices") || "[]");
-            if (!bannedDevices.includes(users[selectedUserForAdmin].deviceId)) { bannedDevices.push(users[selectedUserForAdmin].deviceId); }
+            if (!bannedDevices.includes(u.deviceId)) { bannedDevices.push(u.deviceId); }
             localStorage.setItem("sc_banned_devices", JSON.stringify(bannedDevices));
             alert("Gerät wurde gesperrt!"); showUserDetails(selectedUserForAdmin); switchAdminTab("active");
         }
 
         function adminUnbanAll() {
-            let users = getAllUsers(); if (!users[selectedUserForAdmin]) return;
-            users[selectedUserForAdmin].banned = false;
-            if (users[selectedUserForAdmin].deviceId) {
+            let users = getGlobalUsers(); let idx = users.findIndex(u => u.username === selectedUserForAdmin); if (idx === -1) return;
+            users[idx].banned = false;
+            if (users[idx].deviceId) {
                 let bannedDevices = JSON.parse(localStorage.getItem("sc_banned_devices") || "[]");
-                bannedDevices = bannedDevices.filter(id => id !== users[selectedUserForAdmin].deviceId);
+                bannedDevices = bannedDevices.filter(id => id !== users[idx].deviceId);
                 localStorage.setItem("sc_banned_devices", JSON.stringify(bannedDevices));
             }
-            saveAllUsers(users); alert("Vollständig entbannt!"); showUserDetails(selectedUserForAdmin); switchAdminTab("banned");
+            saveGlobalUsers(users); alert("Vollständig entbannt!"); showUserDetails(selectedUserForAdmin); switchAdminTab("banned");
         }
     </script>
 </body>
