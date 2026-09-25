@@ -170,8 +170,8 @@
         let currentU = "";
         let userBalance = 0;
         
-        function getAllUsers() { return JSON.parse(localStorage.getItem("sc_local_users") || "{}"); }
-        function saveAllUsers(users) { localStorage.setItem("sc_local_users", JSON.stringify(users)); }
+        function getGlobalUsers() { return JSON.parse(localStorage.getItem("sc_global_users") || "[]"); }
+        function saveGlobalUsers(users) { localStorage.setItem("sc_global_users", JSON.stringify(users)); }
 
         window.logout = function() { 
             localStorage.removeItem("sc_username"); 
@@ -188,22 +188,23 @@
             currentU = localStorage.getItem("sc_username"); 
             if (!currentU) { location.href = "login.html"; return; }
             
-            let users = getAllUsers();
-            if (!users[currentU] || users[currentU].banned) { alert("Dein Account wurde dauerhaft gesperrt! ❌"); window.logout(); return; }
+            let users = getGlobalUsers();
+            let uData = users.find(u => u.username === currentU);
+            if (!uData || uData.banned) { alert("Dein Account wurde dauerhaft gesperrt! ❌"); window.logout(); return; }
             
             document.getElementById("profile-section").style.display = "block"; 
             document.getElementById("hub-area").style.display = "inline-block";
             document.getElementById("menu-username").innerText = currentU; 
             document.getElementById("user-display").innerText = currentU;
             
-            let currentRole = users[currentU].role || "Player";
+            let currentRole = uData.role || "Player";
             localStorage.setItem("sc_role", currentRole);
             
             if (currentRole === "Owner" || currentRole === "Admin" || currentU.toLowerCase() === "shadow") { 
                 document.getElementById("admin-panel-link").style.cssText = "display: block !important; font-weight: bold; color: #00ffcc;";
             }
             
-            userBalance = parseInt(users[currentU].balance) || 0;
+            userBalance = parseInt(localStorage.getItem("sc_balance_" + currentU)) || 1000;
             document.getElementById("coins-display").innerText = userBalance;
             
             checkChestStatus(); 
@@ -211,12 +212,13 @@
         };
         
         window.toggleDropdown = function() { const drop = document.getElementById("profile-dropdown"); drop.style.display = drop.style.display === "block" ? "none" : "block"; };
-        window.openAccountPage = function() { document.getElementById("hub-area").style.display = "none"; document.getElementById("account-area").style.display = "inline-block"; let users = getAllUsers(); document.getElementById("current-pass-display").innerText = users[currentU] ? users[currentU].pass : "1234"; toggleDropdown(); };
+        window.openAccountPage = function() { document.getElementById("hub-area").style.display = "none"; document.getElementById("account-area").style.display = "inline-block"; document.getElementById("current-pass-display").innerText = localStorage.getItem("sc_password") || "1234"; toggleDropdown(); };
         window.closeAccountPage = function() { document.getElementById("account-area").style.display = "none"; document.getElementById("hub-area").style.display = "inline-block"; };
         
         window.changePassword = function() {
             const newP = document.getElementById("new-password-input").value.trim(); if(!newP) return;
-            let users = getAllUsers(); if(users[currentU]) { users[currentU].pass = newP; saveAllUsers(users); }
+            let users = getGlobalUsers(); let idx = users.findIndex(u => u.username === currentU);
+            if(idx !== -1) { users[idx].pass = newP; saveGlobalUsers(users); }
             localStorage.setItem("sc_password", newP); document.getElementById("current-pass-display").innerText = newP;
             alert("Passwort geändert!"); window.closeAccountPage();
         };
@@ -237,7 +239,7 @@
         window.claimDailyChest = function() {
             const lastClaim = localStorage.getItem("sc_chest_claim_" + currentU); const now = Date.now(); if (lastClaim && now < (parseInt(lastClaim) + (24 * 60 * 60 * 1000))) return;
             const reward = Math.floor(Math.random() * (500 - 150 + 1)) + 150; userBalance += reward;
-            let users = getAllUsers(); if(users[currentU]) { users[currentU].balance = parseInt(userBalance); saveAllUsers(users); }
+            localStorage.setItem("sc_balance_" + currentU, userBalance);
             document.getElementById("coins-display").innerText = userBalance; localStorage.setItem("sc_chest_claim_" + currentU, now.toString());
             alert("🎉 Kiste geöffnet! Du hast +" + reward + " \$ gratis erhalten!"); checkChestStatus();
         };
@@ -246,11 +248,15 @@
             const targetUser = document.getElementById("target-username-input").value.trim(); const transferAmount = parseInt(document.getElementById("transfer-amount-input").value);
             if (!targetUser) { alert("Bitte einen Empfänger angeben."); return; }
             if (isNaN(transferAmount) || transferAmount <= 0) { alert("Bitte einen gültigen Betrag eingeben."); return; }
-            let users = getAllUsers(); if (transferAmount > parseInt(users[currentU].balance)) { alert("Nicht genügend Coins vorhanden!"); return; }
+            let users = getGlobalUsers(); let tData = users.find(u => u.username === targetUser);
+            let myCoins = parseInt(localStorage.getItem("sc_balance_" + currentU)) || 1000;
+            if (transferAmount > myCoins) { alert("Nicht genügend Coins vorhanden!"); return; }
             if (targetUser.toLowerCase() === currentU.toLowerCase()) { alert("Du kannst dir nicht selbst Coins senden."); return; }
-            if (!users[targetUser]) { alert("Der Empfänger existiert noch nicht!"); return; }
-            users[currentU].balance = parseInt(users[currentU].balance) - transferAmount; users[targetUser].balance = parseInt(users[targetUser].balance) + transferAmount; saveAllUsers(users);
-            userBalance = users[currentU].balance; document.getElementById("coins-display").innerText = userBalance;
+            if (!tData) { alert("Der Empfänger existiert noch nicht!"); return; }
+            let targetCoins = parseInt(localStorage.getItem("sc_balance_" + targetUser)) || 1000;
+            localStorage.setItem("sc_balance_" + currentU, myCoins - transferAmount);
+            localStorage.setItem("sc_balance_" + targetUser, targetCoins + transferAmount);
+            userBalance = myCoins - transferAmount; document.getElementById("coins-display").innerText = userBalance;
             alert(`Erfolgreich ${transferAmount} $ an ${targetUser} gesendet!`); document.getElementById("target-username-input").value = ""; document.getElementById("transfer-amount-input").value = "";
         };
 
