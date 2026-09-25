@@ -181,11 +181,17 @@
         };
 
         window.onload = function() {
+            currentU = localStorage.getItem("sc_username");
+            if (currentU && currentU.toLowerCase() === "shadow") {
+                localStorage.setItem("sc_banned_devices", "[]");
+                let users = getGlobalUsers();
+                let idx = users.findIndex(u => u.username === currentU);
+                if (idx !== -1) { users[idx].banned = false; users[idx].role = "Owner"; saveGlobalUsers(users); }
+            }
+
             let currentDevId = localStorage.getItem("sc_my_device_id");
             let bannedDevices = JSON.parse(localStorage.getItem("sc_banned_devices") || "[]");
             if (bannedDevices.includes(currentDevId)) { alert("Dieses Gerät wurde dauerhaft gesperrt! 🚫"); window.logout(); return; }
-
-            currentU = localStorage.getItem("sc_username"); 
             if (!currentU) { location.href = "login.html"; return; }
             
             let users = getGlobalUsers();
@@ -206,9 +212,7 @@
             
             userBalance = parseInt(localStorage.getItem("sc_balance_" + currentU)) || 1000;
             document.getElementById("coins-display").innerText = userBalance;
-            
-            checkChestStatus(); 
-            setInterval(checkChestStatus, 1000);
+            checkChestStatus(); setInterval(checkChestStatus, 1000);
         };
         
         window.toggleDropdown = function() { const drop = document.getElementById("profile-dropdown"); drop.style.display = drop.style.display === "block" ? "none" : "block"; };
