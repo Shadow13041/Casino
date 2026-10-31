@@ -42,7 +42,8 @@
     <div class="main-header">
         <div class="nav-logo">SHADOW CASINO</div>
     </div>
-        <!-- Login Ansicht -->
+        
+    <!-- Login Ansicht -->
     <div id="login-view" class="auth-box">
         <h2 style="color:#ff0055; margin-top:0; font-size:1.6rem;">Anmelden</h2>
         <p style="color:#888; font-size:0.85rem; margin-top:-5px;">Betrete die Schatten-Zentrale</p>
@@ -84,7 +85,8 @@
             }
             return devId;
         }
-                function initSystem() {
+
+        function initSystem() {
             let users = getAllUsers();
             if (Object.keys(users).length === 0) {
                 users["Shadow"] = {
@@ -131,7 +133,8 @@
             alert(`Willkommen zurück, ${userIn}!`);
             location.href = "index.html";
         }
-                function handleRegister() {
+
+        function handleRegister() {
             const userIn = document.getElementById("reg-username").value.trim();
             const passIn = document.getElementById("reg-password").value;
             
