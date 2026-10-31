@@ -21,7 +21,7 @@
             color: #555566; font-size: 0.95rem; cursor: pointer; text-align: right; position: relative;
         }
         .profile-menu:hover { color: #888899; }
-                .dropdown-content {
+        .dropdown-content {
             display: none; background: #161622; border: 1px solid #333344; padding: 10px; border-radius: 10px;
             position: absolute; right: 0; top: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); width: 120px; z-index: 200;
         }
@@ -29,6 +29,7 @@
         .game-container, .auth-container {
             background: #161622; padding: 25px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
             display: inline-block; width: 90%; max-width: 420px; margin-bottom: 20px; margin-top: 80px; text-align: center;
+            box-sizing: border-box;
         }
         .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; max-width: 320px; margin: 25px auto; }
         .cell {
@@ -38,14 +39,14 @@
         .cell:hover { border-color: #ff0055; background: #0d0d1a; }
         .cell.revealed-ship { background: #16221f; border-color: #00ffcc; color: #00ffcc; cursor: default; }
         .cell.revealed-water { background: #1a1a2e; border-color: #444455; color: #666688; cursor: default; }
-                button {
+        button {
             background: linear-gradient(135deg, #ff0055, #bc003f); color: white; border: none; padding: 12px 25px;
             font-size: 1.1rem; font-weight: bold; border-radius: 50px; cursor: pointer; box-shadow: 0 5px 15px rgba(255, 0, 85, 0.4);
         }
-        button:disabled { background: #444; box-shadow: none; cursor: not-allowed; }
+        button:disabled { background: #444; box-shadow: none; cursor: not-allowed; border-color: #444; }
         .cashout-btn { background: linear-gradient(135deg, #00ffcc, #00b38f); color: #0d0d11; box-shadow: none; }
-        input { width: 50%; padding: 10px; margin: 8px 0; border-radius: 10px; border: 1px solid #333344; background: #05050a; color: white; text-align: center; font-size: 1rem; }
-        select { padding: 10px; border-radius: 10px; border: 1px solid #333344; background: #05050a; color: white; font-size: 1rem; text-align: center; width: 55%; margin-bottom: 10px; }
+        input { width: 50%; padding: 10px; margin: 8px 0; border-radius: 10px; border: 1px solid #333344; background: #05050a; color: white; text-align: center; font-size: 1rem; outline: none; }
+        select { padding: 10px; border-radius: 10px; border: 1px solid #333344; background: #05050a; color: white; font-size: 1rem; text-align: center; width: 55%; margin-bottom: 10px; outline: none; }
         .status-text { font-size: 1.1rem; color: #ffcc00; font-weight: bold; margin-top: 15px; height: 25px; }
         #account-area { display: none; }
     </style>
@@ -68,32 +69,40 @@
         <p style="font-size:0.9rem; color:#888;">Dein Passwort lautet: <span id="current-pass-display" style="color:white; font-family:monospace;"></span></p>
         <input type="password" id="new-password-input" placeholder="Neues Passwort"><br>
         <button onclick="changePassword()">Passwort aktualisieren</button><br>
-        <button style="background:#444; font-size:0.9rem; padding:8px 20px;" onclick="closeAccountPage()">Zurück</button>
+        <button style="background:#444; font-size:0.9rem; padding:8px 20px; margin-top:10px;" onclick="closeAccountPage()">Zurück</button>
     </div>
+
     <div class="game-container" id="main-game-box">
         <h2 style="color:#ff0055; margin-top:0;">🚢 Schiffe versenken</h2>
         <p style="color:#888; font-size:0.9rem; margin-bottom:5px;">Finde und versenke die gegnerischen Schiffe! Fehlschüsse kosten dich Treibstoff!</p>
         <div style="font-size: 0.95rem; color: #aaa; margin-bottom: 15px;">Kontostand: <span id="coins-display" style="color:#00ffcc; font-weight:bold;">0</span> $</div>
+        
         <div id="setup-area">
             <input type="number" id="bet-input" placeholder="Einsatz in $" value="50"><br>
             <label style="font-size:0.85rem; color:#aaa; display:block; margin-top:5px;">Anzahl der gegnerischen Schiffe (1-10):</label>
             <select id="ships-select">
-                <option value="1">1 Schiff (Sehr schwer)</option><option value="3" selected>3 Schiffe (Normal)</option>
-                <option value="5">5 Schiffe (Gute Chancen)</option><option value="8">8 Schiffe (Viele Ziele)</option>
+                <option value="1">1 Schiff (Sehr schwer)</option>
+                <option value="3" selected>3 Schiffe (Normal)</option>
+                <option value="5">5 Schiffe (Gute Chancen)</option>
+                <option value="8">8 Schiffe (Viele Ziele)</option>
             </select><br>
             <button onclick="startGame()">Feuer frei!</button>
         </div>
+        
         <div id="play-area" style="display: none;">
-            <div style="font-size:0.9rem; color:#aaa;">Aktueller Gewinn: <span id="potential-win" style="color:#00ffcc; font-weight:bold;">0</span> $ (<span id="mult-display" style="color:#00ffcc; font-weight:bold;">1.0x</span>)</div>
+            <div style="font-size:0.9rem; color:#aaa;">Aktueller Gewinn: <span id="potential-win" style="color:#00ffcc; font-weight:bold;">0</span> $ (<span id="mult-display" style="color:#00ffcc; font-weight:bold;">0.00x</span>)</div>
             <div style="font-size:0.85rem; color:#888; margin-top:5px;">Versenkter Feindkontakt: <span id="found-display" style="color:#ffcc00; font-weight:bold;">0</span> / <span id="total-ships-display">0</span></div>
             <div class="grid" id="mine-grid"></div>
             <button class="cashout-btn" id="cash-btn" onclick="cashout()">💵 In den Heimathafen einlaufen</button>
         </div>
-        <div class="status-text" id="status-box">Bereite die Kanonen vor!</div>
+        <div class="status-text" id="status-box">Bereite deine Flotte vor!</div>
     </div>
         <script>
         let shipLocations = []; let bet = 0; let targetShips = 3; let selectedShipsCount = 0; let missedShotsCount = 0;
-        let currentMultiplier = 1.0; let currentU = ""; let audioCtx = null;
+        let currentMultiplier = 0.0; let currentU = ""; let audioCtx = null; let isPlayable = false;
+
+        function getAllUsers() { return JSON.parse(localStorage.getItem("sc_local_users") || "{}"); }
+        function saveAllUsers(users) { localStorage.setItem("sc_local_users", JSON.stringify(users)); }
 
         function playSound(type) {
             try {
@@ -104,52 +113,108 @@
                 else if (type === 'cash') { osc.type = 'sine'; osc.frequency.setValueAtTime(659.25, audioCtx.currentTime); osc.frequency.setValueAtTime(987.77, audioCtx.currentTime + 0.08); gain.gain.setValueAtTime(0.1, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3); osc.start(); osc.stop(audioCtx.currentTime + 0.3); }
             } catch(e) {}
         }
+
         window.onload = function() {
             currentU = localStorage.getItem('sc_username'); if (!currentU) { location.href = 'index.html'; return; }
-            document.getElementById('menu-username').innerText = currentU; const currentRole = localStorage.getItem('sc_role');
-            if (currentRole === "Owner" || currentRole === "Admin") { document.getElementById('admin-panel-link').style.display = "block"; }
+            document.getElementById('menu-username').innerText = currentU; 
+            
+            let users = getAllUsers();
+            if (!users[currentU]) { logout(); return; }
+            
+            if (users[currentU].role === "Owner" || users[currentU].role === "Admin") { 
+                document.getElementById('admin-panel-link').style.display = "block"; 
+            }
             updateBalanceDisplay();
         };
-        function updateBalanceDisplay() { document.getElementById('coins-display').innerText = localStorage.getItem('sc_balance_' + currentU) || 1000; }
+
+        function updateBalanceDisplay() { 
+            let users = getAllUsers();
+            document.getElementById('coins-display').innerText = users[currentU] ? users[currentU].balance : 1000; 
+        }
+
         function toggleDropdown() { const drop = document.getElementById('profile-dropdown'); drop.style.display = drop.style.display === "block" ? "none" : "block"; }
-        function openAccountPage() { document.getElementById('main-game-box').style.display = "none"; document.getElementById('account-area').style.display = "inline-block"; document.getElementById('current-pass-display').innerText = localStorage.getItem('sc_password'); toggleDropdown(); }
+        function openAccountPage() { document.getElementById('main-game-box').style.display = "none"; document.getElementById('account-area').style.display = "inline-block"; document.getElementById('current-pass-display').innerText = localStorage.getItem('sc_password') || "Geheim"; toggleDropdown(); }
         function closeAccountPage() { document.getElementById('account-area').style.display = "none"; document.getElementById('main-game-box').style.display = "inline-block"; }
-        function logout() { localStorage.removeItem('sc_username'); localStorage.removeItem('sc_role'); localStorage.removeItem('sc_password'); location.href = 'index.html'; }
-        function changePassword() { const newP = document.getElementById('new-password-input').value.trim(); if(!newP) return; let userList = JSON.parse(localStorage.getItem('sc_global_users') || '[]'); let idx = userList.findIndex(u => u.username === currentU); if(idx !== -1) { userList[idx].pass = newP; localStorage.setItem('sc_global_users', JSON.stringify(userList)); localStorage.setItem('sc_password', newP); alert("Passwort geändert!"); closeAccountPage(); } }
+        function logout() { localStorage.clear(); location.href = 'login.html'; }
+        
+        function changePassword() { 
+            const newP = document.getElementById('new-password-input').value.trim(); if(!newP) return; 
+            let users = getAllUsers(); 
+            if(users[currentU]) { 
+                users[currentU].pass = newP; 
+                saveAllUsers(users); 
+                localStorage.setItem('sc_password', newP); 
+                alert("Passwort geändert!"); 
+                closeAccountPage(); 
+            } 
+        }
         
         function startGame() {
+            let users = getAllUsers();
             bet = parseInt(document.getElementById('bet-input').value); targetShips = parseInt(document.getElementById('ships-select').value);
-            let coins = parseInt(localStorage.getItem('sc_balance_' + currentU) || 1000); if (isNaN(bet) || bet <= 0 || bet > coins) { alert("Ungültiger Einsatz!"); return; }
-            coins -= bet; localStorage.setItem('sc_balance_' + currentU, coins); updateBalanceDisplay();
-            selectedShipsCount = 0; missedShotsCount = 0; currentMultiplier = 0.0; shipLocations = [];
+            if (isNaN(bet) || bet <= 0 || bet > users[currentU].balance) { alert("Ungültiger Einsatz!"); return; }
+            
+            users[currentU].balance -= bet; 
+            saveAllUsers(users); 
+            updateBalanceDisplay();
+            
+            selectedShipsCount = 0; missedShotsCount = 0; currentMultiplier = 0.0; shipLocations = []; isPlayable = true;
             while(shipLocations.length < targetShips) { let loc = Math.floor(Math.random() * 25); if(!shipLocations.includes(loc)) shipLocations.push(loc); }
+            
             document.getElementById('setup-area').style.display = "none"; document.getElementById('play-area').style.display = "block";
             document.getElementById('status-box').style.color = "#ffcc00"; document.getElementById('status-box').innerText = "Kanonen geladen! Wo vermutest du die Flotte?";
+            
             const gridContainer = document.getElementById('mine-grid'); gridContainer.innerHTML = "";
-            for(let i=0; i<25; i++) { let cell = document.createElement('div'); cell.className = "cell"; cell.dataset.index = i; cell.innerText = "🌊"; cell.onclick = function() { clickCell(this); }; gridContainer.appendChild(cell); }
+            for(let i=0; i<25; i++) { 
+                let cell = document.createElement('div'); 
+                cell.className = "cell"; 
+                cell.dataset.index = i; 
+                cell.innerText = "🌊"; 
+                cell.onclick = function() { clickCell(this); }; 
+                gridContainer.appendChild(cell); 
+            }
             updateStats();
         }
+
         function clickCell(cell) {
+            if (!isPlayable) return;
             let idx = parseInt(cell.dataset.index); if(cell.classList.contains('revealed-ship') || cell.classList.contains('revealed-water')) return;
             if(shipLocations.includes(idx)) {
                 playSound('hit'); cell.className = "cell revealed-ship"; cell.innerText = "🚢"; selectedShipsCount++;
-                // Multiplikator steigt massiv bei jedem Volltreffer
                 currentMultiplier += (25 / targetShips) * 0.45;
                 document.getElementById('status-box').style.color = "#00ffcc"; document.getElementById('status-box').innerText = "VOLLTREFFER! Ein feindliches Schiff sinkt!";
                 updateStats();
-                if(selectedShipsCount === targetShips) { alert("Phänomenal! Du hast die gesamte feindliche Flotte versenkt!"); cashout(); }
+                if(selectedShipsCount === targetShips) { 
+                    isPlayable = false;
+                    alert("Phänomenal! Du hast die gesamte feindliche Flotte versenkt!"); 
+                    cashout(); 
+                }
             } else {
                 playSound('miss'); cell.className = "cell revealed-water"; cell.innerText = "💨"; missedShotsCount++;
-                // Fehlschüsse verringern den Multiplikator leicht (Treibstoffverbrauch)
                 currentMultiplier = Math.max(0, currentMultiplier - 0.2);
                 document.getElementById('status-box').style.color = "#ffaa00"; document.getElementById('status-box').innerText = "Wasser! Kein Treffer auf dieser Koordinate.";
                 updateStats();
-                if(missedShotsCount >= 10) { document.getElementById('status-box').style.color = "#ff0055"; document.getElementById('status-box').innerText = "Kein Treibstoff mehr! Du wurdest manövrierunfähig gefasst."; setTimeout(resetGame, 2500); }
+                if(missedShotsCount >= 10) { 
+                    isPlayable = false;
+                    document.getElementById('status-box').style.color = "#ff0055"; document.getElementById('status-box').innerText = "Kein Treibstoff mehr! Du wurdest manövrierunfähig gefasst."; 
+                    setTimeout(resetGame, 2500); 
+                }
             }
         }
+
         function updateStats() { document.getElementById('found-display').innerText = selectedShipsCount; document.getElementById('total-ships-display').innerText = targetShips; document.getElementById('mult-display').innerText = currentMultiplier.toFixed(2) + "x"; document.getElementById('potential-win').innerText = Math.floor(bet * currentMultiplier); document.getElementById('cash-btn').disabled = selectedShipsCount === 0; }
-        function cashout() { let coins = parseInt(localStorage.getItem('sc_balance_' + currentU) || 1000); let totalWin = Math.floor(bet * currentMultiplier); coins += totalWin; localStorage.setItem('sc_balance_' + currentU, coins); playSound('cash'); alert(`Erfolgreich in den Heimathafen eingelaufen. +${totalWin}$ gesichert!`); resetGame(); }
-        function resetGame() { updateBalanceDisplay(); document.getElementById('setup-area').style.display = "block"; document.getElementById('play-area').style.display = "none"; document.getElementById('status-box').style.color = "#ffcc00"; document.getElementById('status-box').innerText = "Bereite deine Flotte vor!"; }
+        
+        function cashout() { 
+            let users = getAllUsers();
+            let totalWin = Math.floor(bet * currentMultiplier); 
+            users[currentU].balance += totalWin; 
+            saveAllUsers(users);
+            playSound('cash'); 
+            alert(`Erfolgreich in den Heimathafen eingelaufen. +${totalWin}$ gesichert!`); 
+            resetGame(); 
+        }
+
+        function resetGame() { isPlayable = false; updateBalanceDisplay(); document.getElementById('setup-area').style.display = "block"; document.getElementById('play-area').style.display = "none"; document.getElementById('status-box').style.color = "#ffcc00"; document.getElementById('status-box').innerText = "Bereite deine Flotte vor!"; }
     </script>
 </body>
 </html>
