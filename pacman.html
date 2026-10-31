@@ -39,15 +39,15 @@
         }
         button {
             background: linear-gradient(135deg, #ff0055, #bc003f); color: white; border: none; padding: 12px 25px;
-            font-size: 1rem; font-weight: bold; border-radius: 50px; cursor: pointer; box-shadow: 0 4px 12px rgba(255, 0, 85, 0.3);
+            font-size: 1rem; font-weight: bold; border-radius: 50px; cursor: pointer; box-shadow: 0 4px 12px rgba(255, 0, 85, 0.3); outline: none;
         }
-                button:disabled { background: #444; box-shadow: none; cursor: not-allowed; }
+        button:disabled { background: #444 !important; box-shadow: none !important; cursor: not-allowed; color: #888; }
         .btn-ctrl { background: #1e1e2f; border: 2px solid #333344; font-size: 1.4rem; padding: 10px; border-radius: 12px; box-shadow: none; }
         .btn-ctrl:hover { border-color: #ff0055; }
         .cashout-btn { background: linear-gradient(135deg, #00ffcc, #00b38f); color: #0d0d11; box-shadow: none; width: 80%; }
         input {
             width: 70%; padding: 10px; margin: 6px 0; border-radius: 10px; border: 1px solid #333344;
-            background: #05050a; color: white; text-align: center; font-size: 1rem;
+            background: #05050a; color: white; text-align: center; font-size: 1rem; outline: none;
         }
         .status-text { font-size: 1.1rem; color: #ffcc00; font-weight: bold; margin-top: 10px; height: 25px; }
     </style>
@@ -66,34 +66,39 @@
     </div>
     <div class="game-container">
         <h2 style="color:#ff0055; margin-top:0; font-size:1.6rem;">👾 Shadow Pacman</h2>
-        <p style="color:#888; font-size:0.85rem; margin-bottom:5px;">Zwei Geister jagen dich im Team! Teile sie an Kreuzungen geschickt auf.</p>
+        <p style="color:#888; font-size:0.85rem; margin-bottom:5px;">Zwei Geister jagen dich im Team! Weiche ihnen geschickt im Labyrinth aus.</p>
         <div style="font-size: 0.9rem; color: #aaa; margin-bottom: 10px;">Guthaben: <span id="coins-display" style="color:#00ffcc; font-weight:bold;">0</span> $</div>
+        
         <div id="setup-area">
             <input type="number" id="bet-input" placeholder="Einsatz in $" value="50"><br>
             <button onclick="startPacman()">Runde starten</button>
         </div>
+        
         <div id="play-area" style="display: none;">
             <div style="font-size:0.9rem; color:#aaa;">Multiplikator: <span id="mult-display" style="color:#00ffcc; font-weight:bold;">1.00x</span> | Gewinn: <span id="potential-win" style="color:#00ffcc; font-weight:bold;">0</span> $</div>
             <canvas id="pacmanCanvas" width="280" height="266"></canvas>
             <div class="controls-grid">
                 <div></div><button class="btn-ctrl" onclick="changeDir(0, -1)">🔼</button><div></div>
                 <button class="btn-ctrl" onclick="changeDir(-1, 0)">◀️</button><div></div><button class="btn-ctrl" onclick="changeDir(1, 0)">▶️</button>
-                                <div></div><button class="btn-ctrl" onclick="changeDir(0, 1)">🔽</button><div></div>
+                <div></div><button class="btn-ctrl" onclick="changeDir(0, 1)">🔽</button><div></div>
             </div>
             <button class="cashout-btn" onclick="cashoutPacman()">💵 Profit auszahlen</button>
         </div>
         <div class="status-text" id="status-box">Platziere deinen Casino-Einsatz!</div>
     </div>
+
     <script>
         let bet = 0; let currentU = ""; let audioCtx = null;
         let canvas, ctx, gameInterval; let gameActive = false; let currentMultiplier = 1.0;
-        const GH_USER = "Shadow13041"; const GH_REPO = "Casino"; const GH_TOKEN = "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"; let currentFileSha = "";
         let mapStr = "11111111111111111111|10000100000000100001|10110101111110101101|10000000010000000001|11101111010111101111|10001000010000100001|10101011111110101011|10100000000000001011|10111110111110111111|10000000111110000001|10111110111110111111|10100000000000001011|10101011111110101011|10001000010000100001|11101111010111101111|10000000010000000001|10110101111110101101|10000100000000100001|11111111111111111111".split("|").map(row => row.split("").map(Number));
         let grid = []; let rows = 19; let cols = 20; let tileSize = 14;
         let pacman = { x: 1, y: 1, dx: 1, dy: 0, nextDx: 1, nextDy: 0 };
         let ghost1 = { x: 18, y: 17, dx: -1, dy: 0 };
         let ghost2 = { x: 1, y: 17, dx: 1, dy: 0 };
-        let recentTurns = [];
+
+        function getAllUsers() { return JSON.parse(localStorage.getItem("sc_local_users") || "{}"); }
+        function saveAllUsers(users) { localStorage.setItem("sc_local_users", JSON.stringify(users)); }
+
         function playSound(type) {
             try {
                 if (!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
@@ -103,85 +108,93 @@
                 else if (type === 'cash') { osc.type = 'sine'; osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.08); gain.gain.setValueAtTime(0.08, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25); osc.start(); osc.stop(audioCtx.currentTime + 0.25); }
             } catch(e) {}
         }
+
         window.onload = function() {
             currentU = localStorage.getItem("sc_username"); if (!currentU) { location.href = "login.html"; return; }
-            document.getElementById("menu-username").innerText = currentU; const currentRole = localStorage.getItem("sc_role"); if (currentRole === "Owner" || currentRole === "Admin") { document.getElementById("admin-panel-link").style.display = "block"; }
-            updateBalanceDisplay(); canvas = document.getElementById("pacmanCanvas"); ctx = canvas.getContext("2d");
-        };
-        function updateBalanceDisplay() { document.getElementById("coins-display").innerText = localStorage.getItem("sc_balance_" + currentU) || 1000; }
-        function toggleDropdown() { const drop = document.getElementById("profile-dropdown"); drop.style.display = drop.style.display === "block" ? "none" : "block"; }
-        function logout() { localStorage.removeItem("sc_username"); localStorage.removeItem("sc_role"); localStorage.removeItem("sc_password"); location.href = "login.html"; }
-                async function syncFromCloud() {
-            try {
-                let firstPart = "https://api."; let secondPart = "://github.com"; let targetUrl = firstPart + secondPart + GH_USER + "/" + GH_REPO + "/contents/users.json";
-                const res = await fetch(targetUrl, { headers: { "Authorization": "token " + GH_TOKEN, "Accept": "application/vnd.github.v3+json" } });
-                if(res.ok) { const data = await res.json(); currentFileSha = data.sha; let text = decodeURIComponent(escape(atob(data.content))); localStorage.setItem("sc_global_users", text); }
-            } catch(e) {}
-        }
-        async function pushToCloud() {
-            try {
-                await syncFromCloud(); let opBracket = String.fromCharCode(91); let clBracket = String.fromCharCode(93); let fallbackEmptyArray = opBracket + clBracket;
-                let userList = JSON.parse(localStorage.getItem("sc_global_users") || fallbackEmptyArray); let idx = userList.findIndex(u => u.username === currentU); if(idx !== -1) { userList.at(idx).balance = parseInt(localStorage.getItem("sc_balance_" + currentU) || 1000); }
-                let b64 = btoa(unescape(encodeURIComponent(JSON.stringify(userList)))); let firstPart = "https://api."; let secondPart = "://github.com"; let targetUrl = firstPart + secondPart + GH_USER + "/" + GH_REPO + "/contents/users.json";
-                await fetch(targetUrl, { method: "PUT", headers: { "Authorization": "token " + GH_TOKEN, "Content-Type": "application/json" }, body: JSON.stringify({ message: "Casino-Cloud: Pacman-Update", content: b64, sha: currentFileSha }) });
-            } catch(e) {}
-        }
-        function changeDir(x, y) { pacman.nextDx = x; pacman.nextDy = y; }
-        function startPacman() {
-            bet = parseInt(document.getElementById("bet-input").value); let coins = parseInt(localStorage.getItem("sc_balance_" + currentU) || 1000); if (isNaN(bet) || bet <= 0 || bet > coins) { alert("Ungültiger Einsatz!"); return; }
-            coins -= bet; localStorage.setItem("sc_balance_" + currentU, coins); updateBalanceDisplay(); pushToCloud();
-            document.getElementById("setup-area").style.display = "none"; document.getElementById("play-area").style.display = "block"; document.getElementById("status-box").style.color = "#ffcc00"; document.getElementById("status-box").innerText = "Weiche den Geistern aus!";
-            grid = JSON.parse(JSON.stringify(mapStr)); pacman = { x: 1, y: 1, dx: 1, dy: 0, nextDx: 1, nextDy: 0 }; ghost1 = { x: 18, y: 17, dx: -1, dy: 0 }; ghost2 = { x: 1, y: 17, dx: 1, dy: 0 }; recentTurns = []; currentMultiplier = 1.0; gameActive = true;
-            if(gameInterval) clearInterval(gameInterval); gameInterval = setInterval(gameLoop, 220);
-        }
-        function moveGhost(g, id) {
-            let possibleMoves = [];
-            if (grid.at(g.y - 1).at(g.x) !== 1) possibleMoves.push({x:0, y:-1});
-            if (grid.at(g.y + 1).at(g.x) !== 1) possibleMoves.push({x:0, y:1});
-            if (grid.at(g.y).at(g.x - 1) !== 1) possibleMoves.push({x:-1, y:0});
-            if (grid.at(g.y).at(g.x + 1) !== 1) possibleMoves.push({x:1, y:0});
-            let validMoves = [];
-            possibleMoves.forEach(m => {
-                if (possibleMoves.length > 1 && m.x === -g.dx && m.y === -g.dy) return;
-                validMoves.push(m);
+            document.getElementById("menu-username").innerText = currentU;
+            let users = getAllUsers(); if(!users[currentU]) { logout(); return; }
+            const currentRole = users[currentU].role || "Player";
+            if (currentRole === "Owner" || currentRole === "Admin") { document.getElementById("admin-panel-link").style.display = "block"; }
+            updateBalanceDisplay();
+            canvas = document.getElementById("pacmanCanvas"); ctx = canvas.getContext("2d");
+            window.addEventListener("keydown", (e) => {
+                if (!gameActive) return;
+                if (e.key === "ArrowUp" || e.key.toLowerCase() === "w") changeDir(0, -1);
+                if (e.key === "ArrowDown" || e.key.toLowerCase() === "s") changeDir(0, 1);
+                if (e.key === "ArrowLeft" || e.key.toLowerCase() === "a") changeDir(-1, 0);
+                if (e.key === "ArrowRight" || e.key.toLowerCase() === "d") changeDir(1, 0);
             });
-            let now = Date.now();
-            recentTurns = recentTurns.filter(t => now - t.time < 5000);
-            if (validMoves.length >= 2) {
-                let filteredMoves = validMoves.filter(m => {
-                    return !recentTurns.some(t => t.id !== id && t.x === g.x && t.y === g.y && t.dx === m.x && t.dy === m.y);
+        };
+        function updateBalanceDisplay() { let users = getAllUsers(); document.getElementById("coins-display").innerText = users[currentU] ? users[currentU].balance : 1000; }
+        function toggleDropdown() { const drop = document.getElementById("profile-dropdown"); drop.style.display = drop.style.display === "block" ? "none" : "block"; }
+        function logout() { localStorage.clear(); location.href = "login.html"; }
+                function startPacman() {
+            let users = getAllUsers(); bet = parseInt(document.getElementById("bet-input").value);
+            if (isNaN(bet) || bet <= 0 || bet > users[currentU].balance) { alert("Ungültiger Einsatz!"); return; }
+            users[currentU].balance -= bet; saveAllUsers(users); updateBalanceDisplay();
+            grid = JSON.parse(JSON.stringify(mapStr)); currentMultiplier = 1.0; gameActive = true;
+            pacman = { x: 1, y: 1, dx: 1, dy: 0, nextDx: 1, nextDy: 0 };
+            ghost1 = { x: 18, y: 17, dx: -1, dy: 0 }; ghost2 = { x: 1, y: 17, dx: 1, dy: 0 };
+            document.getElementById("setup-area").style.display = "none"; document.getElementById("play-area").style.display = "block";
+            document.getElementById("status-box").style.color = "#ffcc00"; document.getElementById("status-box").innerText = "Weiche den Geistern aus!";
+            updateStats(); gameInterval = setInterval(updateGame, 200);
+        }
+
+        function changeDir(x, y) { pacman.nextDx = x; pacman.nextDy = y; }
+        function isWalkable(x, y) { if (x < 0 || x >= cols || y < 0 || y >= rows) return false; return grid[y][x] !== 1; }
+
+        function moveGhost(ghost) {
+            let dirs = [{x: 1, y: 0}, {x: -1, y: 0}, {x: 0, y: 1}, {x: 0, y: -1}];
+            let validDirs = dirs.filter(d => isWalkable(ghost.x + d.x, ghost.y + d.y) && (d.x !== -ghost.dx || d.y !== -ghost.dy));
+            if (validDirs.length === 0) validDirs = dirs.filter(d => isWalkable(ghost.x + d.x, ghost.y + d.y));
+            if (validDirs.length > 0) {
+                validDirs.sort((a, b) => {
+                    let distA = Math.abs((ghost.x + a.x) - pacman.x) + Math.abs((ghost.y + a.y) - pacman.y);
+                    let distB = Math.abs((ghost.x + b.x) - pacman.x) + Math.abs((ghost.y + b.y) - pacman.y);
+                    return distA - distB;
                 });
-                if (filteredMoves.length > 0) validMoves = filteredMoves;
+                ghost.x += validDirs[0].x; ghost.y += validDirs[0].y; ghost.dx = validDirs[0].x; ghost.dy = validDirs[0].y;
             }
-                        if (validMoves.length > 0) {
-                let cryptoArray = new Uint32Array(1); window.crypto.getRandomValues(cryptoArray); let aiRoll = (cryptoArray.at(0) % 100) + 1; let chosenMove;
-                if (aiRoll <= 10) { let randIndex = cryptoArray.at(0) % validMoves.length; chosenMove = validMoves.at(randIndex); } else {
-                    chosenMove = validMoves.at(0); let minDist = 9999;
-                    validMoves.forEach(m => { let gx = g.x + m.x; let gy = g.y + m.y; let dist = Math.abs(pacman.x - gx) + Math.abs(pacman.y - gy); if (dist < minDist) { minDist = dist; chosenMove = m; } });
-                }
-                if (g.dx !== chosenMove.x || g.dy !== chosenMove.y) { recentTurns.push({ id: id, x: g.x, y: g.y, dx: chosenMove.x, dy: chosenMove.y, time: now }); }
-                g.dx = chosenMove.x; g.dy = chosenMove.y;
-            } else if (possibleMoves.length > 0) {
-                let fallbackMove = possibleMoves.at(0); g.dx = fallbackMove.x; g.dy = fallbackMove.y;
-            }
-            g.x += g.dx; g.y += g.dy;
         }
-        function gameLoop() {
+
+        function updateGame() {
             if (!gameActive) return;
-            if (grid.at(pacman.y + pacman.nextDy).at(pacman.x + pacman.nextDx) !== 1) { pacman.dx = pacman.nextDx; pacman.dy = pacman.nextDy; }
-            if (grid.at(pacman.y + pacman.dy).at(pacman.x + pacman.dx) !== 1) { pacman.x += pacman.dx; pacman.y += pacman.dy; }
-            if (grid.at(pacman.y).at(pacman.x) === 0) { grid.at(pacman.y).splice(pacman.x, 1, 2); currentMultiplier += 0.05; playSound("waka"); document.getElementById("mult-display").innerText = currentMultiplier.toFixed(2) + "x"; document.getElementById("potential-win").innerText = Math.floor(bet * currentMultiplier); }
-            moveGhost(ghost1, 1); moveGhost(ghost2, 2);
-            if ((pacman.x === ghost1.x && pacman.y === ghost1.y) || (pacman.x === ghost2.x && pacman.y === ghost2.y)) { gameOver(); return; }
-            ctx.fillStyle = "#05050a"; ctx.fillRect(0, 0, canvas.width, canvas.height);
-            for(let r = 0; r < rows; r++) { for(let c = 0; c < cols; c++) { if (grid.at(r).at(c) === 1) { ctx.fillStyle = "#161622"; ctx.fillRect(c * tileSize, r * tileSize, tileSize, tileSize); } else if (grid.at(r).at(c) === 0) { ctx.fillStyle = "#ffffff"; ctx.beginPath(); ctx.arc(c * tileSize + tileSize/2, r * tileSize + tileSize/2, 2, 0, Math.PI * 2); ctx.fill(); } } }
-            ctx.fillStyle = "#ffcc00"; ctx.beginPath(); ctx.arc(pacman.x * tileSize + tileSize/2, pacman.y * tileSize + tileSize/2, tileSize/2 - 2, 0, Math.PI * 2); ctx.fill();
-            ctx.fillStyle = "#ff0055"; ctx.beginPath(); ctx.arc(ghost1.x * tileSize + tileSize/2, ghost1.y * tileSize + tileSize/2, tileSize/2 - 2, 0, Math.PI * 2); ctx.fill();
-            ctx.fillStyle = "#00ffcc"; ctx.beginPath(); ctx.arc(ghost2.x * tileSize + tileSize/2, ghost2.y * tileSize + tileSize/2, tileSize/2 - 2, 0, Math.PI * 2); ctx.fill();
+            if (isWalkable(pacman.x + pacman.nextDx, pacman.y + pacman.nextDy)) { pacman.dx = pacman.nextDx; pacman.dy = pacman.nextDy; }
+            if (isWalkable(pacman.x + pacman.dx, pacman.y + pacman.dy)) { pacman.x += pacman.dx; pacman.y += pacman.dy; }
+            if (grid[pacman.y][pacman.x] === 0) { grid[pacman.y][pacman.x] = 2; currentMultiplier += 0.05; playSound('waka'); updateStats(); }
+            moveGhost(ghost1); moveGhost(ghost2);
+            if ((pacman.x === ghost1.x && pacman.y === ghost1.y) || (pacman.x === ghost2.x && pacman.y === ghost2.y)) {
+                gameActive = false; clearInterval(gameInterval); playSound('death');
+                document.getElementById("status-box").style.color = "#ff0055"; document.getElementById("status-box").innerText = "Gefangen! ❌";
+                setTimeout(resetPacmanGame, 3000);
+            }
+            draw();
         }
-        function gameOver() { gameActive = false; clearInterval(gameInterval); playSound("death"); document.getElementById("status-box").style.color = "#ff0055"; document.getElementById("status-box").innerText = "GEFRESSEN! Ein Geist hat dich erwischt."; setTimeout(resetPacman, 3000); }
-        function cashoutPacman() { if (!gameActive) return; gameActive = false; clearInterval(gameInterval); let coins = parseInt(localStorage.getItem("sc_balance_" + currentU) || 1000); let totalWin = Math.floor(bet * currentMultiplier); coins += totalWin; localStorage.setItem("sc_balance_" + currentU, coins); playSound("cash"); pushToCloud(); alert("Gewinn erfolgreich gesichert! +" + totalWin + "$ erhalten!"); resetPacman(); }
-        function resetPacman() { updateBalanceDisplay(); document.getElementById("setup-area").style.display = "block"; document.getElementById("play-area").style.display = "none"; document.getElementById("status-box").style.color = "#ffcc00"; document.getElementById("status-box").innerText = "Platziere deinen Casino-Einsatz!"; }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    if (grid[r][c] === 1) { ctx.fillStyle = "#333344"; ctx.fillRect(c * tileSize, r * tileSize, tileSize, tileSize); }
+                    else if (grid[r][c] === 0) { ctx.fillStyle = "#ffcc00"; ctx.beginPath(); ctx.arc(c * tileSize + tileSize/2, r * tileSize + tileSize/2, 2.5, 0, Math.PI * 2); ctx.fill(); }
+                }
+            }
+            ctx.fillStyle = "#ffcc00"; ctx.beginPath(); ctx.arc(pacman.x * tileSize + tileSize/2, pacman.y * tileSize + tileSize/2, tileSize/2 - 1, 0.2 * Math.PI, 1.8 * Math.PI); ctx.lineTo(pacman.x * tileSize + tileSize/2, pacman.y * tileSize + tileSize/2); ctx.fill();
+            ctx.fillStyle = "#ff0055"; ctx.fillRect(ghost1.x * tileSize + 1, ghost1.y * tileSize + 1, tileSize - 2, tileSize - 2);
+            ctx.fillStyle = "#00ffcc"; ctx.fillRect(ghost2.x * tileSize + 1, ghost2.y * tileSize + 1, tileSize - 2, tileSize - 2);
+        }
+
+        function updateStats() { document.getElementById("mult-display").innerText = currentMultiplier.toFixed(2) + "x"; document.getElementById("potential-win").innerText = Math.floor(bet * currentMultiplier); }
+        
+        function cashoutPacman() {
+            if (!gameActive) return; gameActive = false; clearInterval(gameInterval);
+            let users = getAllUsers(); let totalWin = Math.floor(bet * currentMultiplier);
+            users[currentU].balance += totalWin; saveAllUsers(users); playSound('cash');
+            document.getElementById("status-box").style.color = "#00ffcc"; document.getElementById("status-box").innerText = `Profit gesichert! +${totalWin} $ 🏆`;
+            setTimeout(resetPacmanGame, 3000);
+        }
+
+        function resetPacmanGame() { clearInterval(gameInterval); gameActive = false; updateBalanceDisplay(); document.getElementById("setup-area").style.display = "block"; document.getElementById("play-area").style.display = "none"; document.getElementById("status-box").style.color = "#ffcc00"; document.getElementById("status-box").innerText = "Platziere deinen Casino-Einsatz!"; }
     </script>
 </body>
 </html>
