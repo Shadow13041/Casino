@@ -37,16 +37,16 @@
             transition: transform 0.1s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
         }
         .dice-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 20px 0; }
-        .num-btn { padding: 12px; font-size: 1.3rem; border-radius: 12px; border: 2px solid #333344; background: #1e1e2f; color: white; cursor: pointer; font-weight: bold; }
+        .num-btn { padding: 12px; font-size: 1.3rem; border-radius: 12px; border: 2px solid #333344; background: #1e1e2f; color: white; cursor: pointer; font-weight: bold; outline: none; }
         .num-btn.selected { border-color: #00ffcc; background: rgba(0, 255, 204, 0.15); box-shadow: 0 0 12px rgba(0, 255, 204, 0.3); color: #00ffcc; }
         button.roll-action {
             background: linear-gradient(135deg, #ff0055, #bc003f); color: white; border: none; padding: 14px 35px;
-            font-size: 1.2rem; font-weight: bold; border-radius: 50px; cursor: pointer; box-shadow: 0 5px 15px rgba(255, 0, 85, 0.4); width: 85%; margin-top: 10px;
+            font-size: 1.2rem; font-weight: bold; border-radius: 50px; cursor: pointer; box-shadow: 0 5px 15px rgba(255, 0, 85, 0.4); width: 85%; margin-top: 10px; outline: none;
         }
         button:disabled { background: #444 !important; box-shadow: none !important; cursor: not-allowed; color: #888; }
         input {
             width: 85%; padding: 11px; margin: 6px 0; border-radius: 10px; border: 1px solid #333344;
-            background: #05050a; color: white; text-align: center; font-size: 1.1rem; box-sizing: border-box;
+            background: #05050a; color: white; text-align: center; font-size: 1.1rem; box-sizing: border-box; outline: none;
         }
         .payout-info { font-size: 1rem; color: #00ffcc; font-weight: bold; margin-bottom: 5px; }
         .status-text { font-size: 1.1rem; color: #ffcc00; font-weight: bold; margin-top: 15px; height: 25px; }
@@ -81,9 +81,12 @@
         <button id="roll-btn" class="roll-action" onclick="startRoll()">WÜRFELN</button>
         <div class="status-text" id="status-box">Wähle deine Zahl und würfle!</div>
     </div>
-    <script>
+        <script>
         let balance = 1000; let currentU = ""; let chosenNumber = 1; let isRolling = false; let audioCtx = null;
-        const GH_USER = "Shadow13041"; const GH_REPO = "Casino"; const GH_TOKEN = "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"; let currentFileSha = "";
+
+        function getAllUsers() { return JSON.parse(localStorage.getItem("sc_local_users") || "{}"); }
+        function saveAllUsers(users) { localStorage.setItem("sc_local_users", JSON.stringify(users)); }
+
         function playSound(type) {
             try {
                 if (!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
@@ -93,54 +96,99 @@
                 else if (type === 'lose') { osc.type = 'sawtooth'; osc.frequency.setValueAtTime(120, audioCtx.currentTime); gain.gain.setValueAtTime(0.09, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3); osc.start(); osc.stop(audioCtx.currentTime + 0.3); }
             } catch(e) {}
         }
+
         window.onload = function() {
             currentU = localStorage.getItem("sc_username"); if (!currentU) { location.href = "login.html"; return; }
-            document.getElementById("menu-username").innerText = currentU; const currentRole = localStorage.getItem("sc_role"); if (currentRole === "Owner" || currentRole === "Admin") { document.getElementById("admin-panel-link").style.display = "block"; }
-            balance = parseInt(localStorage.getItem("sc_balance_" + currentU) || 1000); document.getElementById("balance-display").innerText = balance; syncFromCloud();
+            document.getElementById("menu-username").innerText = currentU; 
+            
+            let users = getAllUsers();
+            if (!users[currentU]) { logout(); return; }
+            
+            const currentRole = users[currentU].role || "Player";
+            if (currentRole === "Owner" || currentRole === "Admin") { document.getElementById("admin-panel-link").style.display = "block"; }
+            
+            updateBalanceDisplay();
         };
+
+        function updateBalanceDisplay() {
+            let users = getAllUsers();
+            if(users[currentU]) {
+                balance = users[currentU].balance;
+                document.getElementById("balance-display").innerText = balance;
+            }
+        }
+
         function toggleDropdown() { const drop = document.getElementById("profile-dropdown"); drop.style.display = drop.style.display === "block" ? "none" : "block"; }
-        function logout() { localStorage.removeItem("sc_username"); localStorage.removeItem("sc_role"); localStorage.removeItem("sc_password"); location.href = "login.html"; }
-        async function syncFromCloud() {
-            try {
-                let firstPart = "https://api."; let secondPart = "://github.com"; let targetUrl = firstPart + secondPart + GH_USER + "/" + GH_REPO + "/contents/users.json";
-                const res = await fetch(targetUrl, { headers: { "Authorization": "token " + GH_TOKEN, "Accept": "application/vnd.github.v3+json" } });
-                if(res.ok) { const data = await res.json(); currentFileSha = data.sha; let text = decodeURIComponent(escape(atob(data.content))); localStorage.setItem("sc_global_users", text); }
-            } catch(e) {}
-        }
-        async function pushToCloud() {
-            try {
-                await syncFromCloud(); let opBracket = String.fromCharCode(91); let clBracket = String.fromCharCode(93); let fallbackEmptyArray = opBracket + clBracket;
-                let userList = JSON.parse(localStorage.getItem("sc_global_users") || fallbackEmptyArray); let idx = userList.findIndex(u => u.username === currentU); if(idx !== -1) { userList.at(idx).balance = balance; }
-                let b64 = btoa(unescape(encodeURIComponent(JSON.stringify(userList)))); let firstPart = "https://api."; let secondPart = "://github.com"; let targetUrl = firstPart + secondPart + GH_USER + "/" + GH_REPO + "/contents/users.json";
-                await fetch(targetUrl, { method: "PUT", headers: { "Authorization": "token " + GH_TOKEN, "Content-Type": "application/json" }, body: JSON.stringify({ message: "Casino-Cloud: Dice-Update", content: b64, sha: currentFileSha }) });
-            } catch(e) {}
-        }
-        async function goBackToHub() { document.getElementById("roll-btn").disabled = true; document.getElementById("status-box").innerText = "⏳ Speichere Coins..."; await pushToCloud(); location.href = "index.html"; }
+        function logout() { localStorage.clear(); location.href = "login.html"; }
+        function goBackToHub() { location.href = "index.html"; }
+
         function selectNumber(num) { if (isRolling) return; chosenNumber = num; for (let i = 1; i <= 6; i++) { document.getElementById("btn-" + i).classList.toggle("selected", i === num); } }
+
         function startRoll() {
-            if (isRolling) return; let bet = parseInt(document.getElementById("bet-input").value); if (isNaN(bet) || bet <= 0 || bet > balance) { alert("Ungültiger Einsatz!"); return; }
-            isRolling = true; balance -= bet; document.getElementById("balance-display").innerText = balance; localStorage.setItem("sc_balance_" + currentU, balance);
-            document.getElementById("roll-btn").disabled = true; document.getElementById("status-box").style.color = "#ffcc00"; document.getElementById("status-box").innerText = "Würfel rollt...";
-            let cryptoArray = new Uint32Array(1); window.crypto.getRandomValues(cryptoArray); let finalRoll = (cryptoArray.at(0) % 6) + 1;
-            let diceBox = document.getElementById("dice-box"); diceBox.style.borderColor = "#ff0055"; diceBox.style.boxShadow = "0 0 20px rgba(255, 0, 85, 0.3)"; diceBox.style.color = "#ff0055";
+            if (isRolling) return; 
+            let users = getAllUsers();
+            let bet = parseInt(document.getElementById("bet-input").value); 
+            if (isNaN(bet) || bet <= 0 || bet > balance) { alert("Ungültiger Einsatz!"); return; }
+            
+            isRolling = true; 
+            users[currentU].balance -= bet;
+            saveAllUsers(users);
+            updateBalanceDisplay();
+            
+            document.getElementById("roll-btn").disabled = true; 
+            document.getElementById("status-box").style.color = "#ffcc00"; 
+            document.getElementById("status-box").innerText = "Würfel rollt... 🎲";
+            
+            let cryptoArray = new Uint32Array(1); 
+            window.crypto.getRandomValues(cryptoArray); 
+            let finalRoll = (cryptoArray[0] % 6) + 1;
+            
+            let diceBox = document.getElementById("dice-box"); 
+            diceBox.style.borderColor = "#ff0055"; 
+            diceBox.style.boxShadow = "0 0 20px rgba(255, 0, 85, 0.3)"; 
+            diceBox.style.color = "#ff0055";
+            
             let ticks = 0;
             let interval = setInterval(() => {
-                let animArray = new Uint32Array(1); window.crypto.getRandomValues(animArray); diceBox.innerText = (animArray.at(0) % 6) + 1; playSound("tick"); ticks++;
+                let animArray = new Uint32Array(1); 
+                window.crypto.getRandomValues(animArray); 
+                diceBox.innerText = (animArray[0] % 6) + 1; 
+                playSound("tick"); 
+                ticks++;
+                
                 if (ticks > 12) {
-                    clearInterval(interval); diceBox.innerText = finalRoll;
+                    clearInterval(interval); 
+                    diceBox.innerText = finalRoll;
+                    
+                    let activeUsers = getAllUsers();
                     if (finalRoll === chosenNumber) {
-                        let totalWin = bet * 6; balance += totalWin;
-                        diceBox.style.borderColor = "#00ffcc"; diceBox.style.boxShadow = "0 0 25px rgba(0, 255, 204, 0.6)"; diceBox.style.color = "#00ffcc";
-                        document.getElementById("status-box").style.color = "#00ffcc"; document.getElementById("status-box").innerText = "🎉 TREFFER! +" + totalWin + "$"; playSound("win");
+                        let totalWin = bet * 6; 
+                        activeUsers[currentU].balance += totalWin;
+                        
+                        diceBox.style.borderColor = "#00ffcc"; 
+                        diceBox.style.boxShadow = "0 0 25px rgba(0, 255, 204, 0.6)"; 
+                        diceBox.style.color = "#00ffcc";
+                        
+                        document.getElementById("status-box").style.color = "#00ffcc"; 
+                        document.getElementById("status-box").innerText = "🎉 TREFFER! +" + totalWin + "$"; 
+                        playSound("win");
                     } else {
-                        diceBox.style.borderColor = "#ff0055"; diceBox.style.boxShadow = "0 0 25px rgba(255, 0, 85, 0.6)"; diceBox.style.color = "#ff0055";
-                        document.getElementById("status-box").style.color = "#ff0055"; document.getElementById("status-box").innerText = "❌ KEIN TREFFER!"; playSound("lose");
+                        diceBox.style.borderColor = "#ff0055"; 
+                        diceBox.style.boxShadow = "0 0 25px rgba(255, 0, 85, 0.6)"; 
+                        diceBox.style.color = "#ff0055";
+                        
+                        document.getElementById("status-box").style.color = "#ff0055"; 
+                        document.getElementById("status-box").innerText = "❌ KEIN TREFFER!"; 
+                        playSound("lose");
                     }
-                    document.getElementById("balance-display").innerText = balance; localStorage.setItem("sc_balance_" + currentU, balance); document.getElementById("roll-btn").disabled = false; isRolling = false;
+                    
+                    saveAllUsers(activeUsers);
+                    updateBalanceDisplay(); 
+                    document.getElementById("roll-btn").disabled = false; 
+                    isRolling = false;
                 }
             }, 90);
         }
     </script>
 </body>
 </html>
-
